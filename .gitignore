@@ -1,0 +1,22 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/SinovadMediaServer/.vs/SinovadMediaServer
+/SinovadMediaServer/SinovadMediaServer/obj
+/SinovadMediaServer/SinovadMediaServer/bin/Debug/net7.0-windows/SinovadMediaServer.deps.json
+/SinovadMediaServer/SinovadMediaServer/bin/Debug/net7.0-windows/SinovadMediaServer.dll
+/SinovadMediaServer/SinovadMediaServer/bin/Debug/net7.0-windows/SinovadMediaServer.exe
+/SinovadMediaServer/SinovadMediaServer/bin/Debug/net7.0-windows/SinovadMediaServer.pdb
+/SinovadMediaServer/SinovadMediaServer/bin/Debug/net7.0-windows/SinovadMediaServer.runtimeconfig.json
+/SinovadMediaServer/SinovadMediaServer/bin/Debug/net7.0-windows/Microsoft.AspNetCore.JsonPatch.dll
+/SinovadMediaServer/SinovadMediaServer/bin/Debug/net7.0-windows/Microsoft.AspNetCore.Mvc.NewtonsoftJson.dll
+/SinovadMediaServer/SinovadMediaServer/bin/Debug/net7.0-windows/Microsoft.AspNetCore.Server.Kestrel.Https.dll
+/SinovadMediaServer/SinovadMediaServer/bin/Debug/net7.0-windows/Microsoft.AspNetCore.Server.Kestrel.Transport.Abstractions.dll
+/SinovadMediaServer/SinovadMediaServer/bin/Debug/net7.0-windows/Microsoft.Extensions.Configuration.Binder.dll
+/SinovadMediaServer/SinovadMediaServer/bin/Debug/net7.0-windows/Microsoft.Extensions.Hosting.dll
+/SinovadMediaServer/SinovadMediaServer/bin/Debug/net7.0-windows/Microsoft.Extensions.Options.dll
+/SinovadMediaServer/SinovadMediaServer/bin/Debug/net7.0-windows/Newtonsoft.Json.Bson.dll
+/SinovadMediaServer/SinovadMediaServer/bin/Debug/net7.0-windows/Newtonsoft.Json.dll
+/SinovadMediaServer/SinovadMediaServer/bin
+/SinovadMediaServer/.vs/ProjectEvaluation
