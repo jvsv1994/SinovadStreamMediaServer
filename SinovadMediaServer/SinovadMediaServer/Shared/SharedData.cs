@@ -6,7 +6,7 @@ namespace SinovadMediaServer.Shared
 {
     public class SharedData
     {
-        public HostData hostData { get; set; }
+        public MediaServerData MediaServerData { get; set; }
 
     }
 }

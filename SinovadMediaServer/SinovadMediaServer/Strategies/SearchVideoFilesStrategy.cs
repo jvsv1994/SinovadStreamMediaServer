@@ -35,10 +35,10 @@ namespace SinovadMediaServer.Strategies
             }
             IEnumerable<string> filesToAdd = new List<string>();
 
-            foreach (var accountStorage in mediaRequest.ListAccountStorages)
+            foreach (var storage in mediaRequest.ListStorages)
             {
-                var listPaths = Directory.GetFiles(accountStorage.PhisicalPath, "*.*", SearchOption.AllDirectories).Where(s => s.EndsWith(".mkv") || s.EndsWith(".mp4") || s.EndsWith(".avi")).ToList();
-                accountStorage.ListPaths = listPaths;
+                var listPaths = Directory.GetFiles(storage.PhysicalPath, "*.*", SearchOption.AllDirectories).Where(s => s.EndsWith(".mkv") || s.EndsWith(".mp4") || s.EndsWith(".avi")).ToList();
+                storage.ListPaths = listPaths;
             } 
             var restService = new RestService<Object>(_config, _sharedData);
             var res = restService.ExecuteHttpMethodAsync(HttpMethodType.POST, "/videos/UpdateVideosInListStorages", mediaRequest).Result;

@@ -39,7 +39,7 @@ namespace SinovadMediaServer.Proxy
         {  
             using (var httpClient = new HttpClient())
             {
-                httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _sharedData.hostData.apiKey);
+                httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _sharedData.MediaServerData.ApiKey);
                 var responseMessage = new HttpResponseMessage();
                 if (type == HttpMethodType.GET)
                 {

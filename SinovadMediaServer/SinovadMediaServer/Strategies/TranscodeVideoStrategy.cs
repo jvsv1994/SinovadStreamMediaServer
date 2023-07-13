@@ -22,10 +22,10 @@ namespace SinovadMediaServer.Strategies
             _sharedData=sharedData;
         }
 
-        private TranscodeSettingDto getTranscodeSetting(int accountServerId)
+        private TranscoderSettingsDto getTranscodeSetting(int mediaServerId)
         {
-            var restService = new RestService<TranscodeSettingDto>(_config, _sharedData);
-            var transcodeSetting = restService.ExecuteHttpMethodAsync(HttpMethodType.GET, "/transcodeSettings/GetByAccountServerAsync/" + accountServerId).Result;
+            var restService = new RestService<TranscoderSettingsDto>(_config, _sharedData);
+            var transcodeSetting = restService.ExecuteHttpMethodAsync(HttpMethodType.GET, "/transcoderSettings/GetByMediaServerAsync/" + mediaServerId).Result;
             return transcodeSetting;
         }
 
@@ -38,7 +38,7 @@ namespace SinovadMediaServer.Strategies
 
         public TranscodePrepareVideoDto Prepare(TranscodePrepareVideoDto transcodePrepareVideo)
         {
-            var transcodeSettings = getTranscodeSetting(transcodePrepareVideo.AccountServerId);
+            var transcoderSettings = getTranscodeSetting(transcodePrepareVideo.MediaServerId);
             var mediaAnalysis = FFMpegCore.FFProbe.Analyse(transcodePrepareVideo.PhysicalPath);
             if (mediaAnalysis != null)
             {
@@ -114,9 +114,9 @@ namespace SinovadMediaServer.Strategies
                     argumentsFinalVarStreamMap = "-var_stream_map " + varStreamsInQuotes;
                 }
                 var crf = 18;
-                if (transcodeSettings.ConstantRateFactor != null)
+                if (transcoderSettings.ConstantRateFactor != null)
                 {
-                    crf = transcodeSettings.ConstantRateFactor;
+                    crf = transcoderSettings.ConstantRateFactor;
                 }
                 var argumentsFormatVideo = "-muxpreload 0 -muxdelay 0 -c:v copy";
                 if (mediaAnalysis.VideoStreams != null && mediaAnalysis.VideoStreams.Count > 0)
@@ -132,7 +132,7 @@ namespace SinovadMediaServer.Strategies
                 var panSection = "stereo|c0=0.5*c2+0.707*c0+0.707*c4+0.5*c3|c1=0.5*c2+0.707*c1+0.707*c5+0.5*c3";
                 var panSectionInQuates = "\"" + panSection + "\"";
                 var argumentsStereoAudio = "-af pan=" + panSectionInQuates;
-                var presetObject = getCatalogDetail(transcodeSettings.PresetCatalogId,transcodeSettings.PresetCatalogDetailId);
+                var presetObject = getCatalogDetail(transcoderSettings.PresetCatalogId,transcoderSettings.PresetCatalogDetailId);
                 var argumentsPreset = "-preset " + presetObject.Name;
 
                 var videoOutputName = "video.m3u8";
@@ -213,14 +213,14 @@ namespace SinovadMediaServer.Strategies
                 var transcodeDirectoryRoutePath = _config.Value.WebUrl+ "/transcoded";
 
                 transcodePrepareVideo.TotalSeconds=mediaAnalysis.Duration.TotalSeconds;
-                transcodePrepareVideo.TranscodeDirectoryPhysicalPath= transcodeSettings.DirectoryPhysicalPath;
+                transcodePrepareVideo.TranscodeDirectoryPhysicalPath= transcoderSettings.TemporaryFolder;
                 transcodePrepareVideo.TranscodeDirectoryRoutePath= transcodeDirectoryRoutePath;
                 transcodePrepareVideo.VideoOutputName=videoOutputName;
                 transcodePrepareVideo.FinalCommandGenerateStreams=finalCommandGenerateStreams;
                 transcodePrepareVideo.FinalCommandGenerateSubtitles=finalCommandGenerateSubtitles;
                 transcodePrepareVideo.ListAudioStreams=listAudioStreams;
                 transcodePrepareVideo.ListSubtitlesStreams=listSubtitlesStreams;
-                transcodePrepareVideo.TransmissionMethodId=transcodeSettings.TransmissionMethodCatalogDetailId;
+                transcodePrepareVideo.TransmissionMethodId=transcoderSettings.VideoTransmissionTypeCatalogDetailId;
                 transcodePrepareVideo.Preset=presetObject.Name;
             }
             
@@ -255,9 +255,9 @@ namespace SinovadMediaServer.Strategies
             var videoOutputRoutePath = videoOutputDirectoryRoutePath + "/" + transcodePrepareVideo.VideoOutputName;
             var videoOutputPhysicalPath = videoOutputDirectoryPhysicalPath + "\\" + transcodePrepareVideo.VideoOutputName;
 
-            var transcodeVideoProcess = new TranscodeVideoProcessDto();
-            transcodeVideoProcess.Guid = transcodePrepareVideo.ProcessGUID;
-            transcodeVideoProcess.WorkingDirectoryPath = videoOutputDirectoryPhysicalPath;
+            var transcodeVideoProcess = new TranscodingProcessDto();
+            transcodeVideoProcess.RequestGuid = transcodePrepareVideo.ProcessGUID;
+            transcodeVideoProcess.GeneratedTemporaryFolder = videoOutputDirectoryPhysicalPath;
 
             ProcessStartInfo procStartIfo = new ProcessStartInfo();
             procStartIfo.WorkingDirectory = videoOutputDirectoryPhysicalPath;
@@ -271,7 +271,7 @@ namespace SinovadMediaServer.Strategies
                 process.StartInfo = procStartIfo;
                 process.EnableRaisingEvents = true;
                 process.Start();
-                transcodeVideoProcess.TranscodeAudioVideoProcessId = process.Id;
+                transcodeVideoProcess.SystemProcessIdentifier = process.Id;
                 transcodeRunVideo.TranscodeProcessStreamId= process.Id;
             }
             catch (Exception ex)
@@ -301,12 +301,12 @@ namespace SinovadMediaServer.Strategies
                     Console.WriteLine(ex.Message);
                 }
             }
-            if (transcodeVideoProcess.Guid != null && transcodeVideoProcess.Guid != "")
+            if (transcodeVideoProcess.RequestGuid != null)
             {
                 transcodeVideoProcess.Created = DateTime.Now;
-                if (transcodePrepareVideo.AccountServerId != null && transcodePrepareVideo.AccountServerId != 0)
+                if (transcodePrepareVideo.MediaServerId != null && transcodePrepareVideo.MediaServerId != 0)
                 {
-                    transcodeVideoProcess.AccountServerId = transcodePrepareVideo.AccountServerId;
+                    transcodeVideoProcess.MediaServerId = transcodePrepareVideo.MediaServerId;
                 }
                 registerTranscodeVideoProcess(transcodeVideoProcess);
             }
@@ -341,10 +341,10 @@ namespace SinovadMediaServer.Strategies
             return transcodeRunVideo;
         }
 
-        public void registerTranscodeVideoProcess(TranscodeVideoProcessDto transcodeVideoProcess)
+        public void registerTranscodeVideoProcess(TranscodingProcessDto transcodeVideoProcess)
         {
             var restService = new RestService<Object>(_config, _sharedData);
-            var res = restService.ExecuteHttpMethodAsync(HttpMethodType.POST, "/transcodeVideoProcesses/Create", transcodeVideoProcess).Result;
+            var res = restService.ExecuteHttpMethodAsync(HttpMethodType.POST, "/transcodingProcesses/Create", transcodeVideoProcess).Result;
         }
 
         public async Task<bool> checkIfExistFile(string outputFilePhysicalPathFinal)

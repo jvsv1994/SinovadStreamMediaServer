@@ -35,7 +35,7 @@ namespace SinovadMediaServer.Background
         {
             if (started == false)
             {
-                UpdateAccountServer(ServerState.Started);
+                UpdateMediaServer(MediaServerState.Started);
             }
             _logger.LogInformation("Timed Hosted Service running.");
 
@@ -45,12 +45,12 @@ namespace SinovadMediaServer.Background
             return Task.CompletedTask;
         }
 
-        private void UpdateAccountServer(ServerState serverState)
+        private void UpdateMediaServer(MediaServerState serverState)
         {
-            if (_sharedData.hostData != null && _sharedData.hostData.accountServer!=null)
+            if (_sharedData.MediaServerData != null && _sharedData.MediaServerData.MediaServer!=null)
             {
-                _sharedService.UpdateAccountServer(serverState);
-                if(serverState==ServerState.Started)
+                _sharedService.UpdateMediaServer(serverState);
+                if(serverState== MediaServerState.Started)
                 {
                     started = true;
                 }else{
@@ -61,13 +61,13 @@ namespace SinovadMediaServer.Background
 
         private void DoWork(object state)
         {
-            if (_sharedData.hostData == null)
+            if (_sharedData.MediaServerData == null)
             {
                 started = false;
             }else{
                 if (started == false)
                 {
-                    UpdateAccountServer(ServerState.Started);
+                    UpdateMediaServer(MediaServerState.Started);
                 }
             }
             var count = Interlocked.Increment(ref executionCount);
@@ -78,7 +78,7 @@ namespace SinovadMediaServer.Background
 
         public Task StopAsync(CancellationToken stoppingToken)
         {
-            UpdateAccountServer(ServerState.Stopped);
+            UpdateMediaServer(MediaServerState.Stopped);
 
             _logger.LogInformation("Timed Hosted Service is stopping.");
 
@@ -90,7 +90,7 @@ namespace SinovadMediaServer.Background
         public void Dispose()
         {
             _timer?.Dispose();
-            UpdateAccountServer(ServerState.Stopped);
+            UpdateMediaServer(MediaServerState.Stopped);
         }
     }
 }

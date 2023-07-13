@@ -25,28 +25,37 @@ namespace SinovadMediaServer.Shared
             _middlewareInjectorOptions = middlewareInjectorOptions;
         }
 
-        public void UpdateAccountServer(ServerState serverState)
+        public void UpdateMediaServer(MediaServerState serverState)
         {
-            var accountServer = _sharedData.hostData.accountServer;
-            accountServer.StateCatalogDetailId = (int)serverState;
-            accountServer.HostUrl = _config.Value.WebUrl;
-            var restService = new RestService<Object>(_config, _sharedData);
-            var res=restService.ExecuteHttpMethodAsync(HttpMethodType.PUT, "/accountServers/Update", accountServer).Result; 
+            var mediaServer = _sharedData.MediaServerData.MediaServer;
+            if(mediaServer!=null)
+            {
+                mediaServer.StateCatalogDetailId = (int)serverState;
+                mediaServer.Url = _config.Value.WebUrl;
+                var restService = new RestService<Object>(_config, _sharedData);
+                try
+                {
+                    var res = restService.ExecuteHttpMethodAsync(HttpMethodType.PUT, "/mediaServers/Update", mediaServer).Result;
+                }
+                catch (Exception ex) {
+                    Console.WriteLine(ex.Message);
+                }
+            }
         }
 
         public void InjectTranscodeMiddleware()
         {
             _middlewareInjectorOptions.InjectMiddleware(app =>
             {
-                if (_sharedData.hostData != null)
+                if (_sharedData.MediaServerData != null)
                 {
-                    var restService = new RestService<TranscodeSettingDto>(_config, _sharedData);
-                    var transcodeSetting = restService.ExecuteHttpMethodAsync(HttpMethodType.GET, "/transcodeSettings/GetByAccountServerAsync/" + _sharedData.hostData.accountServerId).Result;
+                    var restService = new RestService<TranscoderSettingsDto>(_config, _sharedData);
+                    var transcodeSetting = restService.ExecuteHttpMethodAsync(HttpMethodType.GET, "/transcoderSettings/GetByMediaServerAsync/" + _sharedData.MediaServerData.MediaServer.Id).Result;
                     if (transcodeSetting != null)
                     {
                         var fileOptions = new FileServerOptions
                         {
-                            FileProvider = new PhysicalFileProvider(transcodeSetting.DirectoryPhysicalPath),
+                            FileProvider = new PhysicalFileProvider(transcodeSetting.TemporaryFolder),
                             RequestPath = new PathString("/transcoded"),
                             EnableDirectoryBrowsing = true,
                             EnableDefaultFiles = false
@@ -65,7 +74,7 @@ namespace SinovadMediaServer.Shared
 
         public void CheckAndRegisterGenres()
         {
-            if (_sharedData.hostData != null)
+            if (_sharedData.MediaServerData != null)
             {
                 var restService = new RestService<Object>(_config, _sharedData);
                 var res=restService.ExecuteHttpMethodAsync(HttpMethodType.POST, "/genres/CheckAndRegisterGenres");

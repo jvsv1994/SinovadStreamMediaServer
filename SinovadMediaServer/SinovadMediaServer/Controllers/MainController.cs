@@ -29,18 +29,18 @@ namespace SinovadMediaServer.Controllers
             return Ok();
         }
 
-        [HttpDelete("DeleteHostData")]
-        public ActionResult DeleteHostData()
+        [HttpDelete("DeleteMediaServerData")]
+        public ActionResult DeleteMediaServerData()
         {
-            _sharedService.UpdateAccountServer(ServerState.Stopped);
-            _sharedData.hostData = null;
+            _sharedService.UpdateMediaServer(MediaServerState.Stopped);
+            _sharedData.MediaServerData = null;
             return Ok();
         }
 
-        [HttpPost("SaveHosData")]
-        public ActionResult SaveHosData([FromBody] HostData hostData)
+        [HttpPost("SaveMediaServerData")]
+        public ActionResult SaveMediaServerData([FromBody] MediaServerData MediaServerData)
         {
-            _sharedData.hostData = hostData;
+            _sharedData.MediaServerData = MediaServerData;
             _sharedService.CheckAndRegisterGenres();
             _sharedService.InjectTranscodeMiddleware();
             return Ok();

@@ -10,9 +10,9 @@ namespace SinovadMediaServer.DTOs
         public int VideoId { get; set; }
         public string HostUrl { get; set; }
         public double CurrentTime { get; set; }
-        public int AccountServerId { get; set; }
+        public int MediaServerId { get; set; }
         public string PhysicalPath { get; set; }
-        public string ProcessGUID { get; set; }
+        public Guid ProcessGUID { get; set; }
         public string TimeSpan { get; set; }
         public double TotalSeconds { get; set; }
         public string TranscodeDirectoryPhysicalPath { get; set; }

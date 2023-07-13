@@ -30,20 +30,20 @@ namespace SinovadMediaServer.Strategies
             }
         }
 
-        private List<TranscodeVideoProcessDto> getListTranscodeVideoProcess()
+        private List<TranscodingProcessDto> getListTranscodeVideoProcess()
         {
-            var list = new List<TranscodeVideoProcessDto>();
-            if (_sharedData.hostData!=null)
+            var list = new List<TranscodingProcessDto>();
+            if (_sharedData.MediaServerData!=null)
             {
-                var restService = new RestService<List<TranscodeVideoProcessDto>>(_config, _sharedData);
-                list = restService.ExecuteHttpMethodAsync(HttpMethodType.GET, "/transcodeVideoProcesses/GetAllByAccountServerAsync/" + _sharedData.hostData.accountServerId).Result;
+                var restService = new RestService<List<TranscodingProcessDto>>(_config, _sharedData);
+                list = restService.ExecuteHttpMethodAsync(HttpMethodType.GET, "/transcodingProcesses/GetAllByMediaServerAsync/" + _sharedData.MediaServerData.MediaServer.Id).Result;
             }
             return list;
         }
 
-        public List<String> performDeleteListTranscodeVideoProcess(List<TranscodeVideoProcessDto> listTranscodeVideoProcess, Boolean forceDelete)
+        public List<Guid> performDeleteListTranscodeVideoProcess(List<TranscodingProcessDto> listTranscodeVideoProcess, Boolean forceDelete)
         {
-            List<String> listProcessDeletedGUIDs = new List<String>();
+            List<Guid> listProcessDeletedGUIDs = new List<Guid>();
             for (var i = 0; i < listTranscodeVideoProcess.Count; i++)
             {
                 var transcodeVideoProcess = listTranscodeVideoProcess[i];
@@ -60,7 +60,7 @@ namespace SinovadMediaServer.Strategies
                 {
                     try
                     {
-                        var proc = Process.GetProcessById(transcodeVideoProcess.TranscodeAudioVideoProcessId);
+                        var proc = Process.GetProcessById(transcodeVideoProcess.SystemProcessIdentifier);
                         try
                         {
                             if (proc != null)
@@ -81,11 +81,11 @@ namespace SinovadMediaServer.Strategies
                     {
                         Console.WriteLine(e);
                     }
-                    if (transcodeVideoProcess.TranscodeSubtitlesProcessId != null && transcodeVideoProcess.TranscodeSubtitlesProcessId != 0)
+                    if (transcodeVideoProcess.AdditionalSystemProcessIdentifier != null && transcodeVideoProcess.AdditionalSystemProcessIdentifier != 0)
                     {
                         try
                         {
-                            var proc = Process.GetProcessById((int)transcodeVideoProcess.TranscodeSubtitlesProcessId);
+                            var proc = Process.GetProcessById((int)transcodeVideoProcess.AdditionalSystemProcessIdentifier);
                             try
                             {
                                 if (proc != null)
@@ -111,11 +111,11 @@ namespace SinovadMediaServer.Strategies
                     System.Threading.Thread.Sleep(1000);
                     try
                     {
-                        if (System.IO.Directory.Exists(transcodeVideoProcess.WorkingDirectoryPath))
+                        if (System.IO.Directory.Exists(transcodeVideoProcess.GeneratedTemporaryFolder))
                         {
-                            System.IO.Directory.Delete(transcodeVideoProcess.WorkingDirectoryPath, true);
+                            System.IO.Directory.Delete(transcodeVideoProcess.GeneratedTemporaryFolder, true);
                         }
-                        listProcessDeletedGUIDs.Add(transcodeVideoProcess.Guid);
+                        listProcessDeletedGUIDs.Add(transcodeVideoProcess.RequestGuid);
                     }
                     catch (Exception e)
                     {
@@ -127,7 +127,7 @@ namespace SinovadMediaServer.Strategies
             {
                 var guids = string.Join(",", listProcessDeletedGUIDs);
                 var restService = new RestService<Object>(_config, _sharedData);
-                var res= restService.ExecuteHttpMethodAsync(HttpMethodType.DELETE, "/transcodeVideoProcesses/DeleteByListGuids/" + guids).Result;
+                var res= restService.ExecuteHttpMethodAsync(HttpMethodType.DELETE, "/transcodingProcesses/DeleteByListGuids/" + guids).Result;
             }
             return listProcessDeletedGUIDs;
         }
