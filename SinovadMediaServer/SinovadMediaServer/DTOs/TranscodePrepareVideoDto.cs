@@ -8,7 +8,7 @@ namespace SinovadMediaServer.DTOs
     {
         public string Title { get; set; }
         public int VideoId { get; set; }
-        public string HostUrl { get; set; }
+        public string MediaServerUrl { get; set; }
         public double CurrentTime { get; set; }
         public int MediaServerId { get; set; }
         public string PhysicalPath { get; set; }
