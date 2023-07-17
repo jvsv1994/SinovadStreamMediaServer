@@ -1,7 +1,3 @@
-using SinovadMediaServer.Configuration;
-using SinovadMediaServer.Middleware;
-using SinovadMediaServer.SchedulerJob;
-using SinovadMediaServer.Shared;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -9,7 +5,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Quartz;
 using SinovadMediaServer.Background;
-using SinovadMediaServer.Proxy;
+using SinovadMediaServer.Configuration;
+using SinovadMediaServer.Middleware;
+using SinovadMediaServer.SchedulerJob;
+using SinovadMediaServer.Shared;
 
 namespace SinovadMediaServer
 {
