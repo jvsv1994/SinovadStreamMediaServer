@@ -114,9 +114,9 @@ namespace SinovadMediaServer
         {
             if (webView21 != null && webView21.CoreWebView2 != null)
             {
-                //await webView21.CoreWebView2.Profile.ClearBrowsingDataAsync();
-                //webView21.CoreWebView2.CookieManager.DeleteAllCookies();
-                var appWebUrl = "http://www.sinovad.com?currenthost=" + _config["WebUrl"] + "&localipaddress=" + _config["IpAddress"];
+                await webView21.CoreWebView2.Profile.ClearBrowsingDataAsync();
+                webView21.CoreWebView2.CookieManager.DeleteAllCookies();
+                var appWebUrl = "http://streamdesktop.sinovad.com?currenthost=" + _config["WebUrl"] + "&localipaddress=" + _config["IpAddress"];
                 webView21.CoreWebView2.Navigate(appWebUrl);
             }
         }

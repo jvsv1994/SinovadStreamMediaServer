@@ -15,13 +15,13 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_134626F5DB1E4E24ABD00B24AA6FC87C"
+        "MsmKey" = "8:_08BC0F849E8B4D06840A8A80A081315C"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_E2C6DF5841D74B169FDBD88542CD4EB5"
+        "MsmKey" = "8:_134626F5DB1E4E24ABD00B24AA6FC87C"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -330,7 +330,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_79D5C3607A37431DB3C78845D34CDE8B"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_67BE2B5FEA4B4869BE8E6D3E89B6B388"
             {
             "Name" = "8:Sinovad Media Server"
             "Arguments" = "8:"
@@ -338,13 +338,13 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_E2C6DF5841D74B169FDBD88542CD4EB5"
-            "Folder" = "8:_C862BCD8BB724065AA13F584DA553051"
+            "Target" = "8:_08BC0F849E8B4D06840A8A80A081315C"
+            "Folder" = "8:_EF33A68A0E8C4B208D07F8DA27ABBEE2"
             "WorkingFolder" = "8:_0A74476359BA4ED7BF3DD27D802219A6"
             "Icon" = "8:_134626F5DB1E4E24ABD00B24AA6FC87C"
             "Feature" = "8:"
             }
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_7C7640BF8FD6413B8E67AAD144698F7C"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_FE846ED77CCC45B9BF58C66694DD0B62"
             {
             "Name" = "8:Sinovad Media Server"
             "Arguments" = "8:"
@@ -352,8 +352,8 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_E2C6DF5841D74B169FDBD88542CD4EB5"
-            "Folder" = "8:_EF33A68A0E8C4B208D07F8DA27ABBEE2"
+            "Target" = "8:_08BC0F849E8B4D06840A8A80A081315C"
+            "Folder" = "8:_C862BCD8BB724065AA13F584DA553051"
             "WorkingFolder" = "8:_0A74476359BA4ED7BF3DD27D802219A6"
             "Icon" = "8:_134626F5DB1E4E24ABD00B24AA6FC87C"
             "Feature" = "8:"
@@ -757,7 +757,7 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_E2C6DF5841D74B169FDBD88542CD4EB5"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_08BC0F849E8B4D06840A8A80A081315C"
             {
             "SourcePath" = "8:..\\SinovadMediaServer\\obj\\Debug\\net7.0-windows\\apphost.exe"
             "TargetName" = "8:"

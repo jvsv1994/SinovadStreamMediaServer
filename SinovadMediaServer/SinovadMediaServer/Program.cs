@@ -42,7 +42,7 @@ namespace SinovadMediaServer
 
             config["IpAddress"] = defaultIpAddress;
             config["WebUrl"] = httpUrl;
-            config["RestApiUrl"] = "http://www.sinovad.com/api/v1";
+            config["RestApiUrl"] = "http://streamapi.sinovad.com/api/v1";
             //config["RestApiUrl"] = "http://localhost:53363/api/v1";  
             Task.Run(() => StartWebServer(config, listUrls, args));
             ApplicationConfiguration.Initialize();

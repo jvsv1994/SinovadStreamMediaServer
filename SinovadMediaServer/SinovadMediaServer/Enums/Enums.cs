@@ -48,4 +48,5 @@ namespace SinovadMediaServer.Enums
         PUT=3,
         DELETE=4
     }
+
 }
