@@ -41,6 +41,9 @@ namespace SinovadMediaServer
             panelValidateCredentials = new Panel();
             authenticationMessageLabel = new Label();
             panelMediaServerInfo = new Panel();
+            familyNameLabel = new Label();
+            deviceNameLabel = new Label();
+            ipAddressAndPortLabel = new Label();
             manageLibrariesButton = new Button();
             label9 = new Label();
             label8 = new Label();
@@ -49,9 +52,7 @@ namespace SinovadMediaServer
             usernameLabel = new Label();
             label4 = new Label();
             pictureBox1 = new PictureBox();
-            ipAddressAndPortLabel = new Label();
-            deviceNameLabel = new Label();
-            familyNameLabel = new Label();
+            buttonRegisterUser = new Button();
             panelValidateCredentials.SuspendLayout();
             panelMediaServerInfo.SuspendLayout();
             ((ISupportInitialize)pictureBox1).BeginInit();
@@ -61,7 +62,7 @@ namespace SinovadMediaServer
             // 
             label1.AutoSize = true;
             label1.Font = new Font("Segoe UI", 13F, FontStyle.Regular, GraphicsUnit.Point);
-            label1.Location = new Point(380, 140);
+            label1.Location = new Point(380, 285);
             label1.Name = "label1";
             label1.Size = new Size(138, 47);
             label1.TabIndex = 0;
@@ -71,7 +72,7 @@ namespace SinovadMediaServer
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Segoe UI", 13F, FontStyle.Regular, GraphicsUnit.Point);
-            label2.Location = new Point(380, 317);
+            label2.Location = new Point(386, 441);
             label2.Name = "label2";
             label2.Size = new Size(196, 47);
             label2.TabIndex = 1;
@@ -80,7 +81,7 @@ namespace SinovadMediaServer
             // textBoxUser
             // 
             textBoxUser.Font = new Font("Segoe UI", 13F, FontStyle.Regular, GraphicsUnit.Point);
-            textBoxUser.Location = new Point(380, 220);
+            textBoxUser.Location = new Point(386, 352);
             textBoxUser.Name = "textBoxUser";
             textBoxUser.Size = new Size(405, 54);
             textBoxUser.TabIndex = 2;
@@ -88,7 +89,7 @@ namespace SinovadMediaServer
             // textBoxPassword
             // 
             textBoxPassword.Font = new Font("Segoe UI", 13F, FontStyle.Regular, GraphicsUnit.Point);
-            textBoxPassword.Location = new Point(380, 392);
+            textBoxPassword.Location = new Point(386, 521);
             textBoxPassword.Name = "textBoxPassword";
             textBoxPassword.PasswordChar = '*';
             textBoxPassword.Size = new Size(405, 54);
@@ -101,7 +102,7 @@ namespace SinovadMediaServer
             validateUserButton.FlatAppearance.BorderSize = 0;
             validateUserButton.FlatStyle = FlatStyle.Flat;
             validateUserButton.ForeColor = SystemColors.HighlightText;
-            validateUserButton.Location = new Point(380, 528);
+            validateUserButton.Location = new Point(386, 619);
             validateUserButton.Name = "validateUserButton";
             validateUserButton.Size = new Size(405, 64);
             validateUserButton.TabIndex = 4;
@@ -121,6 +122,7 @@ namespace SinovadMediaServer
             // 
             // panelValidateCredentials
             // 
+            panelValidateCredentials.Controls.Add(buttonRegisterUser);
             panelValidateCredentials.Controls.Add(authenticationMessageLabel);
             panelValidateCredentials.Controls.Add(label3);
             panelValidateCredentials.Controls.Add(validateUserButton);
@@ -128,7 +130,7 @@ namespace SinovadMediaServer
             panelValidateCredentials.Controls.Add(textBoxUser);
             panelValidateCredentials.Controls.Add(label2);
             panelValidateCredentials.Controls.Add(label1);
-            panelValidateCredentials.Location = new Point(190, 980);
+            panelValidateCredentials.Location = new Point(205, 134);
             panelValidateCredentials.Name = "panelValidateCredentials";
             panelValidateCredentials.Size = new Size(1181, 817);
             panelValidateCredentials.TabIndex = 6;
@@ -139,7 +141,7 @@ namespace SinovadMediaServer
             // 
             authenticationMessageLabel.AutoSize = true;
             authenticationMessageLabel.ForeColor = Color.Red;
-            authenticationMessageLabel.Location = new Point(380, 632);
+            authenticationMessageLabel.Location = new Point(386, 145);
             authenticationMessageLabel.MaximumSize = new Size(405, 1021);
             authenticationMessageLabel.Name = "authenticationMessageLabel";
             authenticationMessageLabel.Size = new Size(318, 32);
@@ -165,6 +167,33 @@ namespace SinovadMediaServer
             panelMediaServerInfo.Size = new Size(1175, 811);
             panelMediaServerInfo.TabIndex = 6;
             panelMediaServerInfo.Visible = false;
+            // 
+            // familyNameLabel
+            // 
+            familyNameLabel.AutoSize = true;
+            familyNameLabel.Location = new Point(423, 409);
+            familyNameLabel.Name = "familyNameLabel";
+            familyNameLabel.Size = new Size(199, 32);
+            familyNameLabel.TabIndex = 9;
+            familyNameLabel.Text = "familyNameLabel";
+            // 
+            // deviceNameLabel
+            // 
+            deviceNameLabel.AutoSize = true;
+            deviceNameLabel.Location = new Point(423, 344);
+            deviceNameLabel.Name = "deviceNameLabel";
+            deviceNameLabel.Size = new Size(203, 32);
+            deviceNameLabel.TabIndex = 8;
+            deviceNameLabel.Text = "deviceNameLabel";
+            // 
+            // ipAddressAndPortLabel
+            // 
+            ipAddressAndPortLabel.AutoSize = true;
+            ipAddressAndPortLabel.Location = new Point(423, 285);
+            ipAddressAndPortLabel.Name = "ipAddressAndPortLabel";
+            ipAddressAndPortLabel.Size = new Size(259, 32);
+            ipAddressAndPortLabel.TabIndex = 7;
+            ipAddressAndPortLabel.Text = "ipAddressAndPortLabel";
             // 
             // manageLibrariesButton
             // 
@@ -246,39 +275,28 @@ namespace SinovadMediaServer
             pictureBox1.TabStop = false;
             pictureBox1.Click += pictureBox1_Click;
             // 
-            // ipAddressAndPortLabel
+            // buttonRegisterUser
             // 
-            ipAddressAndPortLabel.AutoSize = true;
-            ipAddressAndPortLabel.Location = new Point(423, 285);
-            ipAddressAndPortLabel.Name = "ipAddressAndPortLabel";
-            ipAddressAndPortLabel.Size = new Size(259, 32);
-            ipAddressAndPortLabel.TabIndex = 7;
-            ipAddressAndPortLabel.Text = "ipAddressAndPortLabel";
-            // 
-            // deviceNameLabel
-            // 
-            deviceNameLabel.AutoSize = true;
-            deviceNameLabel.Location = new Point(423, 344);
-            deviceNameLabel.Name = "deviceNameLabel";
-            deviceNameLabel.Size = new Size(203, 32);
-            deviceNameLabel.TabIndex = 8;
-            deviceNameLabel.Text = "deviceNameLabel";
-            // 
-            // familyNameLabel
-            // 
-            familyNameLabel.AutoSize = true;
-            familyNameLabel.Location = new Point(423, 409);
-            familyNameLabel.Name = "familyNameLabel";
-            familyNameLabel.Size = new Size(199, 32);
-            familyNameLabel.TabIndex = 9;
-            familyNameLabel.Text = "familyNameLabel";
+            buttonRegisterUser.BackColor = SystemColors.MenuHighlight;
+            buttonRegisterUser.FlatAppearance.BorderColor = Color.White;
+            buttonRegisterUser.FlatAppearance.BorderSize = 0;
+            buttonRegisterUser.FlatStyle = FlatStyle.Flat;
+            buttonRegisterUser.ForeColor = SystemColors.HighlightText;
+            buttonRegisterUser.Location = new Point(386, 711);
+            buttonRegisterUser.Name = "buttonRegisterUser";
+            buttonRegisterUser.Size = new Size(405, 64);
+            buttonRegisterUser.TabIndex = 7;
+            buttonRegisterUser.Text = "Registrarse";
+            buttonRegisterUser.UseCompatibleTextRendering = true;
+            buttonRegisterUser.UseVisualStyleBackColor = false;
+            buttonRegisterUser.Click += buttonRegisterUser_Click;
             // 
             // Form1
             // 
             BackColor = SystemColors.ActiveCaptionText;
-            ClientSize = new Size(1583, 1016);
-            Controls.Add(pictureBox1);
+            ClientSize = new Size(1625, 1143);
             Controls.Add(panelValidateCredentials);
+            Controls.Add(pictureBox1);
             Controls.Add(panelMediaServerInfo);
             ForeColor = SystemColors.ButtonHighlight;
             Name = "Form1";
@@ -413,6 +431,7 @@ namespace SinovadMediaServer
         private Label familyNameLabel;
         private Label deviceNameLabel;
         private Label ipAddressAndPortLabel;
+        private Button buttonRegisterUser;
 
         #endregion
 

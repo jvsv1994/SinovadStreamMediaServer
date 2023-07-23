@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using SinovadMediaServer.Shared;
-using System;
 using System.Diagnostics;
-using System.Security.Policy;
 
 namespace SinovadMediaServer
 {
@@ -22,8 +20,9 @@ namespace SinovadMediaServer
             _sharedData = sharedData;
             InitializeComponent();
             ValidateMediaServer();
-            Task.Run(() => {
-              webHost.Run();
+            Task.Run(() =>
+            {
+                webHost.Run();
             });
         }
 
@@ -42,17 +41,19 @@ namespace SinovadMediaServer
                     if (completed)
                     {
                         usernameLabel.Text = _sharedData.UserData.UserName;
-                        ipAddressAndPortLabel.Text = _sharedData.MediaServerData.IpAddress+" : "+_sharedData.MediaServerData.Port;
+                        ipAddressAndPortLabel.Text = _sharedData.MediaServerData.IpAddress + " : " + _sharedData.MediaServerData.Port;
                         deviceNameLabel.Text = _sharedData.MediaServerData.DeviceName;
-                        familyNameLabel.Text= _sharedData.MediaServerData.FamilyName!=null && _sharedData.MediaServerData.FamilyName != "" ? _sharedData.MediaServerData.FamilyName:"No especificado";
+                        familyNameLabel.Text = _sharedData.MediaServerData.FamilyName != null && _sharedData.MediaServerData.FamilyName != "" ? _sharedData.MediaServerData.FamilyName : "No especificado";
                         _sharedService.InjectTranscodeMiddleware();
                         panelMediaServerInfo.Visible = true;
                     }
-                }else
+                }
+                else
                 {
                     panelValidateCredentials.Visible = true;
                 }
-            }else
+            }
+            else
             {
                 panelValidateCredentials.Visible = true;
             }
@@ -123,6 +124,11 @@ namespace SinovadMediaServer
         private void authenticationMessageLabel_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void buttonRegisterUser_Click(object sender, EventArgs e)
+        {
+            Process.Start(new ProcessStartInfo("http://streamweb.sinovad.com/register") { UseShellExecute = true });
         }
     }
 }
