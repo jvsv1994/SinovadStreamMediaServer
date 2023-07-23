@@ -41,7 +41,7 @@ namespace SinovadMediaServer
             panelValidateCredentials = new Panel();
             authenticationMessageLabel = new Label();
             panelMediaServerInfo = new Panel();
-            button2 = new Button();
+            manageLibrariesButton = new Button();
             label9 = new Label();
             label8 = new Label();
             label7 = new Label();
@@ -153,7 +153,7 @@ namespace SinovadMediaServer
             panelMediaServerInfo.Controls.Add(familyNameLabel);
             panelMediaServerInfo.Controls.Add(deviceNameLabel);
             panelMediaServerInfo.Controls.Add(ipAddressAndPortLabel);
-            panelMediaServerInfo.Controls.Add(button2);
+            panelMediaServerInfo.Controls.Add(manageLibrariesButton);
             panelMediaServerInfo.Controls.Add(label9);
             panelMediaServerInfo.Controls.Add(label8);
             panelMediaServerInfo.Controls.Add(label7);
@@ -166,19 +166,19 @@ namespace SinovadMediaServer
             panelMediaServerInfo.TabIndex = 6;
             panelMediaServerInfo.Visible = false;
             // 
-            // button2
+            // manageLibrariesButton
             // 
-            button2.BackColor = SystemColors.Highlight;
-            button2.FlatAppearance.BorderColor = Color.White;
-            button2.FlatAppearance.BorderSize = 0;
-            button2.FlatStyle = FlatStyle.Flat;
-            button2.Location = new Point(386, 520);
-            button2.Name = "button2";
-            button2.Size = new Size(321, 64);
-            button2.TabIndex = 6;
-            button2.Text = "Administrar bibliotecas";
-            button2.UseVisualStyleBackColor = false;
-            button2.Click += button2_Click;
+            manageLibrariesButton.BackColor = SystemColors.Highlight;
+            manageLibrariesButton.FlatAppearance.BorderColor = Color.White;
+            manageLibrariesButton.FlatAppearance.BorderSize = 0;
+            manageLibrariesButton.FlatStyle = FlatStyle.Flat;
+            manageLibrariesButton.Location = new Point(386, 520);
+            manageLibrariesButton.Name = "manageLibrariesButton";
+            manageLibrariesButton.Size = new Size(321, 64);
+            manageLibrariesButton.TabIndex = 6;
+            manageLibrariesButton.Text = "Administrar bibliotecas";
+            manageLibrariesButton.UseVisualStyleBackColor = false;
+            manageLibrariesButton.Click += manageLibrariesButton_Click;
             // 
             // label9
             // 
@@ -408,7 +408,7 @@ namespace SinovadMediaServer
         private Label label7;
         private Label label6;
         private Label label9;
-        private Button button2;
+        private Button manageLibrariesButton;
         private Label authenticationMessageLabel;
         private Label familyNameLabel;
         private Label deviceNameLabel;

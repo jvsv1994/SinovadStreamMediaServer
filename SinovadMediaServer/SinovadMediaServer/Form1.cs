@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using SinovadMediaServer.Shared;
+using System;
+using System.Diagnostics;
+using System.Security.Policy;
 
 namespace SinovadMediaServer
 {
@@ -112,9 +115,9 @@ namespace SinovadMediaServer
 
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void manageLibrariesButton_Click(object sender, EventArgs e)
         {
-
+            Process.Start(new ProcessStartInfo("http://streamweb.sinovad.com/settings/server/" + _sharedData.MediaServerData.Guid + "/manage/libraries?apiToken=" + _sharedData.ApiToken) { UseShellExecute = true });
         }
 
         private void authenticationMessageLabel_Click(object sender, EventArgs e)
