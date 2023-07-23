@@ -21,15 +21,6 @@ namespace SinovadMediaServer.Controllers
         {
             _config = config;
             _restService = restService;
-            string authorization = Request.Headers["Authorization"];
-            if(authorization != null)
-            {
-                var authValues = authorization.Split(" ");
-                if (authValues.Length > 1) {
-                   var apiKey = authValues[1];
-                   sharedData.ApiToken = apiKey;
-                }
-            }
         }
 
         [HttpDelete]

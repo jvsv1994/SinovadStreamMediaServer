@@ -25,7 +25,9 @@ namespace SinovadMediaServer
             var builderTmp = new ConfigurationBuilder().AddCommandLine(args);
             IConfiguration config = builderTmp.Build();
             var listUrls = SetConfigurationData(config);
-            StartWebServer(config, listUrls, args);
+            var webHost=StartWebServer(config, listUrls, args);
+            ApplicationConfiguration.Initialize();
+            Application.Run(new Form1(webHost));
         }
 
 
@@ -55,27 +57,28 @@ namespace SinovadMediaServer
             String sid = user.Sid.Value;
             config["SecurityIdentifier"]= sid;
             config["WebUrl"] = httpUrl;
-            //config["RestApiUrl"] = "http://streamapi.sinovad.com/api/v1";
-            config["RestApiUrl"] = "http://localhost:53363/api/v1";  
+            config["RestApiUrl"] = "http://streamapi.sinovad.com/api/v1";
+            //config["RestApiUrl"] = "http://localhost:53363/api/v1";  
             return listUrls;
         }
 
 
         private static string GetPublicIp()
         {
-            string url = "http://checkip.dyndns.org";
-            System.Net.WebRequest req = System.Net.WebRequest.Create(url);
-            System.Net.WebResponse resp = req.GetResponse();
-            System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
-            string response = sr.ReadToEnd().Trim();
-            string[] ipAddressWithText = response.Split(':');
-            string ipAddressWithHTMLEnd = ipAddressWithText[1].Substring(1);
-            string[] ipAddress = ipAddressWithHTMLEnd.Split('<');
-            string mainIP = ipAddress[0];
-            return mainIP;
+            return "";
+            //string url = "http://checkip.dyndns.org";
+            //System.Net.WebRequest req = System.Net.WebRequest.Create(url);
+            //System.Net.WebResponse resp = req.GetResponse();
+            //System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
+            //string response = sr.ReadToEnd().Trim();
+            //string[] ipAddressWithText = response.Split(':');
+            //string ipAddressWithHTMLEnd = ipAddressWithText[1].Substring(1);
+            //string[] ipAddress = ipAddressWithHTMLEnd.Split('<');
+            //string mainIP = ipAddress[0];
+            //return mainIP;
         }
 
-        private static void StartWebServer(IConfiguration config, List<String> listUrls,string[] args)
+        private static IWebHost StartWebServer(IConfiguration config, List<String> listUrls,string[] args)
         {
             var builder = WebHost.CreateDefaultBuilder();
             var app = builder
@@ -106,8 +109,8 @@ namespace SinovadMediaServer
                     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
                   );
                   services.AddSingleton<SharedData>();
+                  services.AddSingleton<MiddlewareInjectorOptions>();
                   services.AddScoped<RestService>();
-                  services.AddTransient<MiddlewareInjectorOptions>();
                   services.AddScoped<SharedService>();
                   services.Configure<MyConfig>(config);
                   services.AddMemoryCache();
@@ -140,12 +143,8 @@ namespace SinovadMediaServer
                   });
                   var sharedService = app.ApplicationServices.GetService<SharedService>();
                   var sharedData = app.ApplicationServices.GetService<SharedData>();
-                  var restService = app.ApplicationServices.GetService<RestService>();
-                  var config = app.ApplicationServices.GetService<IOptions<MyConfig>>();
-                  ApplicationConfiguration.Initialize();
-                  Application.Run(new Form1(sharedService, sharedData));
               }).Build();
-            app.Run();
+            return app;
         }
 
     }

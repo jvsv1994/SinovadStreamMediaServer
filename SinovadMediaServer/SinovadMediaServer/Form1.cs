@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using SinovadMediaServer.Shared;
 
 namespace SinovadMediaServer
@@ -9,12 +11,17 @@ namespace SinovadMediaServer
 
         private static SharedData _sharedData;
 
-        public Form1(SharedService sharedService, SharedData sharedData)
+        public Form1(IWebHost webHost)
         {
+            var sharedService = webHost.Services.GetService<SharedService>();
+            var sharedData = webHost.Services.GetService<SharedData>();
             _sharedService = sharedService;
             _sharedData = sharedData;
             InitializeComponent();
             ValidateMediaServer();
+            Task.Run(() => {
+              webHost.Run();
+            });
         }
 
         private async void ValidateMediaServer()
@@ -35,6 +42,7 @@ namespace SinovadMediaServer
                         ipAddressAndPortLabel.Text = _sharedData.MediaServerData.IpAddress+" : "+_sharedData.MediaServerData.Port;
                         deviceNameLabel.Text = _sharedData.MediaServerData.DeviceName;
                         familyNameLabel.Text= _sharedData.MediaServerData.FamilyName!=null && _sharedData.MediaServerData.FamilyName != "" ? _sharedData.MediaServerData.FamilyName:"No especificado";
+                        _sharedService.InjectTranscodeMiddleware();
                         panelMediaServerInfo.Visible = true;
                     }
                 }else
@@ -80,6 +88,7 @@ namespace SinovadMediaServer
                     ipAddressAndPortLabel.Text = _sharedData.MediaServerData.IpAddress + " : " + _sharedData.MediaServerData.Port;
                     deviceNameLabel.Text = _sharedData.MediaServerData.DeviceName;
                     familyNameLabel.Text = _sharedData.MediaServerData.FamilyName != null && _sharedData.MediaServerData.FamilyName != "" ? _sharedData.MediaServerData.FamilyName : "No especificado";
+                    _sharedService.InjectTranscodeMiddleware();
                     panelValidateCredentials.Visible = false;
                     panelMediaServerInfo.Visible = true;
                 }

@@ -150,31 +150,22 @@ namespace SinovadMediaServer.Shared
         public async void InjectTranscodeMiddleware()
         {
             _middlewareInjectorOptions.InjectMiddleware(app =>
-            {
-                var res =  _restService.ExecuteHttpMethodAsync<TranscoderSettingsDto>(HttpMethodType.GET, "/transcoderSettings/GetByMediaServerAsync/" + _sharedData.MediaServerData.Id).Result;
-                if (res.IsSuccess)
+            {      
+                var fileOptions = new FileServerOptions
                 {
-                    var fileOptions = new FileServerOptions
-                    {
-                        FileProvider = new PhysicalFileProvider(res.Data.TemporaryFolder),
-                        RequestPath = new PathString("/transcoded"),
-                        EnableDirectoryBrowsing = true,
-                        EnableDefaultFiles = false
-                    };
-                    fileOptions.StaticFileOptions.ServeUnknownFileTypes = true;
-                    app.UseFileServer(fileOptions);
-                }
+                    FileProvider = new PhysicalFileProvider(_sharedData.TranscoderSettingsData.TemporaryFolder),
+                    RequestPath = new PathString("/transcoded"),
+                    EnableDirectoryBrowsing = true,
+                    EnableDefaultFiles = false
+                };
+                fileOptions.StaticFileOptions.ServeUnknownFileTypes = true;
+                app.UseFileServer(fileOptions);              
             });
             using (var httpClient = new HttpClient())
             {
                 var content = new FormUrlEncodedContent(new Dictionary<string, string>());
-                httpClient.PostAsync(_config.Value.WebUrl + "/Main/StartApplication", content);
+                await httpClient.PostAsync(_config.Value.WebUrl + "/Main/StartApplication", content);
             }
-        }
-
-        public void CheckAndRegisterGenres()
-        {
-            var res=_restService.ExecuteHttpMethodAsync<object>(HttpMethodType.POST, "/genres/CheckAndRegisterGenres");   
         }
 
     }

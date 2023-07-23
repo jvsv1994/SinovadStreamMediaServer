@@ -33,10 +33,13 @@ namespace SinovadMediaServer.Strategies
         private async Task<List<TranscodingProcessDto>> getListTranscodeVideoProcess()
         {
             var list = new List<TranscodingProcessDto>();
-            var response = await _restService.ExecuteHttpMethodAsync<List<TranscodingProcessDto>>(HttpMethodType.GET, "/transcodingProcesses/GetAllByMediaServerAsync/" + _sharedData.MediaServerData.Id);
-            if(response.IsSuccess)
+            if(_sharedData.MediaServerData!=null)
             {
-                list=response.Data;
+                var response = await _restService.ExecuteHttpMethodAsync<List<TranscodingProcessDto>>(HttpMethodType.GET, "/transcodingProcesses/GetAllByMediaServerAsync/" + _sharedData.MediaServerData.Id);
+                if (response.IsSuccess)
+                {
+                    list = response.Data;
+                }
             }
             return list;
         }

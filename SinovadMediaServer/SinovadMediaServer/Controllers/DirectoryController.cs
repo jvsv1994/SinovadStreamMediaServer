@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using SinovadMediaServer.Strategies;
 using SinovadMediaServer.CustomModels;
+using SinovadMediaServer.Strategies;
 
 namespace SinovadMediaServer.Controllers
 {

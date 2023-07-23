@@ -18,16 +18,16 @@ namespace SinovadMediaServer.Controllers
         public MediaController(SharedData sharedData, RestService restService)
         {
             _restService = restService;
-            string authorization = Request.Headers["Authorization"];
-            if (authorization != null)
-            {
-                var authValues = authorization.Split(" ");
-                if (authValues.Length > 1)
-                {
-                    var apiKey = authValues[1];
-                    sharedData.ApiToken = apiKey;
-                }
-            }
+            //string authorization = Request.Headers["Authorization"];
+            //if (authorization != null)
+            //{
+            //    var authValues = authorization.Split(" ");
+            //    if (authValues.Length > 1)
+            //    {
+            //        var apiKey = authValues[1];
+            //        sharedData.ApiToken = apiKey;
+            //    }
+            //}
         }
 
         [HttpPost("UpdateVideosInListStorages")]
