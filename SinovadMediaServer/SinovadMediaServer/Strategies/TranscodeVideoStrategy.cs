@@ -4,6 +4,7 @@ using SinovadMediaServer.CustomModels;
 using SinovadMediaServer.DTOs;
 using SinovadMediaServer.Enums;
 using SinovadMediaServer.Proxy;
+using SinovadMediaServer.Shared;
 using System.Diagnostics;
 
 namespace SinovadMediaServer.Strategies
@@ -16,20 +17,13 @@ namespace SinovadMediaServer.Strategies
 
         private readonly RestService _restService;
 
-        public TranscodeVideoStrategy(IOptions<MyConfig> config, RestService restService)
+        private readonly SharedData _sharedData;
+
+        public TranscodeVideoStrategy(IOptions<MyConfig> config, RestService restService, SharedData sharedData)
         {
             _config = config;
             _restService = restService;
-        }
-
-        private async Task<TranscoderSettingsDto> getTranscodeSetting(int mediaServerId)
-        {
-            var res = await _restService.ExecuteHttpMethodAsync<TranscoderSettingsDto>(HttpMethodType.GET, "/transcoderSettings/GetByMediaServerAsync/" + mediaServerId);
-            if (res.IsSuccess)
-            {
-                return res.Data;
-            }
-            return null;
+            _sharedData = sharedData;
         }
 
         private async Task<CatalogDetailDto> getCatalogDetail(int presetCatalogId,int presetCatalogDetailId)
@@ -44,7 +38,7 @@ namespace SinovadMediaServer.Strategies
 
         public async Task<TranscodePrepareVideoDto> Prepare(TranscodePrepareVideoDto transcodePrepareVideo)
         {
-            var transcoderSettings = await getTranscodeSetting(transcodePrepareVideo.MediaServerId);
+            var transcoderSettings = _sharedData.TranscoderSettingsData;
             var mediaAnalysis = FFMpegCore.FFProbe.Analyse(transcodePrepareVideo.PhysicalPath);
             if (mediaAnalysis != null)
             {
