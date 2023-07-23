@@ -26,16 +26,6 @@ namespace SinovadMediaServer.Strategies
             _sharedData = sharedData;
         }
 
-        private async Task<CatalogDetailDto> getCatalogDetail(int presetCatalogId,int presetCatalogDetailId)
-        {
-            var res = await _restService.ExecuteHttpMethodAsync<CatalogDetailDto>(HttpMethodType.GET, "/catalogs/GetCatalogDetailAsync/" + presetCatalogId + "/" + presetCatalogDetailId);
-            if (res.IsSuccess)
-            {
-                return res.Data;
-            }
-            return null;
-        }
-
         public async Task<TranscodePrepareVideoDto> Prepare(TranscodePrepareVideoDto transcodePrepareVideo)
         {
             var transcoderSettings = _sharedData.TranscoderSettingsData;
@@ -132,8 +122,8 @@ namespace SinovadMediaServer.Strategies
                 var panSection = "stereo|c0=0.5*c2+0.707*c0+0.707*c4+0.5*c3|c1=0.5*c2+0.707*c1+0.707*c5+0.5*c3";
                 var panSectionInQuates = "\"" + panSection + "\"";
                 var argumentsStereoAudio = "-af pan=" + panSectionInQuates;
-                var presetObject = await getCatalogDetail(transcoderSettings.PresetCatalogId,transcoderSettings.PresetCatalogDetailId);
-                var argumentsPreset = "-preset " + presetObject.Name;
+                var presetObject = _sharedData.ListPresets.Find(x => x.Id == transcoderSettings.PresetCatalogDetailId);
+                var argumentsPreset = "-preset " + presetObject.TextValue;
 
                 var videoOutputName = "video.m3u8";
                 var formatOutputName = "out_%v.m3u8";
@@ -221,7 +211,7 @@ namespace SinovadMediaServer.Strategies
                 transcodePrepareVideo.ListAudioStreams=listAudioStreams;
                 transcodePrepareVideo.ListSubtitlesStreams=listSubtitlesStreams;
                 transcodePrepareVideo.TransmissionMethodId=transcoderSettings.VideoTransmissionTypeCatalogDetailId;
-                transcodePrepareVideo.Preset=presetObject.Name;
+                transcodePrepareVideo.Preset=presetObject.TextValue;
             }
             
             return transcodePrepareVideo;

@@ -11,5 +11,6 @@ namespace SinovadMediaServer.Shared
         public MediaServerDto MediaServerData { get; set; }
         public TranscoderSettingsDto TranscoderSettingsData { get; set; }
         public UserDto UserData { get; set; }
+        public List<CatalogDetailDto> ListPresets { get; set; }
     }
 }

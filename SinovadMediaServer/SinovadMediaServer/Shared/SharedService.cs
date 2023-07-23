@@ -54,7 +54,12 @@ namespace SinovadMediaServer.Shared
                 if (resultTranscoderSettings != null)
                 {
                     _sharedData.TranscoderSettingsData = resultTranscoderSettings;
-                    return true;
+                    var list=await GetPresets();
+                    if(list != null && list.Count>0)
+                    {
+                        _sharedData.ListPresets = list;
+                        return true;
+                    }
                 }
             }
             return false;
@@ -96,6 +101,17 @@ namespace SinovadMediaServer.Shared
             }else
             {
                return await CreateTranscoderSettings();
+            }
+        }
+
+        public async Task<List<CatalogDetailDto>> GetPresets()
+        {
+            var response = await _restService.ExecuteHttpMethodAsync<List<CatalogDetailDto>>(HttpMethodType.GET, "/catalogs/GetDetailsByCatalogAsync/" + (int)Catalog.TranscoderPreset);
+            if (response.IsSuccess && response.Data != null)
+            {
+                return response.Data;
+            }else{
+                return null;
             }
         }
 
