@@ -47,33 +47,30 @@ namespace SinovadMediaServer.Background
 
         private void UpdateMediaServer(MediaServerState serverState)
         {
-            if (_sharedData.MediaServerData != null && _sharedData.MediaServerData.MediaServer!=null)
+            _sharedService.UpdateMediaServer(serverState);
+            if(serverState== MediaServerState.Started)
             {
-                _sharedService.UpdateMediaServer(serverState);
-                if(serverState== MediaServerState.Started)
-                {
-                    started = true;
-                }else{
-                    started = false;
-                }
+                started = true;
+            }else{
+                started = false;
             }
         }
 
         private void DoWork(object state)
         {
-            if (_sharedData.MediaServerData == null)
-            {
-                started = false;
-            }else{
-                if (started == false)
-                {
-                    UpdateMediaServer(MediaServerState.Started);
-                }
-            }
-            var count = Interlocked.Increment(ref executionCount);
+            //if (_sharedData.MediaServerData == null)
+            //{
+            //    started = false;
+            //}else{
+            //    if (started == false)
+            //    {
+            //        UpdateMediaServer(MediaServerState.Started);
+            //    }
+            //}
+            //var count = Interlocked.Increment(ref executionCount);
 
-            _logger.LogInformation(
-                "Timed Hosted Service is working. Count: {Count}", count);
+            //_logger.LogInformation(
+            //    "Timed Hosted Service is working. Count: {Count}", count);
         }
 
         public Task StopAsync(CancellationToken stoppingToken)

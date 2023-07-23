@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
+using SinovadMediaServer.Common;
 using SinovadMediaServer.Configuration;
 using SinovadMediaServer.DTOs;
 using SinovadMediaServer.Enums;
@@ -18,51 +19,150 @@ namespace SinovadMediaServer.Shared
 
         public MiddlewareInjectorOptions _middlewareInjectorOptions;
 
-        public SharedService(IOptions<MyConfig> config, SharedData sharedData, MiddlewareInjectorOptions middlewareInjectorOptions)
+        private readonly RestService _restService;
+
+        public SharedService(IOptions<MyConfig> config, SharedData sharedData, MiddlewareInjectorOptions middlewareInjectorOptions, RestService restService)
         {
             _config = config;
             _sharedData = sharedData;
             _middlewareInjectorOptions = middlewareInjectorOptions;
+            _restService= restService;
+        }
+
+        public async Task<Response<AuthenticateMediaServerResponseDto>> AuthenticateMediaServer()
+        {
+            var response= await _restService.ExecuteHttpMethodAsync<AuthenticateMediaServerResponseDto>(HttpMethodType.POST, "/authentication/AuthenticateMediaServer", _config.Value.SecurityIdentifier);         
+            return response;
+        }
+
+        public async Task<Response<AuthenticateUserResponseDto>> ValidateUser(string username,string password)
+        {
+            var accessUserDto = new AccessUserDto();
+            accessUserDto.UserName = username;
+            accessUserDto.Password = password;
+            var response = await _restService.ExecuteHttpMethodAsync<AuthenticateUserResponseDto>(HttpMethodType.POST, "/authentication/AuthenticateUser", accessUserDto);
+            return response;
+        }
+
+        public async Task<bool> SetupMediaServer()
+        {
+            var resultMediaServer = await SaveMediaServer();
+            if (resultMediaServer != null)
+            {
+                _sharedData.MediaServerData = resultMediaServer;
+                var resultTranscoderSettings = await GetTranscoderSettings();
+                if (resultTranscoderSettings != null)
+                {
+                    _sharedData.TranscoderSettingsData = resultTranscoderSettings;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public async Task<MediaServerDto> SaveMediaServer()
+        {
+            var mediaServerDto = new MediaServerDto();
+            if (_sharedData.MediaServerData != null)
+            {
+                mediaServerDto = _sharedData.MediaServerData;
+            }
+            if (_sharedData.UserData!=null)
+            {
+                mediaServerDto.UserId = _sharedData.UserData.Id;
+            }
+            mediaServerDto.SecurityIdentifier= _config.Value.SecurityIdentifier;
+            mediaServerDto.DeviceName=_config.Value.DeviceName;
+            mediaServerDto.Url = _config.Value.WebUrl;
+            mediaServerDto.IpAddress = _config.Value.IpAddress;
+            mediaServerDto.Port = int.Parse(_config.Value.PortNumber);
+            mediaServerDto.PublicIpAddress = _config.Value.PublicIpAddress;
+            var response = await _restService.ExecuteHttpMethodAsync<MediaServerDto>(HttpMethodType.PUT, "/mediaServers/Save", mediaServerDto);
+            if (response.IsSuccess)
+            {
+                return response.Data;
+            }
+            return null;
+        }
+
+
+        public async Task<TranscoderSettingsDto> GetTranscoderSettings()
+        {
+       
+            var response = await _restService.ExecuteHttpMethodAsync<TranscoderSettingsDto>(HttpMethodType.GET, "/transcoderSettings/GetByMediaServerAsync/"+this._sharedData.MediaServerData.Id);
+            if (response.IsSuccess && response.Data!=null)
+            {
+                return response.Data;
+            }else
+            {
+               return await CreateTranscoderSettings();
+            }
+        }
+
+        public async Task<TranscoderSettingsDto> CreateTranscoderSettings()
+        {
+            var tsDto = new TranscoderSettingsDto();
+            tsDto.MediaServerId = _sharedData.MediaServerData.Id;
+            tsDto.ConstantRateFactor = 18;
+            tsDto.PresetCatalogId = (int)Catalog.TranscoderPreset;
+            tsDto.PresetCatalogDetailId = (int)TranscoderPreset.Ultrafast;
+            tsDto.VideoTransmissionTypeCatalogId = (int)Catalog.VideoTransmissionType;
+            tsDto.VideoTransmissionTypeCatalogDetailId = (int)VideoTransmissionType.HLS;
+            tsDto.TemporaryFolder = System.IO.Path.GetTempPath();
+            var response = await _restService.ExecuteHttpMethodAsync<TranscoderSettingsDto>(HttpMethodType.PUT, "/transcoderSettings/Save", tsDto);
+            if (response.IsSuccess)
+            {
+                return response.Data;
+            }
+            return null;
+        }
+
+        public void Get(MediaServerState serverState)
+        {
+
+            //mediaServer.StateCatalogDetailId = (int)serverState;
+            //mediaServer.Url = _config.Value.WebUrl;
+            //var restService = new RestService<Object>(_config, _sharedData);
+            //try
+            //{
+            //    var res = restService.ExecuteHttpMethodAsync(HttpMethodType.PUT, "/mediaServers/Update", mediaServer).Result;
+            //}
+            //catch (Exception ex) {
+            //    Console.WriteLine(ex.Message);
+            //}
         }
 
         public void UpdateMediaServer(MediaServerState serverState)
         {
-            var mediaServer = _sharedData.MediaServerData.MediaServer;
-            if(mediaServer!=null)
-            {
-                mediaServer.StateCatalogDetailId = (int)serverState;
-                mediaServer.Url = _config.Value.WebUrl;
-                var restService = new RestService<Object>(_config, _sharedData);
-                try
-                {
-                    var res = restService.ExecuteHttpMethodAsync(HttpMethodType.PUT, "/mediaServers/Update", mediaServer).Result;
-                }
-                catch (Exception ex) {
-                    Console.WriteLine(ex.Message);
-                }
-            }
+
+                //mediaServer.StateCatalogDetailId = (int)serverState;
+                //mediaServer.Url = _config.Value.WebUrl;
+                //var restService = new RestService<Object>(_config, _sharedData);
+                //try
+                //{
+                //    var res = restService.ExecuteHttpMethodAsync(HttpMethodType.PUT, "/mediaServers/Update", mediaServer).Result;
+                //}
+                //catch (Exception ex) {
+                //    Console.WriteLine(ex.Message);
+                //}
         }
 
-        public void InjectTranscodeMiddleware()
+        public async void InjectTranscodeMiddleware()
         {
             _middlewareInjectorOptions.InjectMiddleware(app =>
             {
-                if (_sharedData.MediaServerData != null)
+                var res =  _restService.ExecuteHttpMethodAsync<TranscoderSettingsDto>(HttpMethodType.GET, "/transcoderSettings/GetByMediaServerAsync/" + _sharedData.MediaServerData.Id).Result;
+                if (res.IsSuccess)
                 {
-                    var restService = new RestService<TranscoderSettingsDto>(_config, _sharedData);
-                    var transcodeSetting = restService.ExecuteHttpMethodAsync(HttpMethodType.GET, "/transcoderSettings/GetByMediaServerAsync/" + _sharedData.MediaServerData.MediaServer.Id).Result;
-                    if (transcodeSetting != null)
+                    var fileOptions = new FileServerOptions
                     {
-                        var fileOptions = new FileServerOptions
-                        {
-                            FileProvider = new PhysicalFileProvider(transcodeSetting.TemporaryFolder),
-                            RequestPath = new PathString("/transcoded"),
-                            EnableDirectoryBrowsing = true,
-                            EnableDefaultFiles = false
-                        };
-                        fileOptions.StaticFileOptions.ServeUnknownFileTypes = true;
-                        app.UseFileServer(fileOptions);
-                    }
+                        FileProvider = new PhysicalFileProvider(res.Data.TemporaryFolder),
+                        RequestPath = new PathString("/transcoded"),
+                        EnableDirectoryBrowsing = true,
+                        EnableDefaultFiles = false
+                    };
+                    fileOptions.StaticFileOptions.ServeUnknownFileTypes = true;
+                    app.UseFileServer(fileOptions);
                 }
             });
             using (var httpClient = new HttpClient())
@@ -74,11 +174,7 @@ namespace SinovadMediaServer.Shared
 
         public void CheckAndRegisterGenres()
         {
-            if (_sharedData.MediaServerData != null)
-            {
-                var restService = new RestService<Object>(_config, _sharedData);
-                var res=restService.ExecuteHttpMethodAsync(HttpMethodType.POST, "/genres/CheckAndRegisterGenres");
-            }
+            var res=_restService.ExecuteHttpMethodAsync<object>(HttpMethodType.POST, "/genres/CheckAndRegisterGenres");   
         }
 
     }

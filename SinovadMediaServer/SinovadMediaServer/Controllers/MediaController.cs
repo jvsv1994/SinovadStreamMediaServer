@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using SinovadMediaServer.Configuration;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.DTOs;
+using SinovadMediaServer.Proxy;
 
 namespace SinovadMediaServer.Controllers
 {
@@ -12,14 +13,21 @@ namespace SinovadMediaServer.Controllers
     public class MediaController : Controller
     {
 
-        public static IOptions<MyConfig> _config { get; set; }
+        private readonly RestService _restService;
 
-        private SharedData _sharedData;
-
-        public MediaController(IOptions<MyConfig> config,SharedData sharedData)
+        public MediaController(SharedData sharedData, RestService restService)
         {
-            _config= config;
-            _sharedData= sharedData;
+            _restService = restService;
+            string authorization = Request.Headers["Authorization"];
+            if (authorization != null)
+            {
+                var authValues = authorization.Split(" ");
+                if (authValues.Length > 1)
+                {
+                    var apiKey = authValues[1];
+                    sharedData.ApiToken = apiKey;
+                }
+            }
         }
 
         [HttpPost("UpdateVideosInListStorages")]
@@ -27,7 +35,7 @@ namespace SinovadMediaServer.Controllers
         {
             try
             {
-                var searhMovieVideoFileStrategy = new SearchVideoFilesStrategy(_config, _sharedData);
+                var searhMovieVideoFileStrategy = new SearchVideoFilesStrategy(_restService);
                 searhMovieVideoFileStrategy.UpdateVideosInListStorages(request);
                 return Ok();
             }

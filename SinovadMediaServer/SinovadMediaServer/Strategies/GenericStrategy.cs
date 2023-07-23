@@ -11,32 +11,32 @@ namespace SinovadMediaServer.Strategies
     public class GenericStrategy
     {
             
-        private IOptions<MyConfig> _config;
-
         private SharedData _sharedData;
 
-        public GenericStrategy(IOptions<MyConfig> config,SharedData sharedData)
+        private readonly RestService _restService;
+
+        public GenericStrategy(IOptions<MyConfig> config,SharedData sharedData, RestService restService)
         {
-            _config = config;
             _sharedData = sharedData;
+            _restService = restService;
         }
 
-        public void deleteOldTranscodeVideoProcess()
+        public async void deleteOldTranscodeVideoProcess()
         {
-            var listTranscodeVideoProcess = getListTranscodeVideoProcess();
+            var listTranscodeVideoProcess = await getListTranscodeVideoProcess();
             if (listTranscodeVideoProcess != null && listTranscodeVideoProcess.Count > 0)
             {
                 performDeleteListTranscodeVideoProcess(listTranscodeVideoProcess, false);
             }
         }
 
-        private List<TranscodingProcessDto> getListTranscodeVideoProcess()
+        private async Task<List<TranscodingProcessDto>> getListTranscodeVideoProcess()
         {
             var list = new List<TranscodingProcessDto>();
-            if (_sharedData.MediaServerData!=null)
+            var response = await _restService.ExecuteHttpMethodAsync<List<TranscodingProcessDto>>(HttpMethodType.GET, "/transcodingProcesses/GetAllByMediaServerAsync/" + _sharedData.MediaServerData.Id);
+            if(response.IsSuccess)
             {
-                var restService = new RestService<List<TranscodingProcessDto>>(_config, _sharedData);
-                list = restService.ExecuteHttpMethodAsync(HttpMethodType.GET, "/transcodingProcesses/GetAllByMediaServerAsync/" + _sharedData.MediaServerData.MediaServer.Id).Result;
+                list=response.Data;
             }
             return list;
         }
@@ -126,8 +126,7 @@ namespace SinovadMediaServer.Strategies
             if(listProcessDeletedGUIDs.Count>0)
             {
                 var guids = string.Join(",", listProcessDeletedGUIDs);
-                var restService = new RestService<Object>(_config, _sharedData);
-                var res= restService.ExecuteHttpMethodAsync(HttpMethodType.DELETE, "/transcodingProcesses/DeleteByListGuids/" + guids).Result;
+                var res= _restService.ExecuteHttpMethodAsync<object>(HttpMethodType.DELETE, "/transcodingProcesses/DeleteByListGuids/" + guids).Result;
             }
             return listProcessDeletedGUIDs;
         }

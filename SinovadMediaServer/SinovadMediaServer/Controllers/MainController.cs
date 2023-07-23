@@ -21,6 +21,16 @@ namespace SinovadMediaServer.Controllers
             _sharedData = sharedData;
             _sharedService = sharedService;
             _middlewareInjectorOptions = middlewareInjectorOptions;
+            string authorization = Request.Headers["Authorization"];
+            if (authorization != null)
+            {
+                var authValues = authorization.Split(" ");
+                if (authValues.Length > 1)
+                {
+                    var apiKey = authValues[1];
+                    _sharedData.ApiToken = apiKey;
+                }
+            }
         }
 
         [HttpPost("StartApplication")]
@@ -33,14 +43,12 @@ namespace SinovadMediaServer.Controllers
         public ActionResult DeleteMediaServerData()
         {
             _sharedService.UpdateMediaServer(MediaServerState.Stopped);
-            _sharedData.MediaServerData = null;
             return Ok();
         }
 
         [HttpPost("SaveMediaServerData")]
         public ActionResult SaveMediaServerData([FromBody] MediaServerData MediaServerData)
         {
-            _sharedData.MediaServerData = MediaServerData;
             _sharedService.CheckAndRegisterGenres();
             _sharedService.InjectTranscodeMiddleware();
             return Ok();

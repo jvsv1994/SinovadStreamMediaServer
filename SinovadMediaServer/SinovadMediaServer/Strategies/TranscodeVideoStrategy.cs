@@ -4,7 +4,6 @@ using SinovadMediaServer.CustomModels;
 using SinovadMediaServer.DTOs;
 using SinovadMediaServer.Enums;
 using SinovadMediaServer.Proxy;
-using SinovadMediaServer.Shared;
 using System.Diagnostics;
 
 namespace SinovadMediaServer.Strategies
@@ -14,31 +13,38 @@ namespace SinovadMediaServer.Strategies
 
         private IOptions<MyConfig> _config;
 
-        private SharedData _sharedData;
 
-        public TranscodeVideoStrategy(IOptions<MyConfig> config,SharedData sharedData)
+        private readonly RestService _restService;
+
+        public TranscodeVideoStrategy(IOptions<MyConfig> config, RestService restService)
         {
             _config = config;
-            _sharedData=sharedData;
+            _restService = restService;
         }
 
-        private TranscoderSettingsDto getTranscodeSetting(int mediaServerId)
+        private async Task<TranscoderSettingsDto> getTranscodeSetting(int mediaServerId)
         {
-            var restService = new RestService<TranscoderSettingsDto>(_config, _sharedData);
-            var transcodeSetting = restService.ExecuteHttpMethodAsync(HttpMethodType.GET, "/transcoderSettings/GetByMediaServerAsync/" + mediaServerId).Result;
-            return transcodeSetting;
+            var res = await _restService.ExecuteHttpMethodAsync<TranscoderSettingsDto>(HttpMethodType.GET, "/transcoderSettings/GetByMediaServerAsync/" + mediaServerId);
+            if (res.IsSuccess)
+            {
+                return res.Data;
+            }
+            return null;
         }
 
-        private CatalogDetailDto getCatalogDetail(int presetCatalogId,int presetCatalogDetailId)
+        private async Task<CatalogDetailDto> getCatalogDetail(int presetCatalogId,int presetCatalogDetailId)
         {
-            var restService = new RestService<CatalogDetailDto>(_config, _sharedData);
-            var catalogDetail = restService.ExecuteHttpMethodAsync(HttpMethodType.GET, "/catalogs/GetCatalogDetailAsync/" + presetCatalogId + "/" + presetCatalogDetailId).Result;
-            return catalogDetail;
+            var res = await _restService.ExecuteHttpMethodAsync<CatalogDetailDto>(HttpMethodType.GET, "/catalogs/GetCatalogDetailAsync/" + presetCatalogId + "/" + presetCatalogDetailId);
+            if (res.IsSuccess)
+            {
+                return res.Data;
+            }
+            return null;
         }
 
-        public TranscodePrepareVideoDto Prepare(TranscodePrepareVideoDto transcodePrepareVideo)
+        public async Task<TranscodePrepareVideoDto> Prepare(TranscodePrepareVideoDto transcodePrepareVideo)
         {
-            var transcoderSettings = getTranscodeSetting(transcodePrepareVideo.MediaServerId);
+            var transcoderSettings = await getTranscodeSetting(transcodePrepareVideo.MediaServerId);
             var mediaAnalysis = FFMpegCore.FFProbe.Analyse(transcodePrepareVideo.PhysicalPath);
             if (mediaAnalysis != null)
             {
@@ -132,7 +138,7 @@ namespace SinovadMediaServer.Strategies
                 var panSection = "stereo|c0=0.5*c2+0.707*c0+0.707*c4+0.5*c3|c1=0.5*c2+0.707*c1+0.707*c5+0.5*c3";
                 var panSectionInQuates = "\"" + panSection + "\"";
                 var argumentsStereoAudio = "-af pan=" + panSectionInQuates;
-                var presetObject = getCatalogDetail(transcoderSettings.PresetCatalogId,transcoderSettings.PresetCatalogDetailId);
+                var presetObject = await getCatalogDetail(transcoderSettings.PresetCatalogId,transcoderSettings.PresetCatalogDetailId);
                 var argumentsPreset = "-preset " + presetObject.Name;
 
                 var videoOutputName = "video.m3u8";
@@ -343,8 +349,7 @@ namespace SinovadMediaServer.Strategies
 
         public void registerTranscodeVideoProcess(TranscodingProcessDto transcodeVideoProcess)
         {
-            var restService = new RestService<Object>(_config, _sharedData);
-            var res = restService.ExecuteHttpMethodAsync(HttpMethodType.POST, "/transcodingProcesses/Create", transcodeVideoProcess).Result;
+            var res = _restService.ExecuteHttpMethodAsync<object>(HttpMethodType.POST, "/transcodingProcesses/Create", transcodeVideoProcess).Result;
         }
 
         public async Task<bool> checkIfExistFile(string outputFilePhysicalPathFinal)

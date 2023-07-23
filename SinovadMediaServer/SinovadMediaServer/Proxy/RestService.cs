@@ -9,8 +9,9 @@ using System.Text.Json;
 
 namespace SinovadMediaServer.Proxy
 {
-    public class RestService<Response>
+    public class RestService
     {
+
         private IOptions<MyConfig> _config;
 
         private SharedData _sharedData;
@@ -20,54 +21,62 @@ namespace SinovadMediaServer.Proxy
             _sharedData = sharedData;
         }
 
-        public async Task<Response> ExecuteHttpMethodAsync(HttpMethodType type, string path, Object content)
+        public async Task<Response<Data>> ExecuteHttpMethodAsync<Data>(HttpMethodType type, string path, Object content)
         {
             var requestContent = new StringContent("");
             if (content != null)
             {
                 requestContent = new StringContent(JsonSerializer.Serialize(content), Encoding.UTF8, "application/json");
             }
-            return await PerformExecuteHttpMethodAsync(type, path, requestContent);
+            return await PerformExecuteHttpMethodAsync<Data>(type, path, requestContent);
         }
 
-        public async Task<Response> ExecuteHttpMethodAsync(HttpMethodType type, string path)
+        public async Task<Response<Data>> ExecuteHttpMethodAsync<Data>(HttpMethodType type, string path)
         {
-            return await PerformExecuteHttpMethodAsync(type, path, new StringContent(""));
+            return await PerformExecuteHttpMethodAsync<Data>(type, path, new StringContent(""));
         }
 
-        private async Task<Response> PerformExecuteHttpMethodAsync(HttpMethodType type,string path,StringContent content)
+        private async Task<Response<Data>> PerformExecuteHttpMethodAsync<Data>(HttpMethodType type,string path,StringContent content)
         {  
-            using (var httpClient = new HttpClient())
+            var response = new Response<Data>();
+            try
             {
-                httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _sharedData.MediaServerData.ApiKey);
-                var responseMessage = new HttpResponseMessage();
-                if (type == HttpMethodType.GET)
+                using (var httpClient = new HttpClient())
                 {
-                    responseMessage = await httpClient.GetAsync(_config.Value.RestApiUrl + path);
-                }
-                if (type == HttpMethodType.POST)
-                {
-                    responseMessage = await httpClient.PostAsync(_config.Value.RestApiUrl + path, content);
-                }
-                if (type == HttpMethodType.PUT)
-                {
-                    responseMessage = await httpClient.PutAsync(_config.Value.RestApiUrl + path, content);
-                }
-                if (type == HttpMethodType.DELETE)
-                {
-                    responseMessage = await httpClient.DeleteAsync(_config.Value.RestApiUrl + path);
-                }
-                var taskResponse = await responseMessage.Content.ReadAsStringAsync();
-                if (responseMessage.StatusCode==HttpStatusCode.OK)
-                {
-                    var response = JsonSerializer.Deserialize<Response<Response>>(taskResponse);
-                    if (response != null)
+                    if (_sharedData.ApiToken != null)
                     {
-                        return response.Data;
+                        httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _sharedData.ApiToken);
+                    }
+                    var responseMessage = new HttpResponseMessage();
+                    if (type == HttpMethodType.GET)
+                    {
+                        responseMessage = await httpClient.GetAsync(_config.Value.RestApiUrl + path);
+                    }
+                    if (type == HttpMethodType.POST)
+                    {
+                        responseMessage = await httpClient.PostAsync(_config.Value.RestApiUrl + path, content);
+                    }
+                    if (type == HttpMethodType.PUT)
+                    {
+                        responseMessage = await httpClient.PutAsync(_config.Value.RestApiUrl + path, content);
+                    }
+                    if (type == HttpMethodType.DELETE)
+                    {
+                        responseMessage = await httpClient.DeleteAsync(_config.Value.RestApiUrl + path);
+                    }
+                    var taskResponse = await responseMessage.Content.ReadAsStringAsync();
+                    response = JsonSerializer.Deserialize<Response<Data>>(taskResponse);
+                    if (responseMessage.StatusCode != HttpStatusCode.OK)
+                    {
+                        throw new Exception(response.Message);
                     }
                 }
-                throw new Exception(taskResponse);
+            }catch (Exception ex)
+            {
+                response.IsSuccess = false;
+                response.Message = ex.Message;
             }
+            return response;
         }
 
     }

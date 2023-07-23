@@ -1,39 +1,36 @@
-﻿using SinovadMediaServer.Configuration;
-using SinovadMediaServer.DTOs;
-using Microsoft.Extensions.Options;
-using System.Diagnostics;
+﻿using SinovadMediaServer.DTOs;
 using SinovadMediaServer.Enums;
 using SinovadMediaServer.Proxy;
-using SinovadMediaServer.Shared;
-using System;
+using System.Diagnostics;
 
 namespace SinovadMediaServer.Strategies
 {
     public class TranscodeProcessStrategy
     {
 
-        private IOptions<MyConfig> _config;
+        private readonly RestService _restService;
 
-        private SharedData _sharedData;
-
-        public TranscodeProcessStrategy(IOptions<MyConfig> config,SharedData sharedData)
+        public TranscodeProcessStrategy(RestService restService)
         {
-            _config = config;
-            _sharedData = sharedData;
+            _restService = restService;
         }
 
-        public List<Guid> deleteList(string guids)
+        public async Task<List<Guid>> deleteList(string guids)
         {
 
-            var listTranscodeVideoProcess = getTranscodeVideoProcesses(guids);
+            var listTranscodeVideoProcess = await getTranscodeVideoProcesses(guids);
             var listProcessDeletedGUIDs = performDeleteListTranscodeVideoProcess(listTranscodeVideoProcess, true);      
             return listProcessDeletedGUIDs;
         }
 
-        public List<TranscodingProcessDto> getTranscodeVideoProcesses(string guids)
+        public async Task<List<TranscodingProcessDto>> getTranscodeVideoProcesses(string guids)
         {
-            var restService = new RestService<List<TranscodingProcessDto>>(_config, _sharedData);
-            List<TranscodingProcessDto> list = restService.ExecuteHttpMethodAsync(HttpMethodType.GET, "/transcodingProcesses/GetAllByListGuidsAsync/" + guids).Result;
+            var list= new List<TranscodingProcessDto>();
+            var res = await _restService.ExecuteHttpMethodAsync<List<TranscodingProcessDto>>(HttpMethodType.GET, "/transcodingProcesses/GetAllByListGuidsAsync/" + guids);
+            if(res.IsSuccess)
+            {
+                list = res.Data;
+            }
             return list;
         }
 
@@ -121,9 +118,8 @@ namespace SinovadMediaServer.Strategies
             }
             if (listProcessDeletedGUIDs.Count > 0)
             {
-                var restService = new RestService<Object>(_config, _sharedData);
                 var guids = string.Join(",", listProcessDeletedGUIDs);
-                var res=restService.ExecuteHttpMethodAsync(HttpMethodType.DELETE, "/transcodingProcesses/DeleteByListGuids/" + guids).Result;
+                var res=_restService.ExecuteHttpMethodAsync<object>(HttpMethodType.DELETE, "/transcodingProcesses/DeleteByListGuids/" + guids).Result;
             }
             return listProcessDeletedGUIDs;
         }
