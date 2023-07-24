@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using SinovadMediaServer.Configuration;
-using SinovadMediaServer.DTOs;
+﻿using SinovadMediaServer.DTOs;
 using SinovadMediaServer.Enums;
 using SinovadMediaServer.Proxy;
 using SinovadMediaServer.Shared;
@@ -15,7 +13,7 @@ namespace SinovadMediaServer.Strategies
 
         private readonly RestService _restService;
 
-        public GenericStrategy(IOptions<MyConfig> config,SharedData sharedData, RestService restService)
+        public GenericStrategy(SharedData sharedData, RestService restService)
         {
             _sharedData = sharedData;
             _restService = restService;

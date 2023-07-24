@@ -7,6 +7,7 @@ namespace SinovadMediaServer.Shared
 {
     public class SharedData
     {
+        public String WebUrl { get; set; }
         public String ApiToken { get; set; }
         public MediaServerDto MediaServerData { get; set; }
         public TranscoderSettingsDto TranscoderSettingsData { get; set; }

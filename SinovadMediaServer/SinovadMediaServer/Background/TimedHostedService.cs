@@ -18,17 +18,13 @@ namespace SinovadMediaServer.Background
         private System.Threading.Timer _timer;
         private readonly SharedData _sharedData;
         private SharedService _sharedService;
-        public MiddlewareInjectorOptions _middlewareInjectorOptions;
         public Boolean started = false;
-        private IOptions<MyConfig> _config;
 
-        public TimedHostedService(ILogger<TimedHostedService> logger, SharedService sharedService, SharedData sharedData, MiddlewareInjectorOptions middlewareInjectorOptions, IOptions<MyConfig> config)
+        public TimedHostedService(ILogger<TimedHostedService> logger, SharedService sharedService, SharedData sharedData)
         {
-            _config = config;
             _logger = logger;
             _sharedData = sharedData;
             _sharedService = sharedService;
-            _middlewareInjectorOptions = middlewareInjectorOptions;
         }
 
         public Task StartAsync(CancellationToken stoppingToken)

@@ -1,13 +1,11 @@
-﻿using SinovadMediaServer.Configuration;
-using SinovadMediaServer.Shared;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Options;
+using SinovadMediaServer.Shared;
 
 namespace SinovadMediaServer.Middleware
 {
-		public static class MiddlewareInjectorExtensions
+    public static class MiddlewareInjectorExtensions
 		{
 			public static IApplicationBuilder UseMiddlewareInjector(this IApplicationBuilder builder, MiddlewareInjectorOptions options)
 			{
@@ -21,13 +19,11 @@ namespace SinovadMediaServer.Middleware
 			private readonly IApplicationBuilder _builder;
 			private readonly MiddlewareInjectorOptions _options;
 			private RequestDelegate _subPipeline;
-			public static IOptions<MyConfig> _config { get; set; }
 			public SharedData _sharedData;
 
-		public MiddlewareInjectorMiddleware(RequestDelegate next, IApplicationBuilder builder, MiddlewareInjectorOptions options, IOptions<MyConfig> config, SharedData sharedData)
+		public MiddlewareInjectorMiddleware(RequestDelegate next, IApplicationBuilder builder, MiddlewareInjectorOptions options, SharedData sharedData)
 			{
 				
-				_config = config;
 				_sharedData = sharedData;
 				_next = next ?? throw new ArgumentNullException(nameof(next));
 				_builder = builder ?? throw new ArgumentNullException(nameof(builder));

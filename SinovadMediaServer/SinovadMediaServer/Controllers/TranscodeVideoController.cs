@@ -13,15 +13,13 @@ namespace SinovadMediaServer.Controllers
     [Route("transcodeVideos")]
     public class TranscodeVideoController : Controller
     {
-        public readonly IOptions<MyConfig> _config;
 
         private readonly RestService _restService;
 
         private readonly SharedData _sharedData;
 
-        public TranscodeVideoController(IOptions<MyConfig> config, RestService restService,SharedData sharedData)
+        public TranscodeVideoController(RestService restService,SharedData sharedData)
         {
-            _config = config;
             _restService = restService;
             _sharedData = sharedData;
         }
@@ -46,7 +44,7 @@ namespace SinovadMediaServer.Controllers
         {
             try
             {
-                var transcodeVideoStrategy = new TranscodeVideoStrategy(_config,_restService, _sharedData);
+                var transcodeVideoStrategy = new TranscodeVideoStrategy(_restService, _sharedData);
                 TranscodeRunVideoDto transcodeRunVideoDto = transcodeVideoStrategy.Run(transcodePrepareVideo);
                 var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(transcodeRunVideoDto));
                 return Ok(Convert.ToBase64String(plainTextBytes));
@@ -61,7 +59,7 @@ namespace SinovadMediaServer.Controllers
         {
             try
             {
-                var transcodeVideoStrategy = new TranscodeVideoStrategy(_config, _restService, _sharedData);
+                var transcodeVideoStrategy = new TranscodeVideoStrategy(_restService, _sharedData);
                 TranscodePrepareVideoDto transcodePrepareVideo = await transcodeVideoStrategy.Prepare(transcodeVideoDto);
                 TranscodeRunVideoDto transcodeRunVideoDto= transcodeVideoStrategy.Run(transcodePrepareVideo);
                 var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(transcodeRunVideoDto));

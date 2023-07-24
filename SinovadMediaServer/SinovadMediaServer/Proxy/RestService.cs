@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using SinovadMediaServer.Common;
-using SinovadMediaServer.Configuration;
+﻿using SinovadMediaServer.Common;
 using SinovadMediaServer.Enums;
 using SinovadMediaServer.Shared;
 using System.Net;
@@ -12,12 +10,13 @@ namespace SinovadMediaServer.Proxy
     public class RestService
     {
 
-        private IOptions<MyConfig> _config;
+        private string _restApiUrl = "http://streamapi.sinovad.com/api/v1";
+
+        //private string _restApiUrl = "http://localhost:53363/api/v1";  
 
         private SharedData _sharedData;
 
-        public RestService(IOptions<MyConfig> config, SharedData sharedData) {
-            _config = config;
+        public RestService(SharedData sharedData) {
             _sharedData = sharedData;
         }
 
@@ -50,19 +49,19 @@ namespace SinovadMediaServer.Proxy
                     var responseMessage = new HttpResponseMessage();
                     if (type == HttpMethodType.GET)
                     {
-                        responseMessage = await httpClient.GetAsync(_config.Value.RestApiUrl + path);
+                        responseMessage = await httpClient.GetAsync(_restApiUrl + path);
                     }
                     if (type == HttpMethodType.POST)
                     {
-                        responseMessage = await httpClient.PostAsync(_config.Value.RestApiUrl + path, content);
+                        responseMessage = await httpClient.PostAsync(_restApiUrl + path, content);
                     }
                     if (type == HttpMethodType.PUT)
                     {
-                        responseMessage = await httpClient.PutAsync(_config.Value.RestApiUrl + path, content);
+                        responseMessage = await httpClient.PutAsync(_restApiUrl + path, content);
                     }
                     if (type == HttpMethodType.DELETE)
                     {
-                        responseMessage = await httpClient.DeleteAsync(_config.Value.RestApiUrl + path);
+                        responseMessage = await httpClient.DeleteAsync(_restApiUrl + path);
                     }
                     var taskResponse = await responseMessage.Content.ReadAsStringAsync();
                     response = JsonSerializer.Deserialize<Response<Data>>(taskResponse);

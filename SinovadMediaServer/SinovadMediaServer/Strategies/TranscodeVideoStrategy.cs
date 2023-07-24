@@ -12,16 +12,12 @@ namespace SinovadMediaServer.Strategies
     public class TranscodeVideoStrategy
     {
 
-        private IOptions<MyConfig> _config;
-
-
         private readonly RestService _restService;
 
         private readonly SharedData _sharedData;
 
-        public TranscodeVideoStrategy(IOptions<MyConfig> config, RestService restService, SharedData sharedData)
+        public TranscodeVideoStrategy(RestService restService, SharedData sharedData)
         {
-            _config = config;
             _restService = restService;
             _sharedData = sharedData;
         }
@@ -200,7 +196,7 @@ namespace SinovadMediaServer.Strategies
                     finalCommandGenerateSubtitles = "-itsoffset 10 -i " + varInputPhysicalPathInQuotes + " " + argumentsFormatSubtitle + " " + argumentsSubtitles;
                 }
 
-                var transcodeDirectoryRoutePath = _config.Value.WebUrl+ "/transcoded";
+                var transcodeDirectoryRoutePath = _sharedData.WebUrl+ "/transcoded";
 
                 transcodePrepareVideo.TotalSeconds=mediaAnalysis.Duration.TotalSeconds;
                 transcodePrepareVideo.TranscodeDirectoryPhysicalPath= transcoderSettings.TemporaryFolder;
