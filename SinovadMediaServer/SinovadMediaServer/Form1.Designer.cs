@@ -266,7 +266,7 @@ namespace SinovadMediaServer
             // 
             // pictureBox1
             // 
-            pictureBox1.ImageLocation = "http://cdn.sinovad.com/stream/web/assets/icon/sinovad-stream-large-logo.png";
+            pictureBox1.ImageLocation = "https://resources.sinovad.com/stream/web/assets/icon/sinovad-stream-large-logo.png";
             pictureBox1.Location = new Point(25, 12);
             pictureBox1.Name = "pictureBox1";
             pictureBox1.Size = new Size(360, 77);
@@ -401,7 +401,7 @@ namespace SinovadMediaServer
             //{
             //    await webView21.CoreWebView2.Profile.ClearBrowsingDataAsync();
             //    webView21.CoreWebView2.CookieManager.DeleteAllCookies();
-            //    var appWebUrl = "http://streamdesktop.sinovad.com?currenthost=" + _config.Value.WebUrl + "&localipaddress=" + _config.Value.IpAddress;
+            //    var appWebUrl = "https://streamdesktop.sinovad.com?currenthost=" + _config.Value.WebUrl + "&localipaddress=" + _config.Value.IpAddress;
             //    webView21.CoreWebView2.Navigate(appWebUrl);
             //}
         }

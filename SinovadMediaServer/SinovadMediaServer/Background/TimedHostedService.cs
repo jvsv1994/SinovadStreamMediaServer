@@ -1,13 +1,8 @@
 ﻿
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using SinovadMediaServer.Configuration;
 using SinovadMediaServer.Enums;
-using SinovadMediaServer.Middleware;
 using SinovadMediaServer.Shared;
-using System.Text;
-using System.Text.Json;
 
 namespace SinovadMediaServer.Background
 {
@@ -17,14 +12,12 @@ namespace SinovadMediaServer.Background
         private readonly ILogger<TimedHostedService> _logger;
         private System.Threading.Timer _timer;
         private readonly SharedData _sharedData;
-        private SharedService _sharedService;
         public Boolean started = false;
 
-        public TimedHostedService(ILogger<TimedHostedService> logger, SharedService sharedService, SharedData sharedData)
+        public TimedHostedService(ILogger<TimedHostedService> logger, SharedData sharedData)
         {
             _logger = logger;
             _sharedData = sharedData;
-            _sharedService = sharedService;
         }
 
         public Task StartAsync(CancellationToken stoppingToken)
@@ -43,7 +36,6 @@ namespace SinovadMediaServer.Background
 
         private void UpdateMediaServer(MediaServerState serverState)
         {
-            _sharedService.UpdateMediaServer(serverState);
             if(serverState== MediaServerState.Started)
             {
                 started = true;

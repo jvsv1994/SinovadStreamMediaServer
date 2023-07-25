@@ -42,7 +42,24 @@ namespace SinovadMediaServer
             listUrls.Add(_sharedData.WebUrl);
             var builder = WebHost.CreateDefaultBuilder();
             var app = builder
-              .UseKestrel()
+            .UseKestrel()
+              //.ConfigureKestrel(options =>
+              //{
+              //    var port = 5179;
+              //    var pfxFilePath = @"kestrel.pfx";
+              //    // The password you specified when exporting the PFX file using OpenSSL.
+              //    // This would normally be stored in configuration or an environment variable;
+              //    // I've hard-coded it here just to make it easier to see what's going on.
+              //    var pfxPassword = "changeit";
+
+              //    options.Listen(IPAddress.Any, port, listenOptions =>
+              //    {
+              //        // Enable support for HTTP1 and HTTP2 (required if you want to host gRPC endpoints)
+              //        listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+              //        // Configure Kestrel to use a certificate from a local .PFX file for hosting HTTPS
+              //        listenOptions.UseHttps(pfxFilePath, pfxPassword);
+              //    });
+              //})
               .UseUrls(listUrls.ToArray())
               .UseContentRoot(Directory.GetCurrentDirectory())
               .UseWebRoot(Path.Combine("wwwroot"))
@@ -70,7 +87,6 @@ namespace SinovadMediaServer
                   services.AddSingleton<SharedData>();
                   services.AddSingleton<MiddlewareInjectorOptions>();
                   services.AddScoped<RestService>();
-                  services.AddScoped<SharedService>();
                   services.AddMemoryCache();
                   services.AddCors(options => options.AddPolicy("AllowAnyOrigin",
                   builder =>
@@ -137,9 +153,9 @@ namespace SinovadMediaServer
                 var fip = listFindedIps[0];
                 defaultIpAddress = fip.ToString();
                 httpUrl = "http://" + defaultIpAddress + ":5179";
-                httpsUrl = "https://" + defaultIpAddress + ":5180";
+                httpsUrl = "https://" + defaultIpAddress + ":5179";
                 listUrls.Add(httpUrl);
-                //listUrls.Add(httpsUrl);           
+                listUrls.Add(httpsUrl);           
             }
             _mediaServerConfig.PortNumber = "5179";
             _mediaServerConfig.PublicIpAddress = GetPublicIp();
@@ -148,8 +164,8 @@ namespace SinovadMediaServer
             UserPrincipal user = System.DirectoryServices.AccountManagement.UserPrincipal.Current;
             String sid = user.Sid.Value;
             _mediaServerConfig.SecurityIdentifier = sid;
-            _mediaServerConfig.WebUrl = httpUrl;
-            _sharedData.WebUrl = httpUrl;
+            _mediaServerConfig.WebUrl = httpsUrl;
+            _sharedData.WebUrl = httpsUrl;
         }
 
         private static string GetPublicIp()
@@ -365,7 +381,7 @@ namespace SinovadMediaServer
 
         private void manageLibrariesButton_Click(object sender, EventArgs e)
         {
-            Process.Start(new ProcessStartInfo("http://streamweb.sinovad.com/settings/server/" + _sharedData.MediaServerData.Guid + "/manage/libraries?apiToken=" + _sharedData.ApiToken) { UseShellExecute = true });
+            Process.Start(new ProcessStartInfo("https://webstream.sinovad.com/settings/server/" + _sharedData.MediaServerData.Guid + "/manage/libraries?apiToken=" + _sharedData.ApiToken) { UseShellExecute = true });
         }
 
         private void authenticationMessageLabel_Click(object sender, EventArgs e)
@@ -375,7 +391,7 @@ namespace SinovadMediaServer
 
         private void buttonRegisterUser_Click(object sender, EventArgs e)
         {
-            Process.Start(new ProcessStartInfo("http://streamweb.sinovad.com/register") { UseShellExecute = true });
+            Process.Start(new ProcessStartInfo("https://webstream.sinovad.com/register") { UseShellExecute = true });
         }
     }
 }
