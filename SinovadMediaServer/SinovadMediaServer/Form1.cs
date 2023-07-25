@@ -27,6 +27,8 @@ namespace SinovadMediaServer
 
         private static MediaServerConfig _mediaServerConfig;
 
+        private static List<String> _listUrls;
+
         public Form1()
         {
             _sharedData = new SharedData();
@@ -38,8 +40,6 @@ namespace SinovadMediaServer
 
         private static void StartWebServer()
         {
-            var listUrls = new List<string>();
-            listUrls.Add(_sharedData.WebUrl);
             var builder = WebHost.CreateDefaultBuilder();
             var app = builder
             .UseKestrel()
@@ -60,7 +60,7 @@ namespace SinovadMediaServer
               //        listenOptions.UseHttps(pfxFilePath, pfxPassword);
               //    });
               //})
-              .UseUrls(listUrls.ToArray())
+              .UseUrls(_listUrls.ToArray())
               .UseContentRoot(Directory.GetCurrentDirectory())
               .UseWebRoot(Path.Combine("wwwroot"))
               .ConfigureServices((services) =>
@@ -144,7 +144,7 @@ namespace SinovadMediaServer
             var hostName = System.Net.Dns.GetHostName();
             var ips = System.Net.Dns.GetHostAddressesAsync(hostName);
             var listFindedIps = ips.Result.Where(a => a.IsIPv6LinkLocal == false).ToList();
-            List<String> listUrls = new List<String>();
+            _listUrls = new List<string>();
             var httpUrl = "";
             var httpsUrl = "";
             var defaultIpAddress = "";
@@ -153,9 +153,9 @@ namespace SinovadMediaServer
                 var fip = listFindedIps[0];
                 defaultIpAddress = fip.ToString();
                 httpUrl = "http://" + defaultIpAddress + ":5179";
-                httpsUrl = "https://" + defaultIpAddress + ":5179";
-                listUrls.Add(httpUrl);
-                listUrls.Add(httpsUrl);           
+                httpsUrl = "https://" + defaultIpAddress + ":5180";
+                _listUrls.Add(httpUrl);
+                //_listUrls.Add(httpsUrl);           
             }
             _mediaServerConfig.PortNumber = "5179";
             _mediaServerConfig.PublicIpAddress = GetPublicIp();
@@ -164,8 +164,8 @@ namespace SinovadMediaServer
             UserPrincipal user = System.DirectoryServices.AccountManagement.UserPrincipal.Current;
             String sid = user.Sid.Value;
             _mediaServerConfig.SecurityIdentifier = sid;
-            _mediaServerConfig.WebUrl = httpsUrl;
-            _sharedData.WebUrl = httpsUrl;
+            _mediaServerConfig.WebUrl = httpUrl;
+            _sharedData.WebUrl = httpUrl;
         }
 
         private static string GetPublicIp()
