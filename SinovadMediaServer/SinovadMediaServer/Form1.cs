@@ -146,16 +146,17 @@ namespace SinovadMediaServer
             var listFindedIps = ips.Result.Where(a => a.IsIPv6LinkLocal == false).ToList();
             _listUrls = new List<string>();
             var httpUrl = "";
-            var httpsUrl = "";
+            var httpUrl2 = "";
             var defaultIpAddress = "";
+            var portNumber = "5179";
             if (listFindedIps.Count > 0)
             {
                 var fip = listFindedIps[0];
                 defaultIpAddress = fip.ToString();
-                httpUrl = "http://" + defaultIpAddress + ":5179";
-                httpsUrl = "https://" + defaultIpAddress + ":5180";
+                httpUrl = "http://" + defaultIpAddress + ":"+ portNumber;
+                httpUrl2 = "http://127.0.0.1:"+ portNumber;
                 _listUrls.Add(httpUrl);
-                //_listUrls.Add(httpsUrl);           
+                _listUrls.Add(httpUrl2);           
             }
             _mediaServerConfig.PortNumber = "5179";
             _mediaServerConfig.PublicIpAddress = GetPublicIp();
