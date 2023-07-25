@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 
 namespace SinovadMediaServer.Controllers
 {
@@ -7,17 +6,11 @@ namespace SinovadMediaServer.Controllers
     [ApiController]
     public class DefaultController : ControllerBase
     {
-        private readonly ILogger<DefaultController> _logger;
-
-        public DefaultController(ILogger<DefaultController> logger)
-        {
-            _logger = logger;
-        }
 
         [HttpGet]
-        public string Get()
+        public object Get()
         {
-            return "Running ..";
+            return Redirect("/home");
         }
 
     }

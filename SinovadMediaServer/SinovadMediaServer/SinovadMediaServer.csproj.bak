@@ -33,13 +33,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-   <ItemGroup Condition="'$(Configuration)' == 'Debug' ">
-    <None Update="kestrel.pfx" CopyToOutputDirectory="PreserveNewest" Condition="Exists('kestrel.pfx')" />
-  </ItemGroup>
   <ItemGroup>
     <Folder Include="Response\" />
   </ItemGroup>
-  
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>

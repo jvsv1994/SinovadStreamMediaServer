@@ -36,7 +36,11 @@
   <ItemGroup>
     <Folder Include="Response\" />
   </ItemGroup>
-  
+  <ItemGroup>
+   <Content Include="wwwroot\**">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+   </Content>
+  </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>

@@ -101,7 +101,6 @@ namespace SinovadMediaServer
               {
                   app.UseCors("AllowAnyOrigin");
                   app.UseHttpsRedirection();
-                  app.UseStaticFiles();
                   var injectorOptions = app.ApplicationServices.GetService<MiddlewareInjectorOptions>();
                   app.UseMiddlewareInjector(injectorOptions);
                   app.Use(async (context, next) =>
@@ -124,6 +123,9 @@ namespace SinovadMediaServer
                   };
                   fileOptions.StaticFileOptions.ServeUnknownFileTypes = true;
                   app.UseFileServer(fileOptions);
+                  app.UseStatusCodePagesWithReExecute("/");//to fix angular routing issues
+                  app.UseDefaultFiles();
+                  app.UseStaticFiles();
                   var sharedData = app.ApplicationServices.GetService<SharedData>();
                   sharedData.ApiToken=_sharedData.ApiToken;
                   sharedData.UserData = _sharedData.UserData;
@@ -146,7 +148,7 @@ namespace SinovadMediaServer
             var listFindedIps = ips.Result.Where(a => a.IsIPv6LinkLocal == false).ToList();
             _listUrls = new List<string>();
             var httpUrl = "";
-            var httpUrl2 = "";
+            var localUrl = "";
             var defaultIpAddress = "";
             var portNumber = "5179";
             if (listFindedIps.Count > 0)
@@ -154,9 +156,9 @@ namespace SinovadMediaServer
                 var fip = listFindedIps[0];
                 defaultIpAddress = fip.ToString();
                 httpUrl = "http://" + defaultIpAddress + ":"+ portNumber;
-                httpUrl2 = "http://127.0.0.1:"+ portNumber;
+                localUrl = "http://127.0.0.1:"+ portNumber;
                 _listUrls.Add(httpUrl);
-                _listUrls.Add(httpUrl2);           
+                _listUrls.Add(localUrl);
             }
             _mediaServerConfig.PortNumber = "5179";
             _mediaServerConfig.PublicIpAddress = GetPublicIp();
@@ -166,6 +168,7 @@ namespace SinovadMediaServer
             String sid = user.Sid.Value;
             _mediaServerConfig.SecurityIdentifier = sid;
             _mediaServerConfig.WebUrl = httpUrl;
+            _mediaServerConfig.LocalUrl = localUrl;
             _sharedData.WebUrl = httpUrl;
         }
 
@@ -382,7 +385,7 @@ namespace SinovadMediaServer
 
         private void manageLibrariesButton_Click(object sender, EventArgs e)
         {
-            Process.Start(new ProcessStartInfo("https://webstream.sinovad.com/settings/server/" + _sharedData.MediaServerData.Guid + "/manage/libraries?apiToken=" + _sharedData.ApiToken) { UseShellExecute = true });
+            Process.Start(new ProcessStartInfo(_mediaServerConfig.LocalUrl+"/settings/server/" + _sharedData.MediaServerData.Guid + "/manage/libraries?apiToken=" + _sharedData.ApiToken) { UseShellExecute = true });
         }
 
         private void authenticationMessageLabel_Click(object sender, EventArgs e)
