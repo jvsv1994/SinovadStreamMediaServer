@@ -33,9 +33,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-   <ItemGroup Condition="'$(Configuration)' == 'Debug' ">
-    <None Update="kestrel.pfx" CopyToOutputDirectory="PreserveNewest" Condition="Exists('kestrel.pfx')" />
-  </ItemGroup>
   <ItemGroup>
     <Folder Include="Response\" />
   </ItemGroup>
