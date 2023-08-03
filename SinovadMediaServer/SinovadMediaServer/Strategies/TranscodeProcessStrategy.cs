@@ -1,6 +1,7 @@
 ﻿using SinovadMediaServer.DTOs;
 using SinovadMediaServer.Enums;
 using SinovadMediaServer.Proxy;
+using SinovadMediaServer.Shared;
 using System.Diagnostics;
 
 namespace SinovadMediaServer.Strategies
@@ -8,22 +9,49 @@ namespace SinovadMediaServer.Strategies
     public class TranscodeProcessStrategy
     {
 
+        private readonly SharedData _sharedData;
+
         private readonly RestService _restService;
 
-        public TranscodeProcessStrategy(RestService restService)
+        public TranscodeProcessStrategy(SharedData sharedData, RestService restService)
         {
+            _sharedData = sharedData;
             _restService = restService;
         }
 
-        public async Task<List<Guid>> deleteList(string guids)
+        public async Task<bool> DeleteOldTranscodeVideoProcess()
+        {
+            var listTranscodeVideoProcess = await GetTranscodingProcessesByMediaServer();
+            if (listTranscodeVideoProcess != null && listTranscodeVideoProcess.Count > 0)
+            {
+                await PerformDeleteListTranscodeVideoProcess(listTranscodeVideoProcess, false);
+            }
+            return true;
+        }
+
+        private async Task<List<TranscodingProcessDto>> GetTranscodingProcessesByMediaServer()
+        {
+            var list = new List<TranscodingProcessDto>();
+            if (_sharedData.MediaServerData != null)
+            {
+                var response = await _restService.ExecuteHttpMethodAsync<List<TranscodingProcessDto>>(HttpMethodType.GET, "/transcodingProcesses/GetAllByMediaServerAsync/" + _sharedData.MediaServerData.Id);
+                if (response.IsSuccess)
+                {
+                    list = response.Data;
+                }
+            }
+            return list;
+        }
+
+        public async Task<List<Guid>> DeleteListByGuids(string guids)
         {
 
-            var listTranscodeVideoProcess = await getTranscodeVideoProcesses(guids);
-            var listProcessDeletedGUIDs = performDeleteListTranscodeVideoProcess(listTranscodeVideoProcess, true);      
+            var listTranscodeVideoProcess = await GetTranscodingProcessesByListGuids(guids);
+            var listProcessDeletedGUIDs = await PerformDeleteListTranscodeVideoProcess(listTranscodeVideoProcess, true);      
             return listProcessDeletedGUIDs;
         }
 
-        public async Task<List<TranscodingProcessDto>> getTranscodeVideoProcesses(string guids)
+        public async Task<List<TranscodingProcessDto>> GetTranscodingProcessesByListGuids(string guids)
         {
             var list= new List<TranscodingProcessDto>();
             var res = await _restService.ExecuteHttpMethodAsync<List<TranscodingProcessDto>>(HttpMethodType.GET, "/transcodingProcesses/GetAllByListGuidsAsync/" + guids);
@@ -34,7 +62,7 @@ namespace SinovadMediaServer.Strategies
             return list;
         }
 
-        public List<Guid> performDeleteListTranscodeVideoProcess(List<TranscodingProcessDto> listTranscodeVideoProcess, Boolean forceDelete)
+        public async Task<List<Guid>> PerformDeleteListTranscodeVideoProcess(List<TranscodingProcessDto> listTranscodeVideoProcess, Boolean forceDelete)
         {
             List<Guid> listProcessDeletedGUIDs = new List<Guid>();
             for (var i = 0; i < listTranscodeVideoProcess.Count; i++)
@@ -74,6 +102,7 @@ namespace SinovadMediaServer.Strategies
                     {
                         Console.WriteLine(e);
                     }
+                    System.Threading.Thread.Sleep(1000);
                     if (transcodeVideoProcess.AdditionalSystemProcessIdentifier != null && transcodeVideoProcess.AdditionalSystemProcessIdentifier != 0)
                     {
                         try
@@ -100,7 +129,6 @@ namespace SinovadMediaServer.Strategies
                             Console.WriteLine(e);
                         }
                     }
-
                     System.Threading.Thread.Sleep(1000);
                     try
                     {
@@ -119,7 +147,7 @@ namespace SinovadMediaServer.Strategies
             if (listProcessDeletedGUIDs.Count > 0)
             {
                 var guids = string.Join(",", listProcessDeletedGUIDs);
-                var res=_restService.ExecuteHttpMethodAsync<object>(HttpMethodType.DELETE, "/transcodingProcesses/DeleteByListGuids/" + guids).Result;
+                await _restService.ExecuteHttpMethodAsync<object>(HttpMethodType.DELETE, "/transcodingProcesses/DeleteByListGuids/" + guids);
             }
             return listProcessDeletedGUIDs;
         }

@@ -30,8 +30,9 @@ namespace SinovadMediaServer.Controllers
             try
             {
                 Dictionary<string, object> data = new Dictionary<string, Object>();
-                var transcodeProcessStrategy = new TranscodeProcessStrategy(_restService);
-                var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(transcodeProcessStrategy.deleteList(guids)));
+                var transcodeProcessStrategy = new TranscodeProcessStrategy(_sharedData,_restService);
+                var list = await transcodeProcessStrategy.DeleteListByGuids(guids);
+                var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(list));
                 return Ok(Convert.ToBase64String(plainTextBytes));
             }catch (Exception e)
             {

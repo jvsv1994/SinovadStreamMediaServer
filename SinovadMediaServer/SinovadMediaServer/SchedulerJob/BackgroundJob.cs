@@ -7,7 +7,7 @@ namespace SinovadMediaServer.SchedulerJob
 {
     public class BackgroundJob : IJob
     {
-        private SharedData _sharedData { get; set; }
+        private readonly SharedData _sharedData;
 
         private readonly RestService _restService;
 
@@ -19,8 +19,8 @@ namespace SinovadMediaServer.SchedulerJob
 
         public async Task Execute(IJobExecutionContext context)
         {
-            var genericStrategy = new GenericStrategy(_sharedData, _restService);
-            genericStrategy.deleteOldTranscodeVideoProcess();
+            var genericStrategy = new TranscodeProcessStrategy(_sharedData,_restService);
+            await genericStrategy.DeleteOldTranscodeVideoProcess();
         }
     }
 }
