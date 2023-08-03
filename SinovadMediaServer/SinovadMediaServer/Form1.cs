@@ -76,7 +76,9 @@ namespace SinovadMediaServer
                           .ForJob(jobKey)
                           .WithIdentity("SendEmailJob-trigger")
                           //This Cron interval can be described as "run every minute" (when second is zero)
-                          .WithCronSchedule("0 /8 * ? * *")
+                          //.WithCronSchedule("0 /8 * ? * *")
+                          //At minute o past every 3rd hour.
+                          .WithCronSchedule("0 * /3 * * *")
                       );
                   });
                   //services.AddHostedService<TimedHostedService>();
