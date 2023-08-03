@@ -1,6 +1,4 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
-using SinovadMediaServer.Configuration;
 using SinovadMediaServer.DTOs;
 using SinovadMediaServer.Proxy;
 using SinovadMediaServer.Shared;
