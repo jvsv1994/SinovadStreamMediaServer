@@ -78,7 +78,7 @@ namespace SinovadMediaServer
                           //This Cron interval can be described as "run every minute" (when second is zero)
                           //.WithCronSchedule("0 /8 * ? * *")
                           //At minute o past every 3rd hour.
-                          .WithCronSchedule("0 * /3 * * *")
+                          .WithCronSchedule("0 * /3 ? * *")
                       );
                   });
                   //services.AddHostedService<TimedHostedService>();
