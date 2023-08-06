@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkapp=self.webpackChunkapp||[]).push([[111],{6111:(e,t,s)=>{s.r(t),s.d(t,{RolesPageModule:()=>n});var l=s(95),u=s(3452),o=s(5879);let n=(()=>{class a{static#s=this.\u0275fac=function(d){return new(d||a)};static#a=this.\u0275mod=o.oAB({type:a});static#t=this.\u0275inj=o.cJS({imports:[l.u5,l.UX,u.m]})}return a})()}}]);

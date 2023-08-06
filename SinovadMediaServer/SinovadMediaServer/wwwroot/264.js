@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkapp=self.webpackChunkapp||[]).push([[264],{6264:(P,t,a)=>{a.r(t),a.d(t,{RecoverPasswordPageModule:()=>u});var _=a(6814),o=a(95),r=a(3452),n=a(5879);let u=(()=>{class s{static#a=this.\u0275fac=function(E){return new(E||s)};static#s=this.\u0275mod=n.oAB({type:s});static#t=this.\u0275inj=n.cJS({imports:[_.ez,o.u5,r.m,o.UX]})}return s})()}}]);

@@ -1,15 +1,13 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SinovadMediaServer.Strategies;
-using Microsoft.Extensions.Options;
-using SinovadMediaServer.Configuration;
-using SinovadMediaServer.Shared;
 using SinovadMediaServer.DTOs;
 using SinovadMediaServer.Proxy;
+using SinovadMediaServer.Shared;
+using SinovadMediaServer.Strategies;
 
 namespace SinovadMediaServer.Controllers
 {
     [ApiController]
-    [Route("medias")]
+    [Route("api/medias")]
     public class MediaController : Controller
     {
 

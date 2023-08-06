@@ -9,7 +9,6 @@ using SinovadMediaServer.Common;
 using SinovadMediaServer.Configuration;
 using SinovadMediaServer.DTOs;
 using SinovadMediaServer.Enums;
-using SinovadMediaServer.Middleware;
 using SinovadMediaServer.Proxy;
 using SinovadMediaServer.SchedulerJob;
 using SinovadMediaServer.Shared;
@@ -69,25 +68,23 @@ namespace SinovadMediaServer
                   {
                       q.UseMicrosoftDependencyInjectionScopedJobFactory();
                       // Just use the name of your job that you created in the Jobs folder.
-                      var jobKey = new JobKey("SendEmailJob");
+                      var jobKey = new JobKey("CheckFilesToDelete");
                       q.AddJob<BackgroundJob>(opts => opts.WithIdentity(jobKey));
 
                       q.AddTrigger(opts => opts
                           .ForJob(jobKey)
-                          .WithIdentity("SendEmailJob-trigger")
+                          .WithIdentity("CheckFilesToDelete-trigger")
                           //This Cron interval can be described as "run every minute" (when second is zero)
                           //.WithCronSchedule("0 /8 * ? * *")
                           //At minute o past every 3rd hour.
                           .WithCronSchedule("0 * /3 ? * *")
                       );
                   });
-                  //services.AddHostedService<TimedHostedService>();
                   services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
                   services.AddControllers().AddNewtonsoftJson(options =>
                     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
                   );
                   services.AddSingleton<SharedData>();
-                  services.AddSingleton<MiddlewareInjectorOptions>();
                   services.AddScoped<RestService>();
                   services.AddMemoryCache();
                   services.AddCors(options => options.AddPolicy("AllowAnyOrigin",
@@ -103,8 +100,6 @@ namespace SinovadMediaServer
               {
                   app.UseCors("AllowAnyOrigin");
                   app.UseHttpsRedirection();
-                  var injectorOptions = app.ApplicationServices.GetService<MiddlewareInjectorOptions>();
-                  app.UseMiddlewareInjector(injectorOptions);
                   app.Use(async (context, next) =>
                   {
                       // Forward to the next one.
@@ -387,7 +382,7 @@ namespace SinovadMediaServer
 
         private void manageLibrariesButton_Click(object sender, EventArgs e)
         {
-            Process.Start(new ProcessStartInfo(_mediaServerConfig.LocalUrl+"/settings/server/" + _sharedData.MediaServerData.Guid + "/manage/libraries?apiToken=" + _sharedData.ApiToken) { UseShellExecute = true });
+            Process.Start(new ProcessStartInfo(_mediaServerConfig.WebUrl + "/settings/server/" + _sharedData.MediaServerData.Guid + "/manage/libraries?apiToken=" + _sharedData.ApiToken) { UseShellExecute = true });
         }
 
         private void authenticationMessageLabel_Click(object sender, EventArgs e)

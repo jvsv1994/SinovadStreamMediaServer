@@ -4,7 +4,7 @@ using SinovadMediaServer.Strategies;
 
 namespace SinovadMediaServer.Controllers
 {
-    [Route("directories")]
+    [Route("api/directories")]
     public class DirectoryController : Controller
     {
 

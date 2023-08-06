@@ -8,7 +8,7 @@ using System.Text.Json;
 namespace SinovadMediaServer.Controllers
 {
     [ApiController]
-    [Route("transcodeVideos")]
+    [Route("api/transcodeVideos")]
     public class TranscodeVideoController : Controller
     {
 
