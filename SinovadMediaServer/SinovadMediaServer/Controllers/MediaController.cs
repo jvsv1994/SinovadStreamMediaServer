@@ -28,13 +28,13 @@ namespace SinovadMediaServer.Controllers
             //}
         }
 
-        [HttpPost("UpdateVideosInListStorages")]
-        public ActionResult UpdateVideosInAllStorages([FromBody] UpdateStorageVideosDto request)
+        [HttpPost("UpdateVideosInListLibraries")]
+        public ActionResult UpdateVideosInListLibraries([FromBody] UpdateLibraryVideosDto request)
         {
             try
             {
                 var searhMovieVideoFileStrategy = new SearchVideoFilesStrategy(_restService);
-                searhMovieVideoFileStrategy.UpdateVideosInListStorages(request);
+                searhMovieVideoFileStrategy.UpdateVideosInListLibraries(request);
                 return Ok();
             }
             catch (Exception e)

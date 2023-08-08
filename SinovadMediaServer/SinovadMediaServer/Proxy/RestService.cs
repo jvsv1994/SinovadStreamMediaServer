@@ -10,9 +10,9 @@ namespace SinovadMediaServer.Proxy
     public class RestService
     {
 
-        private string _restApiUrl = "https://streamapi.sinovad.com/api/v1";
+        //private string _restApiUrl = "https://streamapi.sinovad.com/api/v1";
 
-        //private string _restApiUrl = "http://localhost:53363/api/v1";  
+        private string _restApiUrl = "http://localhost:53363/api/v1";  
 
         private SharedData _sharedData;
 

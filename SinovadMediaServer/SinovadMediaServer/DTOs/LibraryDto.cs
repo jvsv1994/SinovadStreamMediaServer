@@ -2,9 +2,10 @@
 
 namespace SinovadMediaServer.DTOs
 {
-    public class StorageDto
+    public class LibraryDto
     {
         public int Id { get; set; }
+        public Guid Guid { get; set; }
         public int MediaServerId { get; set; }
         public string PhysicalPath { get; set; }
         public int MediaTypeCatalogId { get; set; }

@@ -14,7 +14,7 @@ namespace SinovadMediaServer.Strategies
             _restService= restService;
         }
 
-        public void UpdateVideosInListStorages(UpdateStorageVideosDto mediaRequest)
+        public void UpdateVideosInListLibraries(UpdateLibraryVideosDto mediaRequest)
         {
             if (mediaRequest.LogIdentifier == null)
             {
@@ -22,12 +22,12 @@ namespace SinovadMediaServer.Strategies
             }
             IEnumerable<string> filesToAdd = new List<string>();
 
-            foreach (var storage in mediaRequest.ListStorages)
+            foreach (var library in mediaRequest.ListLibraries)
             {
-                var listPaths = Directory.GetFiles(storage.PhysicalPath, "*.*", SearchOption.AllDirectories).Where(s => s.EndsWith(".mkv") || s.EndsWith(".mp4") || s.EndsWith(".avi")).ToList();
-                storage.ListPaths = listPaths;
+                var listPaths = Directory.GetFiles(library.PhysicalPath, "*.*", SearchOption.AllDirectories).Where(s => s.EndsWith(".mkv") || s.EndsWith(".mp4") || s.EndsWith(".avi")).ToList();
+                library.ListPaths = listPaths;
             } 
-            var res = _restService.ExecuteHttpMethodAsync<object>(HttpMethodType.POST, "/videos/UpdateVideosInListStorages", mediaRequest).Result;
+            var res = _restService.ExecuteHttpMethodAsync<object>(HttpMethodType.POST, "/videos/UpdateVideosInListLibraries", mediaRequest).Result;
         }
 
     }
