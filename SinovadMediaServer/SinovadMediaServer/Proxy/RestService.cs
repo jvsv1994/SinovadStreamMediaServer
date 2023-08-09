@@ -1,5 +1,5 @@
 ﻿using SinovadMediaServer.Common;
-using SinovadMediaServer.Enums;
+using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Shared;
 using System.Net;
 using System.Text;

@@ -1,5 +1,5 @@
-﻿using SinovadMediaServer.DTOs;
-using SinovadMediaServer.Enums;
+﻿using SinovadMediaServer.Domain.Enums;
+using SinovadMediaServer.DTOs;
 using SinovadMediaServer.Proxy;
 
 namespace SinovadMediaServer.Strategies

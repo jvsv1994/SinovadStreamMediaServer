@@ -7,8 +7,9 @@ using Microsoft.Extensions.FileProviders;
 using Quartz;
 using SinovadMediaServer.Common;
 using SinovadMediaServer.Configuration;
+using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.DTOs;
-using SinovadMediaServer.Enums;
+using SinovadMediaServer.Persistence.Contexts;
 using SinovadMediaServer.Proxy;
 using SinovadMediaServer.SchedulerJob;
 using SinovadMediaServer.Shared;
@@ -64,6 +65,7 @@ namespace SinovadMediaServer
               .UseWebRoot(Path.Combine("wwwroot"))
               .ConfigureServices((services) =>
               {
+                  services.AddDbContext<ApplicationDbContext>();
                   services.AddQuartz(q =>
                   {
                       q.UseMicrosoftDependencyInjectionScopedJobFactory();
@@ -123,6 +125,12 @@ namespace SinovadMediaServer
                   app.UseStatusCodePagesWithReExecute("/");//to fix angular routing issues
                   app.UseDefaultFiles();
                   app.UseStaticFiles();
+                  using (var scope = app.ApplicationServices.CreateScope())
+                  using (var context = scope.ServiceProvider.GetService<ApplicationDbContext>())
+                      context.Database.EnsureCreatedAsync();
+
+                  //var context = app.ApplicationServices.GetRequiredService<ApplicationDbContext>();
+                  //context.Database.EnsureCreatedAsync();
                   var sharedData = app.ApplicationServices.GetService<SharedData>();
                   sharedData.ApiToken=_sharedData.ApiToken;
                   sharedData.UserData = _sharedData.UserData;

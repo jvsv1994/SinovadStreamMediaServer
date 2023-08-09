@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.Options;
 using SinovadMediaServer.Configuration;
 using SinovadMediaServer.CustomModels;
+using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.DTOs;
-using SinovadMediaServer.Enums;
 using SinovadMediaServer.Proxy;
 using SinovadMediaServer.Shared;
 using System.Diagnostics;
