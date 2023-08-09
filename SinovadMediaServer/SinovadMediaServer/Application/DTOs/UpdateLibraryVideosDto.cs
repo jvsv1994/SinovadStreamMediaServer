@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace SinovadMediaServer.DTOs
+namespace SinovadMediaServer.Application.DTOs
 {
     public class UpdateLibraryVideosDto
     {

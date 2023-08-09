@@ -1,7 +1,9 @@
 ﻿
 #nullable disable
 
-namespace SinovadMediaServer.DTOs
+using SinovadMediaServer;
+
+namespace SinovadMediaServer.Application.DTOs
 {
     public class MediaServerDto
     {

@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace SinovadMediaServer.DTOs
+namespace SinovadMediaServer.Application.DTOs
 {
     public class TranscodeRunVideoDto
     {
@@ -12,7 +12,7 @@ namespace SinovadMediaServer.DTOs
         public string VideoPath { get; set; }
         public string VideoOutputDirectoryPhysicalPath { get; set; }
         public string VideoOutputDirectoryRoutePath { get; set; }
-        public TranscodePrepareVideoDto TranscodePrepareVideo { get; set;}
+        public TranscodePrepareVideoDto TranscodePrepareVideo { get; set; }
 
     }
 }

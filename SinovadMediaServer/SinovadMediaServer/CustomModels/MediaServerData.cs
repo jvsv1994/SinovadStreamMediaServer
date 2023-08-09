@@ -1,4 +1,4 @@
-﻿using SinovadMediaServer.DTOs;
+﻿using SinovadMediaServer.Application.DTOs;
 
 #nullable disable
 

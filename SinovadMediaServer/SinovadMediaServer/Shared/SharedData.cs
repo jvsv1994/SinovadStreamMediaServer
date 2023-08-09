@@ -1,5 +1,5 @@
-﻿using SinovadMediaServer.CustomModels;
-using SinovadMediaServer.DTOs;
+﻿using SinovadMediaServer.Application.DTOs;
+using SinovadMediaServer.CustomModels;
 
 #nullable disable
 

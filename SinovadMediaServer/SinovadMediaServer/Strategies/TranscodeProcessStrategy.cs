@@ -1,5 +1,5 @@
-﻿using SinovadMediaServer.Domain.Enums;
-using SinovadMediaServer.DTOs;
+﻿using SinovadMediaServer.Application.DTOs;
+using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Proxy;
 using SinovadMediaServer.Shared;
 using System.Diagnostics;
