@@ -81,5 +81,16 @@ namespace SinovadMediaServer.Controllers
             return BadRequest(response.Message);
         }
 
+        [HttpPost("SearchFiles")]
+        public ActionResult SearchFiles([FromBody] SearchFilesDto searchFilesDto)
+        {
+            var response = _libraryService.SearchFiles(searchFilesDto);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response.Message);
+        }
+
     }
 }

@@ -90,7 +90,7 @@ namespace SinovadMediaServer.Application.UseCases.Videos
             return response;
         }
 
-        public Response<object> UpdateVideosInListLibraries(UpdateLibraryVideosDto dto)
+        public Response<object> UpdateVideosInListLibraries(SearchFilesDto dto)
         {
             var response = new Response<object>();
             try

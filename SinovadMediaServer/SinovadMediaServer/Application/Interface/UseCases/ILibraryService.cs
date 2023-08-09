@@ -12,6 +12,7 @@ namespace SinovadMediaServer.Application.Interface.UseCases
         Response<object> Update(LibraryDto libraryDto);
         Response<object> Delete(int id);
         Response<object> DeleteList(string ids);
+        Response<object> SearchFiles(SearchFilesDto searchFilesDto);
     }
 
 }

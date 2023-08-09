@@ -4,7 +4,7 @@
 
 namespace SinovadMediaServer.Application.DTOs
 {
-    public class UpdateLibraryVideosDto
+    public class SearchFilesDto
     {
         public List<LibraryDto> ListLibraries { get; set; }
         public string LogIdentifier { get; set; }

@@ -93,7 +93,7 @@ namespace SinovadMediaServer.Controllers
         }
 
         [HttpPost("UpdateVideosInListLibraries")]
-        public ActionResult UpdateVideosInListLibraries([FromBody] UpdateLibraryVideosDto videoRequest)
+        public ActionResult UpdateVideosInListLibraries([FromBody] SearchFilesDto videoRequest)
         {
             var response = _videoService.UpdateVideosInListLibraries(videoRequest);
             if (response.IsSuccess)

@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Quartz;
+using SinovadMediaServer.Application.Builder;
 using SinovadMediaServer.Application.Configuration;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
@@ -117,6 +118,7 @@ namespace SinovadMediaServer
                   services.Configure<MyConfig>(_configuration);
 
                   //Shared
+                  services.AddSingleton<SearchMediaLogBuilder>();
                   services.AddSingleton<SharedData>();
                   services.AddScoped<RestService>();
                   services.AddScoped<SharedService>();
