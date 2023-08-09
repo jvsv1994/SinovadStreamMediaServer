@@ -6,13 +6,24 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Quartz;
 using SinovadMediaServer.Application.DTOs;
-using SinovadMediaServer.Common;
+using SinovadMediaServer.Application.Interface.Infrastructure;
+using SinovadMediaServer.Application.Interface.Persistence;
+using SinovadMediaServer.Application.Interface.UseCases;
+using SinovadMediaServer.Application.Shared;
+using SinovadMediaServer.Application.UseCases.Libraries;
+using SinovadMediaServer.Application.UseCases.TranscoderSetting;
+using SinovadMediaServer.Application.UseCases.TranscodingProcesses;
+using SinovadMediaServer.Application.UseCases.Videos;
 using SinovadMediaServer.Configuration;
 using SinovadMediaServer.Domain.Enums;
+using SinovadMediaServer.Infrastructure.Imdb;
+using SinovadMediaServer.Infrastructure.Tmdb;
 using SinovadMediaServer.Persistence.Contexts;
+using SinovadMediaServer.Persistence.Repositories;
 using SinovadMediaServer.Proxy;
 using SinovadMediaServer.SchedulerJob;
 using SinovadMediaServer.Shared;
+using SinovadMediaServer.Transversal.Common;
 using System.Diagnostics;
 using System.DirectoryServices.AccountManagement;
 
@@ -86,8 +97,22 @@ namespace SinovadMediaServer
                   services.AddControllers().AddNewtonsoftJson(options =>
                     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
                   );
+                  //Shared
                   services.AddSingleton<SharedData>();
                   services.AddScoped<RestService>();
+                  services.AddScoped<SharedService>();
+                  //Repositories
+                  services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+                  services.AddScoped<IUnitOfWork, UnitOfWork>();
+                  //Infrastructure
+                  services.AddScoped<ITmdbService, TmdbService>();
+                  services.AddScoped<IImdbService, ImdbService>();
+                  //Services
+                  services.AddScoped<ITranscoderSettingsService, TranscoderSettingsService>();
+                  services.AddScoped<IVideoService, VideoService>();
+                  services.AddScoped<ITranscodingProcessService, TranscodingProcessService>();
+                  services.AddScoped<ILibraryService, LibraryService>();
+
                   services.AddMemoryCache();
                   services.AddCors(options => options.AddPolicy("AllowAnyOrigin",
                   builder =>

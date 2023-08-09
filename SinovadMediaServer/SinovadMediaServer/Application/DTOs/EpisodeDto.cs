@@ -1,5 +1,7 @@
 ﻿#nullable disable
 
+using SinovadMediaServer;
+
 namespace SinovadMediaServer.Application.DTOs
 {
     public class EpisodeDto

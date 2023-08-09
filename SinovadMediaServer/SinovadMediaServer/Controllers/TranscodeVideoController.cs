@@ -16,7 +16,7 @@ namespace SinovadMediaServer.Controllers
 
         private readonly SharedData _sharedData;
 
-        public TranscodeVideoController(RestService restService,SharedData sharedData)
+        public TranscodeVideoController(RestService restService, SharedData sharedData)
         {
             _restService = restService;
             _sharedData = sharedData;
@@ -27,12 +27,13 @@ namespace SinovadMediaServer.Controllers
         {
             try
             {
-                Dictionary<string, object> data = new Dictionary<string, Object>();
-                var transcodeProcessStrategy = new TranscodeProcessStrategy(_sharedData,_restService);
+                Dictionary<string, object> data = new Dictionary<string, object>();
+                var transcodeProcessStrategy = new TranscodeProcessStrategy(_sharedData, _restService);
                 var list = await transcodeProcessStrategy.DeleteListByGuids(guids);
                 var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(list));
                 return Ok(Convert.ToBase64String(plainTextBytes));
-            }catch (Exception e)
+            }
+            catch (Exception e)
             {
                 return StatusCode(500, e.Message);
             }
@@ -47,7 +48,8 @@ namespace SinovadMediaServer.Controllers
                 TranscodeRunVideoDto transcodeRunVideoDto = transcodeVideoStrategy.Run(transcodePrepareVideo);
                 var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(transcodeRunVideoDto));
                 return Ok(Convert.ToBase64String(plainTextBytes));
-            }catch (Exception e)
+            }
+            catch (Exception e)
             {
                 return StatusCode(500, e.Message);
             }
@@ -60,10 +62,11 @@ namespace SinovadMediaServer.Controllers
             {
                 var transcodeVideoStrategy = new TranscodeVideoStrategy(_restService, _sharedData);
                 TranscodePrepareVideoDto transcodePrepareVideo = await transcodeVideoStrategy.Prepare(transcodeVideoDto);
-                TranscodeRunVideoDto transcodeRunVideoDto= transcodeVideoStrategy.Run(transcodePrepareVideo);
+                TranscodeRunVideoDto transcodeRunVideoDto = transcodeVideoStrategy.Run(transcodePrepareVideo);
                 var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(transcodeRunVideoDto));
                 return Ok(Convert.ToBase64String(plainTextBytes));
-            }catch (Exception e)
+            }
+            catch (Exception e)
             {
                 return StatusCode(500, e.Message);
             }

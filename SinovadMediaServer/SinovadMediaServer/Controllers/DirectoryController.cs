@@ -27,7 +27,7 @@ namespace SinovadMediaServer.Controllers
         {
             try
             {
-                var base64Bytes = System.Convert.FromBase64String(base64path);
+                var base64Bytes = Convert.FromBase64String(base64path);
                 var path = System.Text.Encoding.UTF8.GetString(base64Bytes);
                 var manageDirectoryStrategy = new ManageDirectoryStrategy();
                 return await manageDirectoryStrategy.getSubDirectories(path);

@@ -46,5 +46,10 @@
         PUT = 3,
         DELETE = 4
     }
+    public enum LogType
+    {
+        Information = 1,
+        Error = 2
+    }
 
 }
