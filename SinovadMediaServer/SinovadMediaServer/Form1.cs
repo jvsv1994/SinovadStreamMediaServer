@@ -2,9 +2,11 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Quartz;
+using SinovadMediaServer.Application.Configuration;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
 using SinovadMediaServer.Application.Interface.Persistence;
@@ -19,11 +21,14 @@ using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Infrastructure.Imdb;
 using SinovadMediaServer.Infrastructure.Tmdb;
 using SinovadMediaServer.Persistence.Contexts;
+using SinovadMediaServer.Persistence.Interceptors;
 using SinovadMediaServer.Persistence.Repositories;
 using SinovadMediaServer.Proxy;
 using SinovadMediaServer.SchedulerJob;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Common;
+using SinovadMediaServer.Transversal.Interface;
+using SinovadMediaServer.Transversal.Logger;
 using System.Diagnostics;
 using System.DirectoryServices.AccountManagement;
 
@@ -40,8 +45,10 @@ namespace SinovadMediaServer
 
         private static List<String> _listUrls;
 
-        public Form1()
-        {
+        private static IConfiguration _configuration;
+
+        public Form1(string[] args)
+        {            
             _sharedData = new SharedData();
             _restService = new RestService(_sharedData);
             SetMediaServerConfiguration();
@@ -74,8 +81,14 @@ namespace SinovadMediaServer
               .UseUrls(_listUrls.ToArray())
               .UseContentRoot(Directory.GetCurrentDirectory())
               .UseWebRoot(Path.Combine("wwwroot"))
+              .ConfigureAppConfiguration(configBuilder =>
+              {
+                configBuilder.AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(),"appsettings.json"));
+                _configuration = configBuilder.Build();
+              })
               .ConfigureServices((services) =>
               {
+                  services.AddScoped<AuditableEntitySaveChangesInterceptor>();
                   services.AddDbContext<ApplicationDbContext>();
                   services.AddQuartz(q =>
                   {
@@ -94,9 +107,15 @@ namespace SinovadMediaServer
                       );
                   });
                   services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
-                  services.AddControllers().AddNewtonsoftJson(options =>
-                    options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
-                  );
+                  services.AddControllers().AddJsonOptions(options =>
+                  {
+                      options.JsonSerializerOptions.PropertyNamingPolicy = null;
+                  });
+                  //
+                  services.AddLogging();
+                  services.AddScoped(typeof(IAppLogger<>), typeof(LoggerAdapter<>));
+                  services.Configure<MyConfig>(_configuration);
+
                   //Shared
                   services.AddSingleton<SharedData>();
                   services.AddScoped<RestService>();

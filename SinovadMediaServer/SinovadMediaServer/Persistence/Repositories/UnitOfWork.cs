@@ -4,7 +4,7 @@ using SinovadMediaServer.Persistence.Contexts;
 
 namespace SinovadMediaServer.Persistence.Repositories
 {
-    public class UnitOfWork : IUnitOfWork, IDisposable
+    public class UnitOfWork : IUnitOfWork
     {
         private ApplicationDbContext _context;
       

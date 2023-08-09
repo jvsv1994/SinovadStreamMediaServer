@@ -10,9 +10,11 @@
 
   <ItemGroup>
     <PackageReference Include="FFMpegCore" Version="5.1.0" />
+    <PackageReference Include="IMDbApiLib" Version="1.9.4" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="7.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="7.0.10" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.1823.32" />
@@ -20,6 +22,7 @@
     <PackageReference Include="Quartz.Extensions.DependencyInjection" Version="3.6.2" />
     <PackageReference Include="Quartz.Extensions.Hosting" Version="3.6.2" />
     <PackageReference Include="System.DirectoryServices.AccountManagement" Version="7.0.0" />
+    <PackageReference Include="TMDbLib" Version="2.0.0" />
   </ItemGroup>
   
   <ItemGroup>
@@ -34,10 +37,13 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Repositories\" />
     <Folder Include="Response\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="wwwroot\" />
+   <Content Include="wwwroot\**">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+   </Content>
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
