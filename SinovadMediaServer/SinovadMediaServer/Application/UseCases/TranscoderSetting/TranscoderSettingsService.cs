@@ -19,17 +19,19 @@ namespace SinovadMediaServer.Application.UseCases.TranscoderSetting
             _unitOfWork = unitOfWork;
             _sharedService = sharedService;
         }
-        public async Task<Response<TranscoderSettingsDto>> GetAsync(int id)
+        public async Task<Response<TranscoderSettingsDto>> GetAsync()
         {
             var response = new Response<TranscoderSettingsDto>();
             try
             {
-                var result = await _unitOfWork.TranscoderSettings.GetAsync(id);
-                response.Data = result.MapTo<TranscoderSettingsDto>();
+                var list = await _unitOfWork.TranscoderSettings.GetAllAsync();
+                if(list!=null && list.Count()>0)
+                {
+                    response.Data = list.FirstOrDefault().MapTo<TranscoderSettingsDto>();
+                }
                 response.IsSuccess = true;
                 response.Message = "Successful";
-            }
-            catch (Exception ex)
+            }catch (Exception ex)
             {
                 response.Message = ex.Message;
                 _sharedService._tracer.LogError(ex.StackTrace);

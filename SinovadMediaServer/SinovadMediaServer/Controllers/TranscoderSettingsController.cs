@@ -15,10 +15,10 @@ namespace SinovadMediaServer.Controllers
             _transcoderSettingsService = transcoderSettingsService;
         }
 
-        [HttpGet("GetAsync/{id}")]
-        public async Task<ActionResult> GetByMediaServerAsync(int id)
+        [HttpGet("GetAsync")]
+        public async Task<ActionResult> GetAsync()
         {
-            var response = await _transcoderSettingsService.GetAsync(id);
+            var response = await _transcoderSettingsService.GetAsync();
             if (response.IsSuccess)
             {
                 return Ok(response);

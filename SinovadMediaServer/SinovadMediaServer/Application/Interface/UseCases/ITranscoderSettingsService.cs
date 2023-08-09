@@ -5,7 +5,7 @@ namespace SinovadMediaServer.Application.Interface.UseCases
 {
     public interface ITranscoderSettingsService
     {
-        Task<Response<TranscoderSettingsDto>> GetAsync(int id);
+        Task<Response<TranscoderSettingsDto>> GetAsync();
         Response<object> Create(TranscoderSettingsDto transcoderSettingsDto);
         Response<object> CreateList(List<TranscoderSettingsDto> listTranscoderSettingsDto);
         Response<object> Update(TranscoderSettingsDto transcoderSettingsDto);

@@ -157,6 +157,23 @@ namespace SinovadMediaServer
                   {
                       endpoints.MapControllers();
                   });
+                  var transcoderSettingsService = app.ApplicationServices.GetService<ITranscoderSettingsService>();
+                  var result=  transcoderSettingsService.GetAsync().Result;
+                  if(result.Data == null)
+                  {
+                      var tsDto = new TranscoderSettingsDto();
+                      tsDto.MediaServerId = _sharedData.MediaServerData.Id;
+                      tsDto.ConstantRateFactor = 18;
+                      tsDto.PresetCatalogId = (int)Catalog.TranscoderPreset;
+                      tsDto.PresetCatalogDetailId = (int)TranscoderPreset.Ultrafast;
+                      tsDto.VideoTransmissionTypeCatalogId = (int)Catalog.VideoTransmissionType;
+                      tsDto.VideoTransmissionTypeCatalogDetailId = (int)VideoTransmissionType.HLS;
+                      tsDto.TemporaryFolder = System.IO.Path.GetTempPath();
+                      transcoderSettingsService.Save(tsDto);
+                      _sharedData.TranscoderSettingsData = tsDto;
+                  }else{
+                      _sharedData.TranscoderSettingsData = result.Data;
+                  }
                   var fileOptions = new FileServerOptions
                   {
                       FileProvider = new PhysicalFileProvider(_sharedData.TranscoderSettingsData.TemporaryFolder),
@@ -256,18 +273,13 @@ namespace SinovadMediaServer
             var resultMediaServer = await SaveMediaServer();
             if (resultMediaServer != null)
             {
-                _sharedData.MediaServerData = resultMediaServer;
-                var resultTranscoderSettings = await GetTranscoderSettings();
-                if (resultTranscoderSettings != null)
+                _sharedData.MediaServerData = resultMediaServer;           
+                var list = await GetPresets();
+                if (list != null && list.Count > 0)
                 {
-                    _sharedData.TranscoderSettingsData = resultTranscoderSettings;
-                    var list = await GetPresets();
-                    if (list != null && list.Count > 0)
-                    {
-                        _sharedData.ListPresets = list;
-                        return true;
-                    }
-                }
+                    _sharedData.ListPresets = list;
+                    return true;
+                }  
             }
             return false;
         }
@@ -297,20 +309,6 @@ namespace SinovadMediaServer
             return null;
         }
 
-        public async Task<TranscoderSettingsDto> GetTranscoderSettings()
-        {
-
-            var response = await _restService.ExecuteHttpMethodAsync<TranscoderSettingsDto>(HttpMethodType.GET, "/transcoderSettings/GetByMediaServerAsync/" + _sharedData.MediaServerData.Id);
-            if (response.IsSuccess && response.Data != null)
-            {
-                return response.Data;
-            }
-            else
-            {
-                return await CreateTranscoderSettings();
-            }
-        }
-
         public async Task<List<CatalogDetailDto>> GetPresets()
         {
             var response = await _restService.ExecuteHttpMethodAsync<List<CatalogDetailDto>>(HttpMethodType.GET, "/catalogs/GetDetailsByCatalogAsync/" + (int)Catalog.TranscoderPreset);
@@ -322,24 +320,6 @@ namespace SinovadMediaServer
             {
                 return null;
             }
-        }
-
-        public async Task<TranscoderSettingsDto> CreateTranscoderSettings()
-        {
-            var tsDto = new TranscoderSettingsDto();
-            tsDto.MediaServerId = _sharedData.MediaServerData.Id;
-            tsDto.ConstantRateFactor = 18;
-            tsDto.PresetCatalogId = (int)Catalog.TranscoderPreset;
-            tsDto.PresetCatalogDetailId = (int)TranscoderPreset.Ultrafast;
-            tsDto.VideoTransmissionTypeCatalogId = (int)Catalog.VideoTransmissionType;
-            tsDto.VideoTransmissionTypeCatalogDetailId = (int)VideoTransmissionType.HLS;
-            tsDto.TemporaryFolder = System.IO.Path.GetTempPath();
-            var response = await _restService.ExecuteHttpMethodAsync<TranscoderSettingsDto>(HttpMethodType.PUT, "/transcoderSettings/Save", tsDto);
-            if (response.IsSuccess)
-            {
-                return response.Data;
-            }
-            return null;
         }
 
         private async void ValidateMediaServer()
