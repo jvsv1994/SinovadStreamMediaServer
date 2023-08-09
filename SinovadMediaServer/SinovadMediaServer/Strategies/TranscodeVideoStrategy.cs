@@ -3,7 +3,7 @@ using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Configuration;
 using SinovadMediaServer.CustomModels;
 using SinovadMediaServer.Domain.Enums;
-using SinovadMediaServer.Proxy;
+using SinovadMediaServer.Infrastructure;
 using SinovadMediaServer.Shared;
 using System.Diagnostics;
 
@@ -12,13 +12,13 @@ namespace SinovadMediaServer.Strategies
     public class TranscodeVideoStrategy
     {
 
-        private readonly RestService _restService;
+        private readonly SinovadApiService _sinovadApiService;
 
         private readonly SharedData _sharedData;
 
-        public TranscodeVideoStrategy(RestService restService, SharedData sharedData)
+        public TranscodeVideoStrategy(SinovadApiService restService, SharedData sharedData)
         {
-            _restService = restService;
+            _sinovadApiService = restService;
             _sharedData = sharedData;
         }
 
@@ -329,7 +329,7 @@ namespace SinovadMediaServer.Strategies
 
         public void registerTranscodeVideoProcess(TranscodingProcessDto transcodeVideoProcess)
         {
-            var res = _restService.ExecuteHttpMethodAsync<object>(HttpMethodType.POST, "/transcodingProcesses/Create", transcodeVideoProcess).Result;
+            var res = _sinovadApiService.ExecuteHttpMethodAsync<object>(HttpMethodType.POST, "/transcodingProcesses/Create", transcodeVideoProcess).Result;
         }
 
         public async Task<bool> checkIfExistFile(string outputFilePhysicalPathFinal)

@@ -19,12 +19,12 @@ using SinovadMediaServer.Application.UseCases.TranscodingProcesses;
 using SinovadMediaServer.Application.UseCases.Videos;
 using SinovadMediaServer.Configuration;
 using SinovadMediaServer.Domain.Enums;
+using SinovadMediaServer.Infrastructure;
 using SinovadMediaServer.Infrastructure.Imdb;
 using SinovadMediaServer.Infrastructure.Tmdb;
 using SinovadMediaServer.Persistence.Contexts;
 using SinovadMediaServer.Persistence.Interceptors;
 using SinovadMediaServer.Persistence.Repositories;
-using SinovadMediaServer.Proxy;
 using SinovadMediaServer.SchedulerJob;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Common;
@@ -40,7 +40,7 @@ namespace SinovadMediaServer
 
         private static SharedData _sharedData;
 
-        private static RestService _restService;
+        private static SinovadApiService _sinovadApiService;
 
         private static MediaServerConfig _mediaServerConfig;
 
@@ -51,7 +51,7 @@ namespace SinovadMediaServer
         public Form1(string[] args)
         {            
             _sharedData = new SharedData();
-            _restService = new RestService(_sharedData);
+            _sinovadApiService = new SinovadApiService(_sharedData);
             SetMediaServerConfiguration();
             InitializeComponent();
             ValidateMediaServer();
@@ -120,7 +120,7 @@ namespace SinovadMediaServer
                   //Shared
                   services.AddSingleton<SearchMediaLogBuilder>();
                   services.AddSingleton<SharedData>();
-                  services.AddScoped<RestService>();
+                  services.AddScoped<SinovadApiService>();
                   services.AddScoped<SharedService>();
                   //Repositories
                   services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
@@ -257,7 +257,7 @@ namespace SinovadMediaServer
 
         public async Task<Response<AuthenticateMediaServerResponseDto>> AuthenticateMediaServer()
         {
-            var response = await _restService.ExecuteHttpMethodAsync<AuthenticateMediaServerResponseDto>(HttpMethodType.POST, "/authentication/AuthenticateMediaServer", _mediaServerConfig.SecurityIdentifier);
+            var response = await _sinovadApiService.ExecuteHttpMethodAsync<AuthenticateMediaServerResponseDto>(HttpMethodType.POST, "/authentication/AuthenticateMediaServer", _mediaServerConfig.SecurityIdentifier);
             return response;
         }
 
@@ -266,7 +266,7 @@ namespace SinovadMediaServer
             var accessUserDto = new AccessUserDto();
             accessUserDto.UserName = username;
             accessUserDto.Password = password;
-            var response = await _restService.ExecuteHttpMethodAsync<AuthenticateUserResponseDto>(HttpMethodType.POST, "/authentication/AuthenticateUser", accessUserDto);
+            var response = await _sinovadApiService.ExecuteHttpMethodAsync<AuthenticateUserResponseDto>(HttpMethodType.POST, "/authentication/AuthenticateUser", accessUserDto);
             return response;
         }
 
@@ -303,7 +303,7 @@ namespace SinovadMediaServer
             mediaServerDto.IpAddress = _mediaServerConfig.IpAddress;
             mediaServerDto.Port = int.Parse(_mediaServerConfig.PortNumber);
             mediaServerDto.PublicIpAddress = _mediaServerConfig.PublicIpAddress;
-            var response = await _restService.ExecuteHttpMethodAsync<MediaServerDto>(HttpMethodType.PUT, "/mediaServers/Save", mediaServerDto);
+            var response = await _sinovadApiService.ExecuteHttpMethodAsync<MediaServerDto>(HttpMethodType.PUT, "/mediaServers/Save", mediaServerDto);
             if (response.IsSuccess)
             {
                 return response.Data;
@@ -313,7 +313,7 @@ namespace SinovadMediaServer
 
         public async Task<List<CatalogDetailDto>> GetPresets()
         {
-            var response = await _restService.ExecuteHttpMethodAsync<List<CatalogDetailDto>>(HttpMethodType.GET, "/catalogs/GetDetailsByCatalogAsync/" + (int)Catalog.TranscoderPreset);
+            var response = await _sinovadApiService.ExecuteHttpMethodAsync<List<CatalogDetailDto>>(HttpMethodType.GET, "/catalogs/GetDetailsByCatalogAsync/" + (int)Catalog.TranscoderPreset);
             if (response.IsSuccess && response.Data != null)
             {
                 return response.Data;

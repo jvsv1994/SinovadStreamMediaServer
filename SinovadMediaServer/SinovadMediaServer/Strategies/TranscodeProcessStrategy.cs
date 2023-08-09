@@ -1,6 +1,6 @@
 ﻿using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Domain.Enums;
-using SinovadMediaServer.Proxy;
+using SinovadMediaServer.Infrastructure;
 using SinovadMediaServer.Shared;
 using System.Diagnostics;
 
@@ -11,12 +11,12 @@ namespace SinovadMediaServer.Strategies
 
         private readonly SharedData _sharedData;
 
-        private readonly RestService _restService;
+        private readonly SinovadApiService _sinovadApiService;
 
-        public TranscodeProcessStrategy(SharedData sharedData, RestService restService)
+        public TranscodeProcessStrategy(SharedData sharedData, SinovadApiService restService)
         {
             _sharedData = sharedData;
-            _restService = restService;
+            _sinovadApiService = restService;
         }
 
         public async Task<bool> DeleteOldTranscodeVideoProcess()
@@ -34,7 +34,7 @@ namespace SinovadMediaServer.Strategies
             var list = new List<TranscodingProcessDto>();
             if (_sharedData.MediaServerData != null)
             {
-                var response = await _restService.ExecuteHttpMethodAsync<List<TranscodingProcessDto>>(HttpMethodType.GET, "/transcodingProcesses/GetAllByMediaServerAsync/" + _sharedData.MediaServerData.Id);
+                var response = await _sinovadApiService.ExecuteHttpMethodAsync<List<TranscodingProcessDto>>(HttpMethodType.GET, "/transcodingProcesses/GetAllByMediaServerAsync/" + _sharedData.MediaServerData.Id);
                 if (response.IsSuccess)
                 {
                     list = response.Data;
@@ -54,7 +54,7 @@ namespace SinovadMediaServer.Strategies
         public async Task<List<TranscodingProcessDto>> GetTranscodingProcessesByListGuids(string guids)
         {
             var list= new List<TranscodingProcessDto>();
-            var res = await _restService.ExecuteHttpMethodAsync<List<TranscodingProcessDto>>(HttpMethodType.GET, "/transcodingProcesses/GetAllByListGuidsAsync/" + guids);
+            var res = await _sinovadApiService.ExecuteHttpMethodAsync<List<TranscodingProcessDto>>(HttpMethodType.GET, "/transcodingProcesses/GetAllByListGuidsAsync/" + guids);
             if(res.IsSuccess)
             {
                 list = res.Data;
@@ -147,7 +147,7 @@ namespace SinovadMediaServer.Strategies
             if (listProcessDeletedGUIDs.Count > 0)
             {
                 var guids = string.Join(",", listProcessDeletedGUIDs);
-                await _restService.ExecuteHttpMethodAsync<object>(HttpMethodType.DELETE, "/transcodingProcesses/DeleteByListGuids/" + guids);
+                await _sinovadApiService.ExecuteHttpMethodAsync<object>(HttpMethodType.DELETE, "/transcodingProcesses/DeleteByListGuids/" + guids);
             }
             return listProcessDeletedGUIDs;
         }

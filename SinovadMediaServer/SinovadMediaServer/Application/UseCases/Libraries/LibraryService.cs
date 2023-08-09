@@ -6,7 +6,6 @@ using SinovadMediaServer.Application.Interface.UseCases;
 using SinovadMediaServer.Application.Shared;
 using SinovadMediaServer.Domain.Entities;
 using SinovadMediaServer.Domain.Enums;
-using SinovadMediaServer.Proxy;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Mapping;
 using System.Linq.Expressions;

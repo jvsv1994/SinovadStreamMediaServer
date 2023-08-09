@@ -5,9 +5,9 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 
-namespace SinovadMediaServer.Proxy
+namespace SinovadMediaServer.Infrastructure
 {
-    public class RestService
+    public class SinovadApiService
     {
 
         private string _restApiUrl = "https://streamapi.sinovad.com/api/v1";
@@ -16,11 +16,12 @@ namespace SinovadMediaServer.Proxy
 
         private SharedData _sharedData;
 
-        public RestService(SharedData sharedData) {
+        public SinovadApiService(SharedData sharedData)
+        {
             _sharedData = sharedData;
         }
 
-        public async Task<Response<Data>> ExecuteHttpMethodAsync<Data>(HttpMethodType type, string path, Object content)
+        public async Task<Response<Data>> ExecuteHttpMethodAsync<Data>(HttpMethodType type, string path, object content)
         {
             var requestContent = new StringContent("");
             if (content != null)
@@ -35,8 +36,8 @@ namespace SinovadMediaServer.Proxy
             return await PerformExecuteHttpMethodAsync<Data>(type, path, new StringContent(""));
         }
 
-        private async Task<Response<Data>> PerformExecuteHttpMethodAsync<Data>(HttpMethodType type,string path,StringContent content)
-        {  
+        private async Task<Response<Data>> PerformExecuteHttpMethodAsync<Data>(HttpMethodType type, string path, StringContent content)
+        {
             var response = new Response<Data>();
             try
             {
@@ -70,7 +71,8 @@ namespace SinovadMediaServer.Proxy
                         throw new Exception(response.Message);
                     }
                 }
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 response.IsSuccess = false;
                 response.Message = ex.Message;

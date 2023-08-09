@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SinovadMediaServer.Application.DTOs;
-using SinovadMediaServer.Proxy;
+using SinovadMediaServer.Infrastructure;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Strategies;
 using System.Text.Json;
@@ -12,13 +12,13 @@ namespace SinovadMediaServer.Controllers
     public class TranscodeVideoController : Controller
     {
 
-        private readonly RestService _restService;
+        private readonly SinovadApiService _sinovadApiService;
 
         private readonly SharedData _sharedData;
 
-        public TranscodeVideoController(RestService restService, SharedData sharedData)
+        public TranscodeVideoController(SinovadApiService restService, SharedData sharedData)
         {
-            _restService = restService;
+            _sinovadApiService = restService;
             _sharedData = sharedData;
         }
 
@@ -28,7 +28,7 @@ namespace SinovadMediaServer.Controllers
             try
             {
                 Dictionary<string, object> data = new Dictionary<string, object>();
-                var transcodeProcessStrategy = new TranscodeProcessStrategy(_sharedData, _restService);
+                var transcodeProcessStrategy = new TranscodeProcessStrategy(_sharedData, _sinovadApiService);
                 var list = await transcodeProcessStrategy.DeleteListByGuids(guids);
                 var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(list));
                 return Ok(Convert.ToBase64String(plainTextBytes));
@@ -44,7 +44,7 @@ namespace SinovadMediaServer.Controllers
         {
             try
             {
-                var transcodeVideoStrategy = new TranscodeVideoStrategy(_restService, _sharedData);
+                var transcodeVideoStrategy = new TranscodeVideoStrategy(_sinovadApiService, _sharedData);
                 TranscodeRunVideoDto transcodeRunVideoDto = transcodeVideoStrategy.Run(transcodePrepareVideo);
                 var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(transcodeRunVideoDto));
                 return Ok(Convert.ToBase64String(plainTextBytes));
@@ -60,7 +60,7 @@ namespace SinovadMediaServer.Controllers
         {
             try
             {
-                var transcodeVideoStrategy = new TranscodeVideoStrategy(_restService, _sharedData);
+                var transcodeVideoStrategy = new TranscodeVideoStrategy(_sinovadApiService, _sharedData);
                 TranscodePrepareVideoDto transcodePrepareVideo = await transcodeVideoStrategy.Prepare(transcodeVideoDto);
                 TranscodeRunVideoDto transcodeRunVideoDto = transcodeVideoStrategy.Run(transcodePrepareVideo);
                 var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(transcodeRunVideoDto));
