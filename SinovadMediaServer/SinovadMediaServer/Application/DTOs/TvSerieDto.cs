@@ -20,6 +20,7 @@ namespace SinovadMediaServer.Application.DTOs
         public string Actors { get; set; }
         public List<SeasonDto> ListSeasons { get; set; }
         public List<TvSerieGenreDto> ListItemGenres { get; set; }
+        public List<GenreDto> ListGenres { get; set; }
         public List<string> ListGenreNames { get; set; }
         public virtual List<TvSerieGenreDto> TvSerieGenres { get; set; }
 

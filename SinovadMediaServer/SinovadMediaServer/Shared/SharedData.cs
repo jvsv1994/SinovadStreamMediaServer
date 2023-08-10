@@ -1,5 +1,4 @@
 ﻿using SinovadMediaServer.Application.DTOs;
-using SinovadMediaServer.CustomModels;
 
 #nullable disable
 
@@ -13,5 +12,6 @@ namespace SinovadMediaServer.Shared
         public TranscoderSettingsDto TranscoderSettingsData { get; set; }
         public UserDto UserData { get; set; }
         public List<CatalogDetailDto> ListPresets { get; set; }
+
     }
 }

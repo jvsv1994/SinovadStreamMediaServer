@@ -22,18 +22,24 @@ namespace SinovadMediaServer.Persistence.Interceptors
         {
             if (context == null) return;
 
-            foreach (var entry in context.ChangeTracker.Entries<BaseEntity>())
+            foreach (var entry in context.ChangeTracker.Entries<BaseAuditableEntity>())
             {
                 if (entry.State == EntityState.Added)
                 {
                     entry.Entity.CreatedBy = "system";
                     entry.Entity.Created = DateTime.Now;
-                    entry.Entity.Guid = Guid.NewGuid();
                 }
                 if (entry.State == EntityState.Modified)
                 {
                     entry.Entity.LastModifiedBy = "system";
                     entry.Entity.LastModified = DateTime.Now;
+                }
+            }
+            foreach (var entry in context.ChangeTracker.Entries<BaseEntity>())
+            {
+                if (entry.State == EntityState.Added)
+                {
+                    entry.Entity.Guid = Guid.NewGuid();
                 }
             }
         }

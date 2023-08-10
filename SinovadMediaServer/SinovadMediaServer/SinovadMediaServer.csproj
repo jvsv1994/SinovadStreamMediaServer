@@ -47,7 +47,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Proxy\" />
-    <Folder Include="Repositories\" />
     <Folder Include="Response\" />
   </ItemGroup>
   <ItemGroup>

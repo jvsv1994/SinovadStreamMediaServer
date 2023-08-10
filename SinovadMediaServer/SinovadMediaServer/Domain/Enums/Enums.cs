@@ -18,7 +18,10 @@
     public enum MediaType
     {
         Movie = 1,
-        TvSerie = 2
+        TvSerie = 2,
+        Music = 3,
+        Photo = 4,
+        Other = 5
     }
 
     public enum VideoTransmissionType
@@ -50,6 +53,12 @@
     {
         Information = 1,
         Error = 2
+    }
+    public enum MetadataAgents
+    {
+        SinovadDb = 1,
+        TMDb = 2,
+        IMDb = 3
     }
 
 }

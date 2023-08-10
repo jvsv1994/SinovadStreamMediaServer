@@ -420,8 +420,6 @@ namespace SinovadMediaServer.Application.UseCases.Videos
                                 newVideo.PhysicalPath = physicalPath;
                                 newVideo.Title = movie.Title;
                                 newVideo.LibraryId = libraryId;
-                                newVideo.TmdbId = movie.TmdbId;
-                                newVideo.Imdbid = movie.Imdbid;
                                 listVideosTmp.Add(newVideo);
                                 listMoviesFinded.Add(movie);
                                 AddMessage(LogType.Information, "Movie finded in TMDb Data Base " + newVideo.Title + " " + year);

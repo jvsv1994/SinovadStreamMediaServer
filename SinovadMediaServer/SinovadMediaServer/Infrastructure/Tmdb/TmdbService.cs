@@ -3,6 +3,7 @@ using SinovadMediaServer.Application.Configuration;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
 using SinovadMediaServer.Application.Shared;
+using SinovadMediaServer.Transversal.Mapping;
 using TMDbLib.Client;
 using TMDbLib.Objects.Search;
 using TMDbLib.Objects.TvShows;
@@ -52,7 +53,6 @@ namespace SinovadMediaServer.Infrastructure.Tmdb
                         if (indexEpisode == -1)
                         {
                             var episode = new EpisodeDto();
-                            episode.MediaServerId = video.MediaServerId;
                             episode.MediaServerUrl = video.MediaServerUrl;
                             episode.TvSerieName = tvSerie.Name;
                             episode.EpisodeNumber = tse.EpisodeNumber;
@@ -62,7 +62,6 @@ namespace SinovadMediaServer.Infrastructure.Tmdb
                             episode.PhysicalPath = video.PhysicalPath;
                             episode.TmdbId = tse.Id;
                             episode.StillPath = tse.StillPath;
-                            episode.VideoId = video.VideoId;
                             listEpisodesBySeason.Add(episode);
                         }
                     }
@@ -167,8 +166,7 @@ namespace SinovadMediaServer.Infrastructure.Tmdb
                 tvSerieDto.Name = tvShow.Name;
                 if (tvShow.Genres != null && tvShow.Genres.Count > 0)
                 {
-                    tvSerieDto.ListGenreNames = tvShow.Genres.Select(it => it.Name).ToList();
-
+                    tvSerieDto.ListGenres = tvShow.Genres.MapTo<List<GenreDto>>();
                 }
             }
             return tvSerieDto;
@@ -185,6 +183,20 @@ namespace SinovadMediaServer.Infrastructure.Tmdb
             if (episode != null)
             {
                 return episode.Name;
+            }
+            return null;
+        }
+
+        public EpisodeDto GetTvEpisode(int tvShowId, int seasonNumber, int episodeNumber)
+        {
+            var episode = _tmdbClient.GetTvEpisodeAsync(tvShowId, seasonNumber, episodeNumber, TvEpisodeMethods.Undefined, "es-MX").Result;
+            if (episode != null)
+            {
+                var episodeDto = new EpisodeDto();
+                episodeDto.Title = episode.Name;
+                episodeDto.Summary = episode.Overview;
+                episodeDto.StillPath = episode.StillPath;
+                return episodeDto;
             }
             return null;
         }

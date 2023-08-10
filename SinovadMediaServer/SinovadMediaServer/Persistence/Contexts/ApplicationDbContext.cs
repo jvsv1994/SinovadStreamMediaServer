@@ -25,6 +25,12 @@ public partial class ApplicationDbContext:DbContext
     public virtual DbSet<TranscoderSettings> TranscoderSettings { get; set; }
     public virtual DbSet<Library> Libraries { get; set; }
     public virtual DbSet<TranscodingProcess> TranscodingProcesses { get; set; }
+    public virtual DbSet<MediaItem> MediaItems { get; set; }
+    public virtual DbSet<MediaGenre> MediaGenres { get; set; }
+    public virtual DbSet<MediaItemGenre> MediaItemGenres { get; set; }
+    public virtual DbSet<MediaFile> MediaFiles { get; set; }
+    public virtual DbSet<MediaFileProfile> MediaFileProfiles { get; set; }
+
     public virtual DbSet<Video> Videos { get; set; }
     public virtual DbSet<VideoProfile> VideoProfiles { get; set; }
 
@@ -71,6 +77,58 @@ public partial class ApplicationDbContext:DbContext
             entity.HasKey(e => e.Id).HasName("PK__Transcod__3214EC27DF052101");
 
             entity.ToTable("TranscodingProcess");
+        });
+
+        modelBuilder.Entity<MediaItem>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__MediaItem__3214EC27293CDB91");
+
+            entity.ToTable("MediaItem");
+
+        });
+
+        modelBuilder.Entity<MediaGenre>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__MediaGenre__3214EC27293CDB91");
+
+            entity.ToTable("MediaGenre");
+
+        });
+
+        modelBuilder.Entity<MediaItemGenre>(entity =>
+        {
+            entity.HasKey(mg => new { mg.MediaItemId, mg.MediaGenreId });
+
+            entity.ToTable("MediaItemGenre");
+
+            entity.HasOne(d => d.MediaGenre).WithMany(p => p.MediaItemGenres)
+                .HasForeignKey(d => d.MediaGenreId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MediaItemGenre_MediaGenre_ID");
+
+            entity.HasOne(d => d.MediaItem).WithMany(p => p.MediaItemGenres)
+                .HasForeignKey(d => d.MediaItemId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MediaItemGenre_MediaItem_ID");
+        });
+
+        modelBuilder.Entity<MediaFile>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__MediaFile__3214EC27293CDB91");
+
+            entity.ToTable("MediaFile");
+        });
+
+        modelBuilder.Entity<MediaFileProfile>(entity =>
+        {
+            entity.HasKey(e => new { e.MediaFileId, e.ProfileId });
+
+            entity.ToTable("MediaFileProfile");
+
+            entity.HasOne(d => d.MediaFile).WithMany(p => p.MediaFileProfiles)
+                .HasForeignKey(d => d.MediaFileId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_VideoProfileVideo");
         });
 
         modelBuilder.Entity<Video>(entity =>

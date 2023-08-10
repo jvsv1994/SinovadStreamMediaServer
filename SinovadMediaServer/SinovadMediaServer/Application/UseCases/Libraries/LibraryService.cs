@@ -6,9 +6,13 @@ using SinovadMediaServer.Application.Interface.UseCases;
 using SinovadMediaServer.Application.Shared;
 using SinovadMediaServer.Domain.Entities;
 using SinovadMediaServer.Domain.Enums;
+using SinovadMediaServer.Infrastructure;
+using SinovadMediaServer.Infrastructure.SinovadApi;
+using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Mapping;
 using System.Linq.Expressions;
+using TMDbLib.Objects.Movies;
 
 namespace SinovadMediaServer.Application.UseCases.Libraries
 {
@@ -17,6 +21,10 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
         private IUnitOfWork _unitOfWork;
 
         private readonly SharedService _sharedService;
+
+        private SharedData _sharedData;
+
+        private readonly SinovadApiService _sinovadApiService;
         private SearchMediaLog? _searchMediaLog { get; set; }
 
         private readonly SearchMediaLogBuilder _searchMediaBuilder;
@@ -25,13 +33,15 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
         private readonly IImdbService _imdbService;
 
-        public LibraryService(IUnitOfWork unitOfWork, SharedService sharedService, ITmdbService tmdbService, IImdbService imdbService, SearchMediaLogBuilder searchMediaBuilder)
+        public LibraryService(IUnitOfWork unitOfWork, SinovadApiService sinovadApiService, SharedData sharedData, SharedService sharedService, ITmdbService tmdbService, IImdbService imdbService, SearchMediaLogBuilder searchMediaBuilder)
         {
             _unitOfWork = unitOfWork;
             _sharedService = sharedService;
             _searchMediaBuilder = searchMediaBuilder;
             _tmdbService = tmdbService;
             _imdbService = imdbService;
+            _sinovadApiService = sinovadApiService;
+            _sharedData = sharedData;
         }
 
         public async Task<Response<LibraryDto>> GetAsync(int id)
@@ -191,7 +201,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                     }
                     if (library.MediaTypeCatalogDetailId == (int)MediaType.TvSerie)
                     {
-                        //RegisterTvSeriesAndVideos(library.Id, paths);
+                        RegisterTvSeriesAndVideos(library.Id, listPaths);
                     }
                 }
                 response.IsSuccess = true;
@@ -206,6 +216,196 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
         }
 
 
+        private MediaItem CreateMediaItemByTvSerie(string searchQuery,TvSerieDto tvSerie,MetadataAgents metadataAgents)
+        {
+            var mediaItem = new MediaItem();
+            mediaItem.SearchQuery = searchQuery;
+            mediaItem.Title = tvSerie.Name;
+            mediaItem.Overview = tvSerie.Overview;
+            mediaItem.SourceId = tvSerie.Id.ToString();
+            mediaItem.MediaTypeId = MediaType.TvSerie;
+            mediaItem.MetadataAgentsId = metadataAgents;
+            mediaItem.PosterPath = tvSerie.PosterPath;
+            mediaItem.FirstAirDate = tvSerie.FirstAirDate;
+            mediaItem.LastAirDate = tvSerie.LastAirDate;
+
+            var listMediaItemGenres = new List<MediaItemGenre>();
+
+            foreach (var genre in tvSerie.ListGenres)
+            {
+                var mediaGenre = _unitOfWork.MediaGenres.GetByExpression(x => x.Name != null && x.Name.ToLower().Trim() == genre.Name.ToLower().Trim());
+                if (mediaGenre == null)
+                {
+                    mediaGenre = new MediaGenre();
+                    mediaGenre.Name = genre.Name;
+                    mediaGenre = _unitOfWork.MediaGenres.Add(mediaGenre);
+                    _unitOfWork.Save();
+                }
+                var mediaItemGenre = new MediaItemGenre();
+                mediaItemGenre.MediaGenreId = mediaGenre.Id;
+                listMediaItemGenres.Add(mediaItemGenre);
+            }
+            mediaItem.MediaItemGenres = listMediaItemGenres;
+            mediaItem = _unitOfWork.MediaItems.Add(mediaItem);
+            _unitOfWork.Save();
+            return mediaItem;
+        }
+
+        private void RegisterTvSeriesAndVideos(int libraryId, List<string> paths)
+        {
+            var tvSerieService = new TvSerieService(_sinovadApiService);
+            var episodeService = new EpisodeService(_sinovadApiService);
+            AddMessage(LogType.Information, "Starting search tv series");
+            try
+            {
+                var filesToAdd = GetFilesToAdd(libraryId, paths);
+                DeleteVideosNotFoundInLibrary(libraryId, paths);
+                var listTvSeriesTMDFinded = new List<TvSerieDto>();
+                var listVideosTmp = new List<VideoDto>();
+                var listVideosFindedInAnyDataBase = new List<VideoDto>();
+                if (filesToAdd != null && filesToAdd.Count > 0)
+                {
+                    for (int i = 0; i < filesToAdd.Count; i++)
+                    {
+                        try
+                        {
+                            var path = filesToAdd[i];
+                            AddMessage(LogType.Information, "Processing new file with path " + path);
+                            var splitted = path.Split("\\");
+                            var fileName = splitted[splitted.Length - 1];
+                            var physicalPath = path;
+                            var tvSerieNameTmp = fileName.Split(".")[0];
+                            var tvSerieNameTmp2 = tvSerieNameTmp.Split(" ");
+                            var seasonEpisodeText = tvSerieNameTmp2[tvSerieNameTmp2.Length - 1];
+                            var tvSerieName = tvSerieNameTmp.Replace(seasonEpisodeText, "").Trim();
+                            if (seasonEpisodeText.IndexOf("E") != -1)
+                            {
+                                var seasonepisodeArray = seasonEpisodeText.Split("E");
+                                var seasonText = seasonepisodeArray[0].Replace("S", "");
+                                var episodeText = seasonepisodeArray[1];
+                                var seasonNumber = int.Parse(seasonText);
+                                var episodeNumber = int.Parse(episodeText);
+                                var mediaItem = _unitOfWork.MediaItems.GetByExpression(x => x.SearchQuery!=null && x.SearchQuery.ToLower().Trim() == tvSerieName.ToLower().Trim() && x.MediaTypeId == MediaType.TvSerie);
+                                if(mediaItem==null)
+                                {        
+                                    //Search Media in SinovadDb
+                                    var result = tvSerieService.SearchAsync(tvSerieName).Result;
+                                    if (result.Data != null)
+                                    {
+                                        var tvSerie = result.Data;
+                                        mediaItem = CreateMediaItemByTvSerie(tvSerieName, tvSerie,MetadataAgents.SinovadDb);
+                                    }
+                                    if(mediaItem==null)
+                                    {
+                                        //Search Media in Tmdb
+                                        var tvSerie = _tmdbService.SearchTvShow(tvSerieName);
+                                        mediaItem = CreateMediaItemByTvSerie(tvSerieName, tvSerie, MetadataAgents.TMDb);
+                                    }
+                                }
+                                if(mediaItem==null)
+                                {
+                                    mediaItem = new MediaItem();
+                                    mediaItem.Title = tvSerieName;
+                                    mediaItem.SearchQuery = tvSerieName;
+                                    mediaItem.MediaTypeId = MediaType.TvSerie;
+                                    mediaItem = _unitOfWork.MediaItems.Add(mediaItem);
+                                    _unitOfWork.Save();
+                                }
+                                var mediaFile = new MediaFile();
+                                mediaFile.LibraryId = libraryId;
+                                mediaFile.EpisodeNumber = episodeNumber;
+                                mediaFile.SeasonNumber = seasonNumber;
+                                mediaFile.PhysicalPath = physicalPath;               
+                                mediaFile.MediaItemId = mediaItem.Id;
+                                mediaFile.Title = mediaItem.Title;
+                                mediaFile.EpisodeName = "Episodio " + episodeNumber;
+                                if (mediaItem.MetadataAgentsId == MetadataAgents.SinovadDb)
+                                {
+                                    var res = episodeService.GetTvEpisodeAsync(int.Parse(mediaItem.SourceId), seasonNumber, episodeNumber).Result;
+                                    if (res.Data != null)
+                                    {
+                                        var episode = res.Data;
+                                        mediaFile.Subtitle = "T" + seasonNumber + ":E" + episodeNumber + " " + episode.Title;
+                                        mediaFile.EpisodeName = episode.Title;
+                                        mediaFile.Overview = episode.Summary;
+                                    }
+                                }
+                                if (mediaItem.MetadataAgentsId == MetadataAgents.TMDb)
+                                {
+                                    EpisodeDto episode = _tmdbService.GetTvEpisode(int.Parse(mediaItem.SourceId), seasonNumber, episodeNumber);
+                                    if (episode != null)
+                                    {
+                                        mediaFile.Subtitle = "T" + seasonNumber + ":E" + episodeNumber + " " + episode.Title;
+                                        mediaFile.EpisodeName = episode.Title;
+                                        mediaFile.Overview = episode.Summary;
+                                        mediaFile.PosterPath = episode.StillPath;
+                                    }
+                                }
+                                _unitOfWork.MediaFiles.Add(mediaFile);
+                                _unitOfWork.Save();
+                            }
+                            else
+                            {
+                                AddMessage(LogType.Information, "The file path does not comply with the format of an episode");
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            AddMessage(LogType.Error, e.Message);
+                        }
+                    }
+                }else
+                {
+                    AddMessage(LogType.Information, "New files not found");
+                }
+            }
+            catch (Exception e)
+            {
+                AddMessage(LogType.Error, e.Message);
+            }
+            AddMessage(LogType.Information, "Ending search tv series");
+        }
+
+
+        private MediaItem CreateMediaItemByMovie(string searchQuery, MovieDto movie)
+        {
+            var mediaItem = new MediaItem();
+            mediaItem.SearchQuery = searchQuery;
+            mediaItem.Title = movie.Title;
+            mediaItem.Overview = movie.Overview;
+            mediaItem.MediaTypeId = MediaType.Movie;
+            mediaItem.PosterPath = movie.PosterPath;
+            mediaItem.ReleaseDate = movie.ReleaseDate;
+            if (movie.TmdbId != null && movie.TmdbId > 0)
+            {
+                mediaItem.SourceId = movie.TmdbId.ToString();
+                mediaItem.MetadataAgentsId = MetadataAgents.TMDb;
+            }else if (movie.Imdbid != null && movie.Imdbid != "")
+            {
+                mediaItem.SourceId = movie.Imdbid.ToString();
+                mediaItem.MetadataAgentsId = MetadataAgents.IMDb;
+            }
+
+            var listMediaItemGenres = new List<MediaItemGenre>();
+            foreach (var genreName in movie.ListGenreNames)
+            {
+                var mediaGenre = _unitOfWork.MediaGenres.GetByExpression(x => x.Name != null && x.Name.ToLower().Trim() == genreName.ToLower().Trim());
+                if (mediaGenre == null)
+                {
+                    mediaGenre = new MediaGenre();
+                    mediaGenre.Name = genreName;
+                    mediaGenre = _unitOfWork.MediaGenres.Add(mediaGenre);
+                    _unitOfWork.Save();
+                }
+                var mediaItemGenre = new MediaItemGenre();
+                mediaItemGenre.MediaGenreId = mediaGenre.Id;
+                listMediaItemGenres.Add(mediaItemGenre);
+            }
+            mediaItem.MediaItemGenres = listMediaItemGenres;
+            mediaItem = _unitOfWork.MediaItems.Add(mediaItem);
+            _unitOfWork.Save();
+            return mediaItem;
+        }
 
         private void RegisterMoviesAndVideos(int libraryId, List<string> paths)
         {
@@ -216,7 +416,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 DeleteVideosNotFoundInLibrary(libraryId, paths);
                 if (filesToAdd != null && filesToAdd.Count > 0)
                 {
-                    var listMoviesFinded = new List<MovieDto>();
                     var listVideosTmp = new List<VideoDto>();
                     for (int i = 0; i < filesToAdd.Count; i++)
                     {
@@ -235,26 +434,37 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                             var partsMovieNameWithoutExtension = fileNameWithoutExtension.Split(" ");
                             var movieName = fileNameWithoutExtension.Substring(0, fileNameWithoutExtension.Length - 5);
                             var year = fileNameWithoutExtension.Substring(fileNameWithoutExtension.Length - 4, 4);
-                            MovieDto movie = GetMovieFromExternalDataBase(movieName, year);
-                            if (movie != null)
+                            var mediaItem = _unitOfWork.MediaItems.GetByExpression(x => x.SearchQuery != null && x.SearchQuery.ToLower().Trim() == movieName.ToLower().Trim() && x.MediaTypeId==MediaType.Movie);
+                            if(mediaItem==null)
                             {
-                                var newVideo = new VideoDto();
-                                newVideo.PhysicalPath = physicalPath;
-                                newVideo.Title = movie.Title;
-                                newVideo.LibraryId = libraryId;
-                                newVideo.TmdbId = movie.TmdbId;
-                                newVideo.Imdbid = movie.Imdbid;
-                                listVideosTmp.Add(newVideo);
-                                listMoviesFinded.Add(movie);
-                                AddMessage(LogType.Information, "Movie finded in TMDb Data Base " + newVideo.Title + " " + year);
+                                MovieDto movie = GetMovieFromExternalDataBase(movieName, year);
+                                if (movie != null)
+                                {
+                                    mediaItem = CreateMediaItemByMovie(movieName, movie);
+                                }
                             }
-                        }
-                        catch (Exception e)
+                            if(mediaItem == null) {
+                                mediaItem = new MediaItem();
+                                mediaItem.Title = movieName;
+                                mediaItem.SearchQuery = movieName;
+                                mediaItem.MediaTypeId = MediaType.Movie;
+                                mediaItem = _unitOfWork.MediaItems.Add(mediaItem);
+                                _unitOfWork.Save();
+                            }
+                            var mediaFile = new MediaFile();
+                            mediaFile.LibraryId = libraryId;
+                            mediaFile.PhysicalPath = physicalPath;
+                            mediaFile.MediaItemId = mediaItem.Id;
+                            mediaFile.Title = mediaItem.Title;
+                            mediaFile.Overview=mediaItem.Overview;
+                            mediaFile.PosterPath = mediaItem.PosterPath;
+                            _unitOfWork.MediaFiles.Add(mediaFile);
+                            _unitOfWork.Save();
+                        }catch (Exception e)
                         {
                             AddMessage(LogType.Error, e.Message);
                         }
                     }
-                    RegisterMoviesFromExternalDataBaseAndVideos(listMoviesFinded, listVideosTmp);
                 }
             }
             catch (Exception e)
@@ -288,52 +498,15 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             }
         }
 
-        private void RegisterMoviesFromExternalDataBaseAndVideos(List<MovieDto> listMoviesFinded, List<VideoDto> listVideosDto)
+        private void RegisterVideos(List<VideoDto> listVideosDto)
         {
-            //List<Genre> listGenres = _unitOfWork.Genres.GetAllAsync().Result.ToList();
-            //List<string> listImdbIds = listMoviesFinded.Where(it => it.Imdbid != null).Select(it => it.Imdbid).ToList();
-            //List<string> listImdbIdsFinded = _unitOfWork.Movies.GetListImdbMovieIdsFinded(listImdbIds);
-            //List<int> listTmdbIds = listMoviesFinded.Where(it => it.TmdbId != null && it.TmdbId > 0).Select(it => (int)it.TmdbId).ToList();
-            //List<int> listTmdbIdsFinded = _unitOfWork.Movies.GetListTMDdMovieIdsFinded(listTmdbIds);
-            //IEnumerable<MovieDto> listMoviesToRegister = listMoviesFinded.Where(it => !listImdbIdsFinded.Contains(it.Imdbid) && !listTmdbIdsFinded.Contains((int)it.TmdbId));
-            //if (listMoviesToRegister != null && listMoviesToRegister.Count() > 0)
-            //{
-            //    foreach (var movieDto in listMoviesToRegister)
-            //    {
-            //        movieDto.MovieGenres = SetMovieGenres(movieDto, listGenres);
-            //    }
-            //    var listMovies = listMoviesToRegister.MapTo<List<Movie>>();
-            //    _unitOfWork.Movies.AddList(listMovies);
-            //    _unitOfWork.Save();
-            //}
-            //if (listVideosDto.Count > 0)
-            //{
-            //    var videosToAdd = new List<VideoDto>();
-            //    var listRelatedMovies = _unitOfWork.Movies.GetAllByExpression(item => item.TmdbId != null && listTmdbIds.Contains((int)item.TmdbId) || item.Imdbid != null && listImdbIds.Contains(item.Imdbid));
-            //    foreach (var videoDto in listVideosDto)
-            //    {
-            //        if (videoDto.MovieId == null || videoDto.MovieId == 0)
-            //        {
-            //            var relatedMovie = listRelatedMovies.FirstOrDefault(it => videoDto.TmdbId != null && it.TmdbId == videoDto.TmdbId || videoDto.Imdbid != null && it.Imdbid == videoDto.Imdbid);
-            //            if (relatedMovie != null)
-            //            {
-            //                videoDto.MovieId = relatedMovie.Id;
-            //                videosToAdd.Add(videoDto);
-            //            }
-            //        }
-            //        else
-            //        {
-            //            videosToAdd.Add(videoDto);
-            //        }
-            //    }
-            //    if (videosToAdd.Count > 0)
-            //    {
-            //        var listVideos = listVideosDto.MapTo<List<Video>>();
-            //        AddMessage(LogType.Information, "Saving all new movie videos");
-            //        _unitOfWork.Videos.AddList(listVideos);
-            //        _unitOfWork.Save();
-            //    }
-            //}
+            if (listVideosDto.Count > 0)
+            {
+                var listVideos = listVideosDto.MapTo<List<Video>>();
+                AddMessage(LogType.Information, "Saving all new videos");
+                _unitOfWork.Videos.AddList(listVideos);
+                _unitOfWork.Save();  
+            }
         }
 
         private MovieDto GetMovieFromExternalDataBase(string movieName, string year)

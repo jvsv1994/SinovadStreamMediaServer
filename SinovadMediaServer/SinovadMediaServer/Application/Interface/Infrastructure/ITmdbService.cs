@@ -8,6 +8,7 @@ namespace SinovadMediaServer.Application.Interface.Infrastructure
         MovieDto SearchMovie(string movieName, string year);
         TvSerieDto SearchTvShow(string name);
         ItemDetailDto GetMovieDetail(ItemDetailDto movieDetail);
+        EpisodeDto GetTvEpisode(int tvShowId, int seasonNumber, int episodeNumber);
         string GetEpisodeName(int tvShowId, int seasonNumber, int episodeNumber);
         List<GenreDto> GetListGenres();
 

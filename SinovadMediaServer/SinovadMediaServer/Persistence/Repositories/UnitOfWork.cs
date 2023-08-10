@@ -11,6 +11,11 @@ namespace SinovadMediaServer.Persistence.Repositories
         private IGenericRepository<Library> _accountLibraries;
         private IGenericRepository<TranscoderSettings> _transcoderSettings;
         private IGenericRepository<TranscodingProcess> _transcodingProcesses;
+        private IGenericRepository<MediaItem> _mediaItems;
+        private IGenericRepository<MediaGenre> _mediaGenres;
+        private IGenericRepository<MediaItemGenre> _mediaItemGenres;
+        private IGenericRepository<MediaFile> _mediaFiles;
+        private IGenericRepository<MediaFileProfile> _mediaFileProfiles;
         private IVideoRepository _videos;
         private IGenericRepository<VideoProfile> _videoProfiles;
 
@@ -47,6 +52,54 @@ namespace SinovadMediaServer.Persistence.Repositories
                 return _transcodingProcesses == null ?
                 _transcodingProcesses = new GenericRepository<TranscodingProcess>(_context) :
                 _transcodingProcesses;
+            }
+        }
+
+        public IGenericRepository<MediaItem> MediaItems
+        {
+            get
+            {
+                return _mediaItems == null ?
+                _mediaItems = new GenericRepository<MediaItem>(_context) :
+                _mediaItems;
+            }
+        }
+        public IGenericRepository<MediaGenre> MediaGenres
+        {
+            get
+            {
+                return _mediaGenres == null ?
+                _mediaGenres = new GenericRepository<MediaGenre>(_context) :
+                _mediaGenres;
+            }
+        }
+        public IGenericRepository<MediaItemGenre> MediaItemGenres
+        {
+            get
+            {
+                return _mediaItemGenres == null ?
+                _mediaItemGenres = new GenericRepository<MediaItemGenre>(_context) :
+                _mediaItemGenres;
+            }
+        }
+
+        public IGenericRepository<MediaFile> MediaFiles
+        {
+            get
+            {
+                return _mediaFiles == null ?
+                _mediaFiles = new GenericRepository<MediaFile>(_context) :
+                _mediaFiles;
+            }
+        }
+
+        public IGenericRepository<MediaFileProfile> MediaFileProfiles
+        {
+            get
+            {
+                return _mediaFileProfiles == null ?
+                _mediaFileProfiles = new GenericRepository<MediaFileProfile>(_context) :
+                _mediaFileProfiles;
             }
         }
 
