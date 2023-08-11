@@ -799,24 +799,5 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             return response;
         }
 
-        private List<MediaSeasonDto> GetSeasonsByMediaFiles(List<MediaFileDto> listMediaFiles)
-        {
-            List<MediaSeasonDto> listSeasons = new List<MediaSeasonDto>();
-            for (var i = 0; i < listMediaFiles.Count; i++)
-            {
-                var mediaFile = listMediaFiles[i];
-                var mediaEpisode=_unitOfWork.MediaEpisodes.Get((int)mediaFile.MediaEpisodeId);
-                var seasonNumber = mediaEpisode.SeasonNumber;
-                var season = new MediaSeasonDto();
-                season.SeasonNumber = seasonNumber;
-                var index = listSeasons.FindIndex(item => item.SeasonNumber == seasonNumber);
-                if (index == -1)
-                {
-                    listSeasons.Add(season);
-                }
-            }
-            return listSeasons;
-        }
-
     }
 }
