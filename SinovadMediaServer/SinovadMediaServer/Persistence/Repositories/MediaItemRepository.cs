@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyModel;
-using SinovadMediaServer.Application.DTOs;
+﻿using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Persistence;
 using SinovadMediaServer.Domain.Entities;
 using SinovadMediaServer.Domain.Enums;
@@ -112,6 +111,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       PhysicalPath = mediaFile.PhysicalPath,
                                       Created = (DateTime)mediaFile.Created,
                                       MediaItemId = mediaItem.Id,
+                                      MediaEpisodeId = mediaFile.MediaEpisodeId,
                                       MediaServerId = library.MediaServerId
                                   }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
 
@@ -215,6 +215,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       PhysicalPath = mediaFile.PhysicalPath,
                                       Created = (DateTime)mediaFile.Created,
                                       MediaItemId = mediaItem.Id,
+                                      MediaEpisodeId=mediaFile.MediaEpisodeId,
                                       MediaServerId = library.MediaServerId
                                   }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
 
@@ -322,6 +323,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       PhysicalPath = mediaFile.PhysicalPath,
                                       Created = (DateTime)mediaFile.Created,
                                       MediaItemId = mediaItem.Id,
+                                      MediaEpisodeId = mediaFile.MediaEpisodeId,
                                       MediaServerId = library.MediaServerId
                                   }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
 
