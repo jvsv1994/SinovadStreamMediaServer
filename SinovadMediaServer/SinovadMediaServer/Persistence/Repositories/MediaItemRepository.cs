@@ -45,7 +45,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       Created = (DateTime)mediaFile.Created,
                                       MediaItemId = mediaItem.Id,
                                       MediaServerId = library.MediaServerId
-                                  }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
+                                  }).ToList();
 
             return listMediaItems.ToList();
         }
@@ -149,7 +149,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       Created = (DateTime)mediaFile.Created,
                                       MediaItemId= mediaItem.Id,
                                       MediaServerId = library.MediaServerId
-                                  }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
+                                  }).ToList();
 
             return listMediaItems.ToList();
         }
@@ -251,7 +251,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                           MediaItemId = mediaItem.Id,
                           MediaServerId = library.MediaServerId
 
-            }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
+            }).ToList();
 
             return listMediaItems.ToList();
         }
