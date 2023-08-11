@@ -7,6 +7,7 @@ namespace SinovadMediaServer.Application.DTOs
     public class TranscodePrepareVideoDto
     {
         public string Title { get; set; }
+        public string Subtitle { get; set; }
         public int VideoId { get; set; }
         public string MediaServerUrl { get; set; }
         public double CurrentTime { get; set; }
