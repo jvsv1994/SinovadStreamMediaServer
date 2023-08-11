@@ -7,6 +7,7 @@ namespace SinovadMediaServer.Application.DTOs
     {
         public int Id { get; set; } 
         public string Title { get; set; }
+        public string ExtendedTitle { get; set; }
         public string? SourceId { get; set; }
         public string? PosterPath { get; set; }
         public string? Overview { get; set; }

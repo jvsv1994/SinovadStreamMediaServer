@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿
+using Microsoft.Extensions.Options;
 using SinovadMediaServer.Application.Configuration;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
@@ -100,6 +101,7 @@ namespace SinovadMediaServer.Infrastructure.Tmdb
             {
                 movieDto = new MediaItemDto();
                 movieDto.Title = movieFinded.Title;
+                movieDto.ExtendedTitle = movieFinded.Title + " (" + movieFinded.ReleaseDate.Value.Year + ")";
                 movieDto.ReleaseDate = movieFinded.ReleaseDate;
                 movieDto.SourceId = movieFinded.Id.ToString();
                 movieDto.Overview = movieFinded.Overview;
@@ -156,6 +158,7 @@ namespace SinovadMediaServer.Infrastructure.Tmdb
             {
                 tvSerieDto = new MediaItemDto();
                 tvSerieDto.Title = tvShow.Name;
+                tvSerieDto.ExtendedTitle = tvShow.Name + (tvShow.LastAirDate.Value.Year > tvShow.FirstAirDate.Value.Year ? " (" + tvShow.FirstAirDate.Value.Year + "-" + tvShow.LastAirDate.Value.Year + ")" : " (" + tvShow.FirstAirDate.Value.Year + ")");
                 tvSerieDto.Overview = tvShow.Overview;
                 tvSerieDto.PosterPath = tvShow.PosterPath;
                 tvSerieDto.SourceId = tvShow.Id.ToString();

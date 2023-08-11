@@ -30,12 +30,14 @@ namespace SinovadMediaServer.Infrastructure.Imdb
             MediaItemDto movieDto = null;
             if (titleData != null)
             {
+                var releaseDate = DateTime.Parse(titleData.ReleaseDate);
                 movieDto = new MediaItemDto();
                 movieDto.Title = titleData.Title;
+                movieDto.ExtendedTitle = titleData.Title + " (" + releaseDate.Year + ")";
                 movieDto.Overview = titleData.PlotLocal;
                 movieDto.PosterPath = titleData.Image;
                 movieDto.SourceId = titleData.Id;
-                movieDto.ReleaseDate = DateTime.Parse(titleData.ReleaseDate);
+                movieDto.ReleaseDate = releaseDate;
                 movieDto.Title = titleData.Title;
                 movieDto.MediaTypeId = MediaType.Movie;
                 movieDto.MetadataAgentsId = MetadataAgents.IMDb;

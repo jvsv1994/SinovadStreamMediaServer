@@ -12,6 +12,7 @@ using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Mapping;
 using System.Linq.Expressions;
+using TMDbLib.Objects.TvShows;
 
 namespace SinovadMediaServer.Application.UseCases.Libraries
 {
@@ -192,11 +193,11 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
                     if (library.MediaTypeCatalogDetailId == (int)MediaType.Movie)
                     {
-                        RegisterMoviesAndVideos(library.Id, listPaths);
+                        RegisterMovieFiles(library.Id, listPaths);
                     }
                     if (library.MediaTypeCatalogDetailId == (int)MediaType.TvSerie)
                     {
-                        RegisterTvSeriesAndFiles(library.Id, listPaths);
+                        RegisterTvSeriesFiles(library.Id, listPaths);
                     }
                 }
                 response.IsSuccess = true;
@@ -210,7 +211,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             return response;
         }
 
-        private void RegisterTvSeriesAndFiles(int libraryId, List<string> paths)
+        private void RegisterTvSeriesFiles(int libraryId, List<string> paths)
         {
             var sinovadMediaDataBaseService = new SinovadMediaDatabaseService(_sinovadApiService);
             AddMessage(LogType.Information, "Starting search tv series");
@@ -261,6 +262,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                         }
                                         mediaItemDto.PosterPath = sinovadTvSerie.PosterPath;
                                         mediaItemDto.Title = sinovadTvSerie.Name;
+                                        mediaItemDto.ExtendedTitle = sinovadTvSerie.Name + (sinovadTvSerie.LastAirDate.Value.Year > sinovadTvSerie.FirstAirDate.Value.Year ? " (" + sinovadTvSerie.FirstAirDate.Value.Year + "-" + sinovadTvSerie.LastAirDate.Value.Year + ")" : " (" + sinovadTvSerie.FirstAirDate.Value.Year + ")");
                                         mediaItemDto.MediaTypeId = MediaType.TvSerie;
                                         mediaItemDto.MetadataAgentsId = MetadataAgents.SinovadDb;
                                         mediaItemDto.ListGenres = sinovadTvSerie.ListGenres.MapTo<List<MediaGenreDto>>();
@@ -415,7 +417,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             return mediaItem;
         }
 
-        private void RegisterMoviesAndVideos(int libraryId, List<string> paths)
+        private void RegisterMovieFiles(int libraryId, List<string> paths)
         {
             AddMessage(LogType.Information, "Starting search movies");
             try
@@ -453,6 +455,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                             if(mediaItem == null) {
                                 mediaItem = new MediaItem();
                                 mediaItem.Title = movieName;
+                                mediaItem.ExtendedTitle = movieName+ "("+year+")";
                                 mediaItem.SearchQuery = movieName;
                                 mediaItem.MediaTypeId = MediaType.Movie;
                                 mediaItem = _unitOfWork.MediaItems.Add(mediaItem);

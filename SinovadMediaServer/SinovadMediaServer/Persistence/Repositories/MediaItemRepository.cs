@@ -29,8 +29,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                   orderby mediaFile.Created descending
                                   select new ItemDto
                                   {
-                                      Title = mediaItem.Title + (mediaItem.ReleaseDate != null ? " (" + mediaItem.ReleaseDate.Value.Year + ")" : ""),
-                                      Name = mediaItem.Title,
+                                      Title = mediaItem.ExtendedTitle,
                                       Overview = mediaItem.Overview,
                                       ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
@@ -62,8 +61,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                   orderby mediaFile.Created descending
                                   select new ItemDto
                                   {
-                                      Title = mediaItem.Title + (mediaItem.ReleaseDate != null ? " (" + mediaItem.ReleaseDate.Value.Year + ")" : ""),
-                                      Name = mediaItem.Title,
+                                      Title = mediaItem.ExtendedTitle,
                                       Overview = mediaItem.Overview,
                                       ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
@@ -96,8 +94,10 @@ namespace SinovadMediaServer.Persistence.Repositories
                                   orderby mediaFilePlayback.LastModified descending
                                   select new ItemDto
                                   {
-                                      Title = mediaItem.Title + (mediaItem.ReleaseDate != null ? " (" + mediaItem.ReleaseDate.Value.Year + ")" : ""),
-                                      Name = mediaItem.Title,
+                                      Title = mediaFilePlayback.Title,
+                                      Subtitle=mediaFilePlayback.Subtitle,
+                                      CurrentTime=mediaFilePlayback.CurrentTime,
+                                      DurationTime=mediaFilePlayback.DurationTime,
                                       Overview = mediaItem.Overview,
                                       ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
@@ -133,8 +133,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                   orderby mediaFile.Created descending
                                   select new ItemDto
                                   {
-                                      Title = mediaItem.Title + (mediaItem.ReleaseDate != null ? " (" + mediaItem.ReleaseDate.Value.Year + ")" : ""),
-                                      Name = mediaItem.Title,
+                                      Title = mediaItem.ExtendedTitle,
                                       Overview = mediaItem.Overview,
                                       ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
@@ -165,8 +164,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                   orderby mediaFile.Created descending
                                   select new ItemDto
                                   {
-                                      Title = mediaItem.Title + (mediaItem.ReleaseDate != null ? " (" + mediaItem.ReleaseDate.Value.Year + ")" : ""),
-                                      Name = mediaItem.Title,
+                                      Title = mediaItem.ExtendedTitle,
                                       Overview = mediaItem.Overview,
                                       ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
@@ -199,8 +197,8 @@ namespace SinovadMediaServer.Persistence.Repositories
                                   orderby mediaFilePlayback.LastModified descending
                                   select new ItemDto
                                   {
-                                      Title = mediaItem.Title + (mediaItem.ReleaseDate != null ? " (" + mediaItem.ReleaseDate.Value.Year + ")" : ""),
-                                      Name = mediaItem.Title,
+                                      Title = mediaFilePlayback.Title,
+                                      Subtitle=mediaFilePlayback.Subtitle,
                                       Overview = mediaItem.Overview,
                                       ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
@@ -210,6 +208,8 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       PosterPath = mediaItem.PosterPath,
                                       GenreId = mediaGenre.Id,
                                       GenreName = mediaGenre.Name,
+                                      CurrentTime = mediaFilePlayback.CurrentTime,
+                                      DurationTime=mediaFilePlayback.DurationTime,
                                       FileId = mediaFile.Id,
                                       LibraryId = library.Id,
                                       PhysicalPath = mediaFile.PhysicalPath,
@@ -234,8 +234,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                   where mediaFile.LibraryId==libraryId
             select new ItemDto
             {
-                          Title = mediaItem.Title + (mediaItem.ReleaseDate!=null?" (" + mediaItem.ReleaseDate.Value.Year + ")":""),
-                          Name = mediaItem.Title,
+                          Title = mediaItem.ExtendedTitle,
                           Overview = mediaItem.Overview,
                           ReleaseDate = mediaItem.ReleaseDate != null?(DateTime)mediaItem.ReleaseDate:null,
                           SearchQuery = mediaItem.SearchQuery,
@@ -268,10 +267,11 @@ namespace SinovadMediaServer.Persistence.Repositories
                                   orderby mediaFile.Created descending
                                   select new ItemDto
                                   {
-                                      Title = mediaItem.Title + (mediaItem.ReleaseDate != null ? " (" + mediaItem.ReleaseDate.Value.Year + ")" : ""),
-                                      Name = mediaItem.Title,
+                                      Title = mediaItem.ExtendedTitle,
                                       Overview = mediaItem.Overview,
                                       ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
+                                      FirstAirDate = mediaItem.FirstAirDate != null ? (DateTime)mediaItem.FirstAirDate : null,
+                                      LastAirDate = mediaItem.LastAirDate != null ? (DateTime)mediaItem.LastAirDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
                                       SourceId = mediaItem.SourceId,
                                       MetadataAgentsId = mediaItem.MetadataAgentsId,
@@ -302,10 +302,14 @@ namespace SinovadMediaServer.Persistence.Repositories
                                   orderby mediaFilePlayback.LastModified descending
                                   select new ItemDto
                                   {
-                                      Title = mediaItem.Title + (mediaItem.ReleaseDate != null ? " (" + mediaItem.ReleaseDate.Value.Year + ")" : ""),
-                                      Name = mediaItem.Title,
+                                      Title = mediaFilePlayback.Title,
+                                      Subtitle = mediaFilePlayback.Subtitle,
+                                      CurrentTime = mediaFilePlayback.CurrentTime,
+                                      DurationTime = mediaFilePlayback.DurationTime,
                                       Overview = mediaItem.Overview,
                                       ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
+                                      FirstAirDate = mediaItem.FirstAirDate != null ? (DateTime)mediaItem.FirstAirDate : null,
+                                      LastAirDate = mediaItem.LastAirDate != null ? (DateTime)mediaItem.LastAirDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
                                       SourceId = mediaItem.SourceId,
                                       MetadataAgentsId = mediaItem.MetadataAgentsId,
