@@ -577,6 +577,54 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             }
         }
 
+
+        private List<ItemsGroupDto> BuildListItemsGroup(List<ItemDto> listItems, List<ItemDto> listLastAddedItems, List<ItemDto> listItemsWatched)
+        {
+            listLastAddedItems = listLastAddedItems.OrderByDescending(c => c.Created).ToList();
+            if (listItemsWatched != null && listItemsWatched.Count > 0)
+            {
+                listItemsWatched = listItemsWatched.OrderByDescending(c => c.LastModified).ToList();
+            }
+            var genres = _unitOfWork.MediaGenres.GetAllAsync().Result;
+
+            var listItemsGroup = new List<ItemsGroupDto>();
+            if (listItemsWatched != null && listItemsWatched.Count > 0)
+            {
+                var itemsGroup = new ItemsGroupDto();
+                itemsGroup.Id = -1;
+                itemsGroup.Name = "Continuar viendo";
+                itemsGroup.ListItems = listItemsWatched;
+                itemsGroup.MediaServerId = this._sharedData.MediaServerData.Id;
+                listItemsGroup.Add(itemsGroup);
+            }
+            if (listLastAddedItems != null && listLastAddedItems.Count > 0)
+            {
+                var itemsGroup = new ItemsGroupDto();
+                itemsGroup.Id = 0;
+                itemsGroup.Name = "Agregados recientemente";
+                itemsGroup.ListItems = listLastAddedItems;
+                itemsGroup.MediaServerId = this._sharedData.MediaServerData.Id;
+                listItemsGroup.Add(itemsGroup);
+            }
+            if (genres != null && genres.Count() > 0)
+            {
+                foreach (var genre in genres)
+                {
+                    var list = listItems.Where(ele => ele.GenreId == genre.Id).ToList();
+                    if (list != null && list.Count > 0)
+                    {
+                        var itemsGroup = new ItemsGroupDto();
+                        itemsGroup.Id = genre.Id;
+                        itemsGroup.Name = genre.Name;
+                        itemsGroup.ListItems = list;
+                        itemsGroup.MediaServerId = this._sharedData.MediaServerData.Id;
+                        listItemsGroup.Add(itemsGroup);
+                    }
+                }
+            }
+            return listItemsGroup;
+        }
+
         public Response<List<ItemsGroupDto>> GetMediaItemsByLibrary(int libraryId, int profileId)
         {
             var response = new Response<List<ItemsGroupDto>>();
@@ -585,46 +633,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 List<ItemDto> listItems = _unitOfWork.MediaItems.GetItemsByLibrary(libraryId);
                 List<ItemDto> listLastAddedItems = _unitOfWork.MediaItems.GetItemsRecentlyAddedByLibrary(libraryId);
                 List<ItemDto> listItemsWatched = _unitOfWork.MediaItems.GetItemsByLibraryAndProfile(libraryId,profileId);
-                listLastAddedItems = listLastAddedItems.OrderByDescending(c => c.Created).ToList();
-                if (listItemsWatched != null && listItemsWatched.Count > 0)
-                {
-                    listItemsWatched = listItemsWatched.OrderByDescending(c => c.LastModified).ToList();
-                }
-                var genres = _unitOfWork.MediaGenres.GetAllAsync().Result;
-
-                var listItemsGroup = new List<ItemsGroupDto>();
-                if (listItemsWatched != null && listItemsWatched.Count > 0)
-                {
-                    var itemsGroup = new ItemsGroupDto();
-                    itemsGroup.Id = -1;
-                    itemsGroup.Name = "Continuar viendo";
-                    itemsGroup.ListItems = listItemsWatched;
-                    listItemsGroup.Add(itemsGroup);
-                }
-                if (listLastAddedItems != null && listLastAddedItems.Count > 0)
-                {
-                    var itemsGroup = new ItemsGroupDto();
-                    itemsGroup.Id = 0;
-                    itemsGroup.Name = "Agregados recientemente";
-                    itemsGroup.ListItems = listLastAddedItems;
-                    listItemsGroup.Add(itemsGroup);
-                }
-                if (genres != null && genres.Count() > 0)
-                {
-                    foreach (var genre in genres)
-                    {
-                        var list = listItems.Where(ele => ele.GenreId == genre.Id).ToList();
-                        if (list != null && list.Count > 0)
-                        {
-                            var itemsGroup = new ItemsGroupDto();
-                            itemsGroup.Id = genre.Id;
-                            itemsGroup.Name = genre.Name;
-                            itemsGroup.ListItems = list;
-                            listItemsGroup.Add(itemsGroup);
-                        }
-                    }
-                }
-                response.Data = listItemsGroup;
+                response.Data = BuildListItemsGroup(listItems, listLastAddedItems, listItemsWatched);
                 response.IsSuccess = true;
                 response.Message = "Successful";
             }
@@ -644,45 +653,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 List<ItemDto> listItems = _unitOfWork.MediaItems.GetAllItemsByMediaType(mediaTypeId);
                 List<ItemDto> listLastAddedItems = _unitOfWork.MediaItems.GetAllItemsRecentlyAddedByMediaType(mediaTypeId);
                 List<ItemDto> listItemsWatched = _unitOfWork.MediaItems.GetAllItemsByMediaTypeAndProfile(mediaTypeId, profileId);
-                listLastAddedItems = listLastAddedItems.OrderByDescending(c => c.Created).ToList();
-                if (listItemsWatched != null && listItemsWatched.Count > 0)
-                {
-                    listItemsWatched = listItemsWatched.OrderByDescending(c => c.LastModified).ToList();
-                }
-                var genres = _unitOfWork.MediaGenres.GetAllAsync().Result;
-                var listItemsGroup = new List<ItemsGroupDto>();
-                if (listItemsWatched != null && listItemsWatched.Count > 0)
-                {
-                    var itemsGroup = new ItemsGroupDto();
-                    itemsGroup.Id = -1;
-                    itemsGroup.Name = "Continuar viendo";
-                    itemsGroup.ListItems = listItemsWatched;
-                    listItemsGroup.Add(itemsGroup);
-                }
-                if (listLastAddedItems != null && listLastAddedItems.Count > 0)
-                {
-                    var itemsGroup = new ItemsGroupDto();
-                    itemsGroup.Id = 0;
-                    itemsGroup.Name = "Agregados recientemente";
-                    itemsGroup.ListItems = listLastAddedItems;
-                    listItemsGroup.Add(itemsGroup);
-                }
-                if (genres != null && genres.Count() > 0)
-                {
-                    foreach (var genre in genres)
-                    {
-                        var list = listItems.Where(ele => ele.GenreId == genre.Id).ToList();
-                        if (list != null && list.Count > 0)
-                        {
-                            var itemsGroup = new ItemsGroupDto();
-                            itemsGroup.Id = genre.Id;
-                            itemsGroup.Name = genre.Name;
-                            itemsGroup.ListItems = list;
-                            listItemsGroup.Add(itemsGroup);
-                        }
-                    }
-                }
-                response.Data = listItemsGroup;
+                response.Data = BuildListItemsGroup(listItems, listLastAddedItems, listItemsWatched);
                 response.IsSuccess = true;
                 response.Message = "Successful";
             }
@@ -702,45 +673,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 List<ItemDto> listItems = _unitOfWork.MediaItems.GetAllItems();
                 List<ItemDto> listLastAddedItems = _unitOfWork.MediaItems.GetAllItemsRecentlyAdded();
                 List<ItemDto> listItemsWatched = _unitOfWork.MediaItems.GetAllItemsByProfile(profileId);
-                listLastAddedItems = listLastAddedItems.OrderByDescending(c => c.Created).ToList();
-                if (listItemsWatched != null && listItemsWatched.Count > 0)
-                {
-                    listItemsWatched = listItemsWatched.OrderByDescending(c => c.LastModified).ToList();
-                }
-                var genres = _unitOfWork.MediaGenres.GetAllAsync().Result;
-                var listItemsGroup = new List<ItemsGroupDto>();
-                if (listItemsWatched != null && listItemsWatched.Count > 0)
-                {
-                    var itemsGroup = new ItemsGroupDto();
-                    itemsGroup.Id = -1;
-                    itemsGroup.Name = "Continuar viendo";
-                    itemsGroup.ListItems = listItemsWatched;
-                    listItemsGroup.Add(itemsGroup);
-                }
-                if (listLastAddedItems != null && listLastAddedItems.Count > 0)
-                {
-                    var itemsGroup = new ItemsGroupDto();
-                    itemsGroup.Id = 0;
-                    itemsGroup.Name = "Agregados recientemente";
-                    itemsGroup.ListItems = listLastAddedItems;
-                    listItemsGroup.Add(itemsGroup);
-                }
-                if (genres != null && genres.Count() > 0)
-                {
-                    foreach (var genre in genres)
-                    {
-                        var list = listItems.Where(ele => ele.GenreId == genre.Id).ToList();
-                        if (list != null && list.Count > 0)
-                        {
-                            var itemsGroup = new ItemsGroupDto();
-                            itemsGroup.Id = genre.Id;
-                            itemsGroup.Name = genre.Name;
-                            itemsGroup.ListItems = list;
-                            listItemsGroup.Add(itemsGroup);
-                        }
-                    }
-                }
-                response.Data = listItemsGroup;
+                response.Data = BuildListItemsGroup(listItems, listLastAddedItems, listItemsWatched);
                 response.IsSuccess = true;
                 response.Message = "Successful";
             }
