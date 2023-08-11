@@ -15,6 +15,106 @@ namespace SinovadMediaServer.Persistence.Repositories
             _context = context;
         }
 
+
+
+        public List<ItemDto> GetAllItems()
+        {
+            var listMediaItems = (from mediaItem in _context.MediaItems
+                                  join mediaFile in _context.MediaFiles on mediaItem.Id equals mediaFile.MediaItemId
+                                  join mediaGenreItem in _context.MediaItemGenres on mediaItem.Id equals mediaGenreItem.MediaItemId
+                                  join mediaGenre in _context.MediaGenres on mediaGenreItem.MediaGenreId equals mediaGenre.Id
+                                  join library in _context.Libraries on mediaFile.LibraryId equals library.Id
+                                  orderby mediaFile.Created descending
+                                  select new ItemDto
+                                  {
+                                      Title = mediaItem.ExtendedTitle,
+                                      Overview = mediaItem.Overview,
+                                      SearchQuery = mediaItem.SearchQuery,
+                                      SourceId = mediaItem.SourceId,
+                                      MetadataAgentsId = mediaItem.MetadataAgentsId,
+                                      MediaTypeId = mediaItem.MediaTypeId,
+                                      PosterPath = mediaItem.PosterPath,
+                                      GenreId = mediaGenre.Id,
+                                      GenreName = mediaGenre.Name,
+                                      FileId = mediaFile.Id,
+                                      LibraryId = library.Id,
+                                      PhysicalPath = mediaFile.PhysicalPath,
+                                      Created = (DateTime)mediaFile.Created,
+                                      MediaItemId = mediaItem.Id,
+                                      MediaServerId = library.MediaServerId
+                                  }).AsEnumerable().GroupBy(a => a.GenreId).SelectMany(x => x.DistinctBy(x => x.MediaItemId)).ToList();
+            return listMediaItems;
+        }
+
+
+        public List<ItemDto> GetItemsByLibrary(int libraryId)
+        {
+            var listMediaItems = (from mediaItem in _context.MediaItems
+                                  join mediaFile in _context.MediaFiles on mediaItem.Id equals mediaFile.MediaItemId
+                                  join mediaGenreItem in _context.MediaItemGenres on mediaItem.Id equals mediaGenreItem.MediaItemId
+                                  join mediaGenre in _context.MediaGenres on mediaGenreItem.MediaGenreId equals mediaGenre.Id
+                                  join library in _context.Libraries on mediaFile.LibraryId equals library.Id
+                                  where library.Id == libraryId
+                                  orderby mediaFile.Created descending
+                                  select new ItemDto
+                                  {
+                                      Title = mediaItem.ExtendedTitle,
+                                      Overview = mediaItem.Overview,
+                                      SearchQuery = mediaItem.SearchQuery,
+                                      SourceId = mediaItem.SourceId,
+                                      MetadataAgentsId = mediaItem.MetadataAgentsId,
+                                      MediaTypeId = mediaItem.MediaTypeId,
+                                      PosterPath = mediaItem.PosterPath,
+                                      GenreId = mediaGenre.Id,
+                                      GenreName = mediaGenre.Name,
+                                      FileId = mediaFile.Id,
+                                      LibraryId = library.Id,
+                                      PhysicalPath = mediaFile.PhysicalPath,
+                                      Created = (DateTime)mediaFile.Created,
+                                      MediaItemId = mediaItem.Id,
+                                      MediaServerId = library.MediaServerId
+
+                                  }).AsEnumerable().GroupBy(a => a.GenreId).SelectMany(x=>x.DistinctBy(x=>x.MediaItemId)).ToList();
+
+            return listMediaItems;
+        }
+
+        public List<ItemDto> GetAllItemsByMediaType(MediaType mediaTypeId)
+        {
+            var listMediaItems = (from mediaItem in _context.MediaItems
+                                  join mediaFile in _context.MediaFiles on mediaItem.Id equals mediaFile.MediaItemId
+                                  join mediaGenreItem in _context.MediaItemGenres on mediaItem.Id equals mediaGenreItem.MediaItemId
+                                  join mediaGenre in _context.MediaGenres on mediaGenreItem.MediaGenreId equals mediaGenre.Id
+                                  join library in _context.Libraries on mediaFile.LibraryId equals library.Id
+                                  where (int)mediaItem.MediaTypeId == (int)mediaTypeId
+                                  orderby mediaFile.Created descending
+                                  select new ItemDto
+                                  {
+                                      Title = mediaItem.ExtendedTitle,
+                                      Overview = mediaItem.Overview,
+                                      SearchQuery = mediaItem.SearchQuery,
+                                      SourceId = mediaItem.SourceId,
+                                      MetadataAgentsId = mediaItem.MetadataAgentsId,
+                                      MediaTypeId = mediaItem.MediaTypeId,
+                                      PosterPath = mediaItem.PosterPath,
+                                      GenreId = mediaGenre.Id,
+                                      GenreName = mediaGenre.Name,
+                                      FileId = mediaFile.Id,
+                                      LibraryId = library.Id,
+                                      PhysicalPath = mediaFile.PhysicalPath,
+                                      Created = (DateTime)mediaFile.Created,
+                                      MediaItemId = mediaItem.Id,
+                                      MediaServerId = library.MediaServerId
+                                  }).AsEnumerable().GroupBy(a => a.GenreId).SelectMany(x => x.DistinctBy(x => x.MediaItemId)).ToList();
+
+            return listMediaItems;
+        }
+
+
+
+
+
+
         //Search All Items
 
         public List<ItemDto> GetAllItemsBySearchQuery(string searchQuery)
@@ -51,36 +151,6 @@ namespace SinovadMediaServer.Persistence.Repositories
 
         // all items by media type
 
-        public List<ItemDto> GetAllItemsByMediaType(MediaType mediaTypeId)
-        {
-            var listMediaItems = (from mediaItem in _context.MediaItems
-                                  join mediaFile in _context.MediaFiles on mediaItem.Id equals mediaFile.MediaItemId
-                                  join mediaGenreItem in _context.MediaItemGenres on mediaItem.Id equals mediaGenreItem.MediaItemId
-                                  join mediaGenre in _context.MediaGenres on mediaGenreItem.MediaGenreId equals mediaGenre.Id
-                                  join library in _context.Libraries on mediaFile.LibraryId equals library.Id
-                                  where (int)mediaItem.MediaTypeId == (int)mediaTypeId
-                                  orderby mediaFile.Created descending
-                                  select new ItemDto
-                                  {
-                                      Title = mediaItem.ExtendedTitle,
-                                      Overview = mediaItem.Overview,
-                                      SearchQuery = mediaItem.SearchQuery,
-                                      SourceId = mediaItem.SourceId,
-                                      MetadataAgentsId = mediaItem.MetadataAgentsId,
-                                      MediaTypeId = mediaItem.MediaTypeId,
-                                      PosterPath = mediaItem.PosterPath,
-                                      GenreId = mediaGenre.Id,
-                                      GenreName = mediaGenre.Name,
-                                      FileId = mediaFile.Id,
-                                      LibraryId = library.Id,
-                                      PhysicalPath = mediaFile.PhysicalPath,
-                                      Created = (DateTime)mediaFile.Created,
-                                      MediaItemId = mediaItem.Id,
-                                      MediaServerId = library.MediaServerId
-                                  }).GroupBy(a => a.GenreId).SelectMany(x => x.DistinctBy(x => x.MediaItemId)).ToList();
-
-            return listMediaItems;
-        }
 
         public List<ItemDto> GetAllItemsRecentlyAddedByMediaType(MediaType mediaTypeId)
         {
@@ -153,34 +223,6 @@ namespace SinovadMediaServer.Persistence.Repositories
 
         // all items
 
-        public List<ItemDto> GetAllItems()
-        {
-            var listMediaItems = (from mediaItem in _context.MediaItems
-                                  join mediaFile in _context.MediaFiles on mediaItem.Id equals mediaFile.MediaItemId
-                                  join mediaGenreItem in _context.MediaItemGenres on mediaItem.Id equals mediaGenreItem.MediaItemId
-                                  join mediaGenre in _context.MediaGenres on mediaGenreItem.MediaGenreId equals mediaGenre.Id
-                                  join library in _context.Libraries on mediaFile.LibraryId equals library.Id
-                                  orderby mediaFile.Created descending
-                                  select new ItemDto
-                                  {
-                                      Title = mediaItem.ExtendedTitle,
-                                      Overview = mediaItem.Overview,
-                                      SearchQuery = mediaItem.SearchQuery,
-                                      SourceId = mediaItem.SourceId,
-                                      MetadataAgentsId = mediaItem.MetadataAgentsId,
-                                      MediaTypeId = mediaItem.MediaTypeId,
-                                      PosterPath = mediaItem.PosterPath,
-                                      GenreId = mediaGenre.Id,
-                                      GenreName = mediaGenre.Name,
-                                      FileId = mediaFile.Id,
-                                      LibraryId = library.Id,
-                                      PhysicalPath = mediaFile.PhysicalPath,
-                                      Created = (DateTime)mediaFile.Created,
-                                      MediaItemId= mediaItem.Id,
-                                      MediaServerId = library.MediaServerId
-                                  }).AsEnumerable().GroupBy(a => a.GenreId).SelectMany(x=>x.DistinctBy(x=>x.MediaItemId)).ToList();
-            return listMediaItems;
-        }
 
         public List<ItemDto> GetAllItemsRecentlyAdded()
         {
@@ -252,37 +294,6 @@ namespace SinovadMediaServer.Persistence.Repositories
 
 
         //get items by library
-
-        public List<ItemDto> GetItemsByLibrary(int libraryId)
-        {
-            var listMediaItems = (from mediaItem in _context.MediaItems
-                                  join mediaFile in _context.MediaFiles on mediaItem.Id equals mediaFile.MediaItemId
-                                  join mediaGenreItem in _context.MediaItemGenres on mediaItem.Id equals mediaGenreItem.MediaItemId
-                                  join mediaGenre in _context.MediaGenres on mediaGenreItem.MediaGenreId equals mediaGenre.Id
-                                  join library in _context.Libraries on mediaFile.LibraryId equals library.Id
-                                  where mediaFile.LibraryId==libraryId
-            select new ItemDto
-            {
-                          Title = mediaItem.ExtendedTitle,
-                          Overview = mediaItem.Overview,
-                          SearchQuery = mediaItem.SearchQuery,
-                          SourceId = mediaItem.SourceId,
-                          MetadataAgentsId = mediaItem.MetadataAgentsId,
-                          MediaTypeId   = mediaItem.MediaTypeId,
-                          PosterPath = mediaItem.PosterPath,
-                          GenreId = mediaGenre.Id,
-                          GenreName = mediaGenre.Name,
-                          FileId=mediaFile.Id,
-                          LibraryId = libraryId,
-                          PhysicalPath = mediaFile.PhysicalPath,
-                          Created = (DateTime)mediaFile.Created,
-                          MediaItemId = mediaItem.Id,
-                          MediaServerId = library.MediaServerId
-
-            }).GroupBy(a => a.GenreId).SelectMany(x => x.DistinctBy(x => x.MediaItemId)).ToList();
-
-            return listMediaItems;
-        }
 
         public List<ItemDto> GetItemsRecentlyAddedByLibrary(int libraryId)
         {
