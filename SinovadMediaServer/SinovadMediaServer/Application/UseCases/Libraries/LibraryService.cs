@@ -12,7 +12,6 @@ using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Mapping;
 using System.Linq.Expressions;
-using TMDbLib.Objects.TvShows;
 
 namespace SinovadMediaServer.Application.UseCases.Libraries
 {
