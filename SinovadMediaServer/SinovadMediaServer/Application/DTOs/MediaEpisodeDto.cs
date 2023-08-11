@@ -13,7 +13,7 @@ namespace SinovadMediaServer.Application.DTOs
         public string? Overview { get; set; }
         public string? PosterPath { get; set; }
         public string? SourceId { get; set; }
-        public List<MediaFileDto> MediaFiles { get; set; }   
+        public List<MediaFileDto> ListMediaFiles { get; set; }   
 
     }
 }

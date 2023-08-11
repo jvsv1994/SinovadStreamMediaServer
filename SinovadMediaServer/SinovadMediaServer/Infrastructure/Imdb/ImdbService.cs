@@ -59,13 +59,5 @@ namespace SinovadMediaServer.Infrastructure.Imdb
             return movieDto;
         }
 
-        public ItemDetailDto GetMovieDetail(ItemDetailDto movieDetail)
-        {
-            IMDbApiLib.Models.TitleData titleData = _imdbApiLib.TitleAsync(movieDetail.Imdbid, IMDbApiLib.Models.Language.es).Result;
-            movieDetail.Genres = titleData.Genres;
-            movieDetail.Actors = string.Join(",", titleData.ActorList.Select(item => item.Name));
-            movieDetail.Directors = titleData.Directors;
-            return movieDetail;
-        }
     }
 }

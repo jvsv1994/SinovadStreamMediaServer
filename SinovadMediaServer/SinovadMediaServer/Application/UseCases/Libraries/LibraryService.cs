@@ -760,36 +760,34 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             {
                 ItemDetailDto itemDetail = new ItemDetailDto();
                 var mediaItem = _unitOfWork.MediaItems.Get(mediaItemId);
-                itemDetail.SourceId = mediaItem.SourceId;
-                itemDetail.PosterPath = mediaItem.PosterPath;
-                itemDetail.MediaServerGuid = _sharedData.MediaServerData.Guid;
-                itemDetail.Title = mediaItem.Title;
-                itemDetail.Overview=mediaItem.Overview;
-                itemDetail.ReleaseDate=mediaItem.ReleaseDate;
-                itemDetail.FirstAirDate = mediaItem.FirstAirDate;
-                itemDetail.LastAirDate = mediaItem.LastAirDate;
-                itemDetail.MediaItemId = mediaItemId;
-                itemDetail.MediaTypeId = mediaItem.MediaTypeId;
-                itemDetail.MetadataAgentsId = mediaItem.MetadataAgentsId;
+                itemDetail.MediaItem = mediaItem.MapTo<MediaItemDto>();
                 var mediaFiles = _unitOfWork.MediaFiles.GetAllByExpression(x=>x.MediaItemId == mediaItemId);
                 itemDetail.ListMediaFiles = mediaFiles.MapTo<List<MediaFileDto>>();
-                var firstMediaFile=itemDetail.ListMediaFiles[0];
-                itemDetail.LibraryId = firstMediaFile.LibraryId;
-                if (mediaItem.MediaTypeId==MediaType.Movie)
-                {
-                    if(mediaItem.MetadataAgentsId==MetadataAgents.TMDb)
-                    {
-                        itemDetail = _tmdbService.GetMovieDetail(itemDetail);
-                    }
-                }
+                var listSeasonsToAdd = new List<MediaSeasonDto>();
                 if(mediaItem.MediaTypeId==MediaType.TvSerie)
                 {
-                    var listSeasons=GetSeasonsByMediaFiles(itemDetail.ListMediaFiles);
-                    if (mediaItem.MetadataAgentsId == MetadataAgents.TMDb)
+                    var listSeasons=_unitOfWork.MediaSeasons.GetAllByExpression(x=>x.MediaItemId==mediaItemId).MapTo<List<MediaSeasonDto>>();
+                    var listEpisodes= _unitOfWork.MediaEpisodes.GetAllByExpression(x => x.MediaItemId == mediaItemId).MapTo<List<MediaEpisodeDto>>();
+                    foreach (var season in listSeasons)
                     {
-                        itemDetail = _tmdbService.GetTvSerieData(itemDetail, listSeasons, itemDetail.ListMediaFiles);
+                        var existMediaFiles = false;
+                        season.ListEpisodes = listEpisodes.Where(x => x.SeasonNumber == season.SeasonNumber).OrderBy(x=>x.EpisodeNumber).ToList();
+                        foreach (var episodeDto in season.ListEpisodes)
+                        {
+                           var listMediaFiles=itemDetail.ListMediaFiles.Where(x => x.MediaEpisodeId == episodeDto.Id).ToList();
+                           episodeDto.ListMediaFiles=listMediaFiles;
+                            if(episodeDto.ListMediaFiles.Count>0)
+                            {
+                                existMediaFiles = true;
+                            }
+                        }
+                        if(existMediaFiles)
+                        {
+                            listSeasonsToAdd.Add(season);
+                        }
                     }
                 }
+                itemDetail.ListSeasons= listSeasonsToAdd;
                 response.Data = itemDetail;
                 response.IsSuccess = true;
                 response.Message = "Successful";
@@ -806,8 +804,9 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             List<MediaSeasonDto> listSeasons = new List<MediaSeasonDto>();
             for (var i = 0; i < listMediaFiles.Count; i++)
             {
-                var video = listMediaFiles[i];
-                var seasonNumber = video.SeasonNumber;
+                var mediaFile = listMediaFiles[i];
+                var mediaEpisode=_unitOfWork.MediaEpisodes.Get((int)mediaFile.MediaEpisodeId);
+                var seasonNumber = mediaEpisode.SeasonNumber;
                 var season = new MediaSeasonDto();
                 season.SeasonNumber = seasonNumber;
                 var index = listSeasons.FindIndex(item => item.SeasonNumber == seasonNumber);
