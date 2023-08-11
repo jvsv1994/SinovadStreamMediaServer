@@ -43,9 +43,9 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       Created = (DateTime)mediaFile.Created,
                                       MediaItemId = mediaItem.Id,
                                       MediaServerId = library.MediaServerId
-                                  }).AsEnumerable().GroupBy(a => a.MediaItemId).Take(10).Select(x => x.First()).ToList();
+                                  }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
 
-            return listMediaItems.ToList();
+            return listMediaItems;
         }
 
 
@@ -77,9 +77,9 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       Created = (DateTime)mediaFile.Created,
                                       MediaItemId = mediaItem.Id,
                                       MediaServerId = library.MediaServerId
-                                  }).ToList();
+                                  }).GroupBy(a => a.GenreId).SelectMany(x => x.DistinctBy(x => x.MediaItemId)).ToList();
 
-            return listMediaItems.ToList();
+            return listMediaItems;
         }
 
         public List<ItemDto> GetAllItemsRecentlyAddedByMediaType(MediaType mediaTypeId)
@@ -110,7 +110,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       MediaServerId = library.MediaServerId
                                   }).AsEnumerable().GroupBy(a => a.MediaItemId).Take(10).Select(x => x.First()).ToList();
 
-            return listMediaItems.ToList();
+            return listMediaItems;
         }
 
         public List<ItemDto> GetAllItemsByMediaTypeAndProfile(MediaType mediaTypeId,int profileId)
@@ -148,11 +148,8 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       MediaServerId = library.MediaServerId
                                   }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
 
-            return listMediaItems.ToList();
+            return listMediaItems;
         }
-
-
-
 
         // all items
 
@@ -181,9 +178,8 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       Created = (DateTime)mediaFile.Created,
                                       MediaItemId= mediaItem.Id,
                                       MediaServerId = library.MediaServerId
-                                  }).ToList();
-
-            return listMediaItems.ToList();
+                                  }).AsEnumerable().GroupBy(a => a.GenreId).SelectMany(x=>x.DistinctBy(x=>x.MediaItemId)).ToList();
+            return listMediaItems;
         }
 
         public List<ItemDto> GetAllItemsRecentlyAdded()
@@ -213,7 +209,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       MediaServerId = library.MediaServerId
                                   }).AsEnumerable().GroupBy(a => a.MediaItemId).Take(10).Select(x => x.First()).ToList();
 
-            return listMediaItems.ToList();
+            return listMediaItems;
         }
 
         public List<ItemDto> GetAllItemsByProfile(int profileId)
@@ -251,7 +247,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       MediaServerId = library.MediaServerId
                                   }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
 
-            return listMediaItems.ToList();
+            return listMediaItems;
         }
 
 
@@ -283,9 +279,9 @@ namespace SinovadMediaServer.Persistence.Repositories
                           MediaItemId = mediaItem.Id,
                           MediaServerId = library.MediaServerId
 
-            }).ToList();
+            }).GroupBy(a => a.GenreId).SelectMany(x => x.DistinctBy(x => x.MediaItemId)).ToList();
 
-            return listMediaItems.ToList();
+            return listMediaItems;
         }
 
         public List<ItemDto> GetItemsRecentlyAddedByLibrary(int libraryId)
@@ -316,7 +312,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       MediaServerId = library.MediaServerId
                                   }).AsEnumerable().GroupBy(a => a.MediaItemId).Take(10).Select(x => x.First()).ToList();
 
-            return listMediaItems.ToList();
+            return listMediaItems;
         }
 
         public List<ItemDto> GetItemsByLibraryAndProfile(int libraryId,int profileId)
@@ -354,7 +350,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       MediaServerId = library.MediaServerId
                                   }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
 
-            return listMediaItems.ToList();
+            return listMediaItems;
         }
 
     }
