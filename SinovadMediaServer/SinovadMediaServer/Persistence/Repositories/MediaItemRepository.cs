@@ -3,6 +3,7 @@ using SinovadMediaServer.Application.Interface.Persistence;
 using SinovadMediaServer.Domain.Entities;
 using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Persistence.Contexts;
+using TMDbLib.Objects.Movies;
 
 namespace SinovadMediaServer.Persistence.Repositories
 {
@@ -13,6 +14,40 @@ namespace SinovadMediaServer.Persistence.Repositories
         {
             _context = context;
         }
+
+        //Search All Items
+
+        public List<ItemDto> GetAllItemsBySearchQuery(string searchQuery)
+        {
+            var listMediaItems = (from mediaItem in _context.MediaItems
+                                  join mediaFile in _context.MediaFiles on mediaItem.Id equals mediaFile.MediaItemId
+                                  join mediaGenreItem in _context.MediaItemGenres on mediaItem.Id equals mediaGenreItem.MediaItemId
+                                  join mediaGenre in _context.MediaGenres on mediaGenreItem.MediaGenreId equals mediaGenre.Id
+                                  join library in _context.Libraries on mediaFile.LibraryId equals library.Id
+                                  where mediaItem.SearchQuery.ToLower().Trim().Contains(searchQuery.ToLower().Trim()) || mediaItem.Title.ToLower().Trim().Contains(searchQuery.ToLower().Trim())
+                                  orderby mediaFile.Created descending
+                                  select new ItemDto
+                                  {
+                                      Title = mediaItem.ExtendedTitle,
+                                      Overview = mediaItem.Overview,
+                                      SearchQuery = mediaItem.SearchQuery,
+                                      SourceId = mediaItem.SourceId,
+                                      MetadataAgentsId = mediaItem.MetadataAgentsId,
+                                      MediaTypeId = mediaItem.MediaTypeId,
+                                      PosterPath = mediaItem.PosterPath,
+                                      GenreId = mediaGenre.Id,
+                                      GenreName = mediaGenre.Name,
+                                      FileId = mediaFile.Id,
+                                      LibraryId = library.Id,
+                                      PhysicalPath = mediaFile.PhysicalPath,
+                                      Created = (DateTime)mediaFile.Created,
+                                      MediaItemId = mediaItem.Id,
+                                      MediaServerId = library.MediaServerId
+                                  }).AsEnumerable().GroupBy(a => a.MediaItemId).Take(10).Select(x => x.First()).ToList();
+
+            return listMediaItems.ToList();
+        }
+
 
         // all items by media type
 
@@ -29,7 +64,6 @@ namespace SinovadMediaServer.Persistence.Repositories
                                   {
                                       Title = mediaItem.ExtendedTitle,
                                       Overview = mediaItem.Overview,
-                                      ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
                                       SourceId = mediaItem.SourceId,
                                       MetadataAgentsId = mediaItem.MetadataAgentsId,
@@ -61,7 +95,6 @@ namespace SinovadMediaServer.Persistence.Repositories
                                   {
                                       Title = mediaItem.ExtendedTitle,
                                       Overview = mediaItem.Overview,
-                                      ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
                                       SourceId = mediaItem.SourceId,
                                       MetadataAgentsId = mediaItem.MetadataAgentsId,
@@ -97,7 +130,6 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       CurrentTime=mediaFilePlayback.CurrentTime,
                                       DurationTime=mediaFilePlayback.DurationTime,
                                       Overview = mediaItem.Overview,
-                                      ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
                                       SourceId = mediaItem.SourceId,
                                       MetadataAgentsId = mediaItem.MetadataAgentsId,
@@ -136,7 +168,6 @@ namespace SinovadMediaServer.Persistence.Repositories
                                   {
                                       Title = mediaItem.ExtendedTitle,
                                       Overview = mediaItem.Overview,
-                                      ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
                                       SourceId = mediaItem.SourceId,
                                       MetadataAgentsId = mediaItem.MetadataAgentsId,
@@ -167,7 +198,6 @@ namespace SinovadMediaServer.Persistence.Repositories
                                   {
                                       Title = mediaItem.ExtendedTitle,
                                       Overview = mediaItem.Overview,
-                                      ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
                                       SourceId = mediaItem.SourceId,
                                       MetadataAgentsId = mediaItem.MetadataAgentsId,
@@ -201,7 +231,6 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       Title = mediaFilePlayback.Title,
                                       Subtitle=mediaFilePlayback.Subtitle,
                                       Overview = mediaItem.Overview,
-                                      ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
                                       SourceId = mediaItem.SourceId,
                                       MetadataAgentsId = mediaItem.MetadataAgentsId,
@@ -240,7 +269,6 @@ namespace SinovadMediaServer.Persistence.Repositories
             {
                           Title = mediaItem.ExtendedTitle,
                           Overview = mediaItem.Overview,
-                          ReleaseDate = mediaItem.ReleaseDate != null?(DateTime)mediaItem.ReleaseDate:null,
                           SearchQuery = mediaItem.SearchQuery,
                           SourceId = mediaItem.SourceId,
                           MetadataAgentsId = mediaItem.MetadataAgentsId,
@@ -273,9 +301,6 @@ namespace SinovadMediaServer.Persistence.Repositories
                                   {
                                       Title = mediaItem.ExtendedTitle,
                                       Overview = mediaItem.Overview,
-                                      ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
-                                      FirstAirDate = mediaItem.FirstAirDate != null ? (DateTime)mediaItem.FirstAirDate : null,
-                                      LastAirDate = mediaItem.LastAirDate != null ? (DateTime)mediaItem.LastAirDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
                                       SourceId = mediaItem.SourceId,
                                       MetadataAgentsId = mediaItem.MetadataAgentsId,
@@ -311,9 +336,6 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       CurrentTime = mediaFilePlayback.CurrentTime,
                                       DurationTime = mediaFilePlayback.DurationTime,
                                       Overview = mediaItem.Overview,
-                                      ReleaseDate = mediaItem.ReleaseDate != null ? (DateTime)mediaItem.ReleaseDate : null,
-                                      FirstAirDate = mediaItem.FirstAirDate != null ? (DateTime)mediaItem.FirstAirDate : null,
-                                      LastAirDate = mediaItem.LastAirDate != null ? (DateTime)mediaItem.LastAirDate : null,
                                       SearchQuery = mediaItem.SearchQuery,
                                       SourceId = mediaItem.SourceId,
                                       MetadataAgentsId = mediaItem.MetadataAgentsId,

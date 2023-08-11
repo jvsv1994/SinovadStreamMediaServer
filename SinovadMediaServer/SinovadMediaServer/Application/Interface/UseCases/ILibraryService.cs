@@ -17,6 +17,7 @@ namespace SinovadMediaServer.Application.Interface.UseCases
         Response<List<ItemsGroupDto>> GetMediaItemsByLibrary(int libraryId, int profileId);
         Response<List<ItemsGroupDto>> GetMediaItemsByMediaType(MediaType mediaTypeId, int profileId);
         Response<List<ItemsGroupDto>> GetAllMediaItems(int profileId);
+        Response<List<ItemDto>> GetAllMediaItemsBySearchQuery(string searchQuery);
         Response<ItemDetailDto> GetMediaItemDetail(int mediaItemId);
 
     }

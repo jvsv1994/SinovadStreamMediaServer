@@ -752,6 +752,24 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             return response;
         }
 
+        public Response<List<ItemDto>> GetAllMediaItemsBySearchQuery(string searchQuery)
+        {
+            var response = new Response<List<ItemDto>>();
+            try
+            {
+                List<ItemDto> listItems = _unitOfWork.MediaItems.GetAllItemsBySearchQuery(searchQuery);
+                response.Data = listItems;
+                response.IsSuccess = true;
+                response.Message = "Successful";
+            }
+            catch (Exception ex)
+            {
+                response.Message = ex.Message;
+                _sharedService._tracer.LogError(ex.StackTrace);
+            }
+            return response;
+        }
+
         public Response<ItemDetailDto> GetMediaItemDetail(int mediaItemId)
         {
 

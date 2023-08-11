@@ -6,6 +6,7 @@ namespace SinovadMediaServer.Application.Interface.Persistence
 {
     public interface IMediaItemRepository : IGenericRepository<MediaItem>
     {
+        List<ItemDto> GetAllItemsBySearchQuery(string searchQuery);
         List<ItemDto> GetAllItemsByMediaType(MediaType mediaTypeId);
         List<ItemDto> GetAllItemsRecentlyAddedByMediaType(MediaType mediaTypeId);
         List<ItemDto> GetAllItemsByMediaTypeAndProfile(MediaType mediaTypeId, int profileId);
