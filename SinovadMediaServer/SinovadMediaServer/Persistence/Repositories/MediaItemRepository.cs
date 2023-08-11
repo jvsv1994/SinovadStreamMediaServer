@@ -14,7 +14,6 @@ namespace SinovadMediaServer.Persistence.Repositories
             _context = context;
         }
 
-
         // all items by media type
 
         public List<ItemDto> GetAllItemsByMediaType(MediaType mediaTypeId)
@@ -112,6 +111,8 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       Created = (DateTime)mediaFile.Created,
                                       MediaItemId = mediaItem.Id,
                                       MediaEpisodeId = mediaFile.MediaEpisodeId,
+                                      EpisodeNumber = mediaFilePlayback.EpisodeNumber,
+                                      SeasonNumber = mediaFilePlayback.SeasonNumber,
                                       MediaServerId = library.MediaServerId
                                   }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
 
@@ -216,6 +217,8 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       Created = (DateTime)mediaFile.Created,
                                       MediaItemId = mediaItem.Id,
                                       MediaEpisodeId=mediaFile.MediaEpisodeId,
+                                      EpisodeNumber=mediaFilePlayback.EpisodeNumber,
+                                      SeasonNumber=mediaFilePlayback.SeasonNumber,
                                       MediaServerId = library.MediaServerId
                                   }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
 
@@ -324,6 +327,8 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       Created = (DateTime)mediaFile.Created,
                                       MediaItemId = mediaItem.Id,
                                       MediaEpisodeId = mediaFile.MediaEpisodeId,
+                                      EpisodeNumber = mediaFilePlayback.EpisodeNumber,
+                                      SeasonNumber = mediaFilePlayback.SeasonNumber,
                                       MediaServerId = library.MediaServerId
                                   }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
 

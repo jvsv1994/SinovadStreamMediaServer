@@ -10,8 +10,8 @@ namespace SinovadMediaServer.Application.DTOs
         public string Subtitle { get; set; }
         public double CurrentTime { get; set; }
         public double DurationTime { get; set; }
-        public int SeasonNumber { get; set; }
-        public int EpisodeNumber { get; set; }
+        public int? SeasonNumber { get; set; }
+        public int? EpisodeNumber { get; set; }
         public string Overview { get; set; }
         public DateTime? ReleaseDate { get; set; }
         public DateTime? FirstAirDate { get; set; }
