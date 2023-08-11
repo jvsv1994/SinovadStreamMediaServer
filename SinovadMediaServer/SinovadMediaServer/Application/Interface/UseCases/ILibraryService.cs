@@ -19,6 +19,7 @@ namespace SinovadMediaServer.Application.Interface.UseCases
         Response<List<ItemsGroupDto>> GetAllMediaItems(int profileId);
         Response<List<ItemDto>> GetAllMediaItemsBySearchQuery(string searchQuery);
         Response<ItemDetailDto> GetMediaItemDetail(int mediaItemId);
+        Response<object> UpdateMediaFilePlayback(MediaFilePlaybackDto mediaFilePlaybackDto);
 
     }
 
