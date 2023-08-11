@@ -4,13 +4,15 @@ namespace SinovadMediaServer.Application.Interface.Infrastructure
 {
     public interface ITmdbService
     {
-        ItemDetailDto GetTvSerieData(int tmdbId, List<SeasonDto> listSeasons, List<VideoDto> listVideos);
-        MovieDto SearchMovie(string movieName, string year);
-        TvSerieDto SearchTvShow(string name);
+        ItemDetailDto GetTvSerieData(ItemDetailDto tvSerieDetail, List<MediaSeasonDto> listSeasons, List<MediaFileDto> listMediaFiles);
+        MediaItemDto SearchMovie(string movieName, string year);
+        MediaItemDto SearchTvShow(string name);
+        ItemDetailDto GetMovieDetail(string movieId);
         ItemDetailDto GetMovieDetail(ItemDetailDto movieDetail);
-        EpisodeDto GetTvEpisode(int tvShowId, int seasonNumber, int episodeNumber);
+        MediaSeasonDto GetTvSeason(int tvShowId, int seasonNumber);
+        MediaEpisodeDto GetTvEpisode(int tvShowId, int seasonNumber, int episodeNumber);
         string GetEpisodeName(int tvShowId, int seasonNumber, int episodeNumber);
-        List<GenreDto> GetListGenres();
+        List<MediaGenreDto> GetListGenres();
 
     }
 }

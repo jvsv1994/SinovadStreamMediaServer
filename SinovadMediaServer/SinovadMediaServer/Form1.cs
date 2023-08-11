@@ -16,7 +16,6 @@ using SinovadMediaServer.Application.Shared;
 using SinovadMediaServer.Application.UseCases.Libraries;
 using SinovadMediaServer.Application.UseCases.TranscoderSetting;
 using SinovadMediaServer.Application.UseCases.TranscodingProcesses;
-using SinovadMediaServer.Application.UseCases.Videos;
 using SinovadMediaServer.Configuration;
 using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Infrastructure;
@@ -130,7 +129,6 @@ namespace SinovadMediaServer
                   services.AddScoped<IImdbService, ImdbService>();
                   //Services
                   services.AddScoped<ITranscoderSettingsService, TranscoderSettingsService>();
-                  services.AddScoped<IVideoService, VideoService>();
                   services.AddScoped<ITranscodingProcessService, TranscodingProcessService>();
                   services.AddScoped<ILibraryService, LibraryService>();
 

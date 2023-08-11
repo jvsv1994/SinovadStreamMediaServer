@@ -8,6 +8,9 @@ public partial class MediaItem : BaseEntity
     public string? SourceId { get; set; }
     public string? PosterPath { get; set; }
     public string? Overview { get; set; }
+    public string? Actors { get; set; }
+    public string? Directors { get; set; }
+    public string? Genres { get; set; }
     public MediaType? MediaTypeId { get; set; }
     public MetadataAgents? MetadataAgentsId { get; set; }
     public DateTime? ReleaseDate { get; set; }

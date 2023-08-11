@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using SinovadMediaServer.Domain.Enums;
+
 
 #nullable disable
 
@@ -25,11 +23,18 @@ namespace SinovadMediaServer.Application.DTOs
         public string Genres { get; set; }
         public string Imdbid { get; set; }
         public string Name { get; set; }
+        public string SourceId { get; set; }
+        public int MediaItemId { get; set; }
+        public MediaType? MediaTypeId { get; set; }
+        public MetadataAgents? MetadataAgentsId { get; set; }
         public string OriginalName { get; set; }
         public DateTime? FirstAirDate { get; set; }
         public DateTime? LastAirDate { get; set; }
-        public List<SeasonDto> ListSeasons { get; set; }
+        public List<MediaSeasonDto> ListSeasons { get; set; }
+        public List<MediaFileDto> ListMediaFiles { get; set; }
+        public Guid MediaServerGuid { get; set; }
         public ItemDto Item { get; set; }
+        public int? LibraryId { get; set; }
 
     }
 }

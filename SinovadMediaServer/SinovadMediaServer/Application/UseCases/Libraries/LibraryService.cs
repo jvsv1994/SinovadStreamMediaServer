@@ -12,7 +12,6 @@ using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Mapping;
 using System.Linq.Expressions;
-using TMDbLib.Objects.Movies;
 
 namespace SinovadMediaServer.Application.UseCases.Libraries
 {
@@ -27,7 +26,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
         private readonly SinovadApiService _sinovadApiService;
         private SearchMediaLog? _searchMediaLog { get; set; }
 
-        private readonly SearchMediaLogBuilder _searchMediaBuilder;
 
         private readonly ITmdbService _tmdbService;
 
@@ -37,7 +35,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
         {
             _unitOfWork = unitOfWork;
             _sharedService = sharedService;
-            _searchMediaBuilder = searchMediaBuilder;
             _tmdbService = tmdbService;
             _imdbService = imdbService;
             _sinovadApiService = sinovadApiService;
@@ -142,8 +139,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             var response = new Response<object>();
             try
             {
-                _unitOfWork.VideoProfiles.DeleteByExpression(it => it.Video.LibraryId == id);
-                _unitOfWork.Videos.DeleteByExpression(it => it.LibraryId == id);
                 _unitOfWork.Libraries.Delete(id);
                 _unitOfWork.Save();
                 response.IsSuccess = true;
@@ -201,7 +196,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                     }
                     if (library.MediaTypeCatalogDetailId == (int)MediaType.TvSerie)
                     {
-                        RegisterTvSeriesAndVideos(library.Id, listPaths);
+                        RegisterTvSeriesAndFiles(library.Id, listPaths);
                     }
                 }
                 response.IsSuccess = true;
@@ -215,54 +210,14 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             return response;
         }
 
-
-        private MediaItem CreateMediaItemByTvSerie(string searchQuery,TvSerieDto tvSerie,MetadataAgents metadataAgents)
+        private void RegisterTvSeriesAndFiles(int libraryId, List<string> paths)
         {
-            var mediaItem = new MediaItem();
-            mediaItem.SearchQuery = searchQuery;
-            mediaItem.Title = tvSerie.Name;
-            mediaItem.Overview = tvSerie.Overview;
-            mediaItem.SourceId = tvSerie.Id.ToString();
-            mediaItem.MediaTypeId = MediaType.TvSerie;
-            mediaItem.MetadataAgentsId = metadataAgents;
-            mediaItem.PosterPath = tvSerie.PosterPath;
-            mediaItem.FirstAirDate = tvSerie.FirstAirDate;
-            mediaItem.LastAirDate = tvSerie.LastAirDate;
-
-            var listMediaItemGenres = new List<MediaItemGenre>();
-
-            foreach (var genre in tvSerie.ListGenres)
-            {
-                var mediaGenre = _unitOfWork.MediaGenres.GetByExpression(x => x.Name != null && x.Name.ToLower().Trim() == genre.Name.ToLower().Trim());
-                if (mediaGenre == null)
-                {
-                    mediaGenre = new MediaGenre();
-                    mediaGenre.Name = genre.Name;
-                    mediaGenre = _unitOfWork.MediaGenres.Add(mediaGenre);
-                    _unitOfWork.Save();
-                }
-                var mediaItemGenre = new MediaItemGenre();
-                mediaItemGenre.MediaGenreId = mediaGenre.Id;
-                listMediaItemGenres.Add(mediaItemGenre);
-            }
-            mediaItem.MediaItemGenres = listMediaItemGenres;
-            mediaItem = _unitOfWork.MediaItems.Add(mediaItem);
-            _unitOfWork.Save();
-            return mediaItem;
-        }
-
-        private void RegisterTvSeriesAndVideos(int libraryId, List<string> paths)
-        {
-            var tvSerieService = new TvSerieService(_sinovadApiService);
-            var episodeService = new EpisodeService(_sinovadApiService);
+            var sinovadMediaDataBaseService = new SinovadMediaDatabaseService(_sinovadApiService);
             AddMessage(LogType.Information, "Starting search tv series");
             try
             {
                 var filesToAdd = GetFilesToAdd(libraryId, paths);
                 DeleteVideosNotFoundInLibrary(libraryId, paths);
-                var listTvSeriesTMDFinded = new List<TvSerieDto>();
-                var listVideosTmp = new List<VideoDto>();
-                var listVideosFindedInAnyDataBase = new List<VideoDto>();
                 if (filesToAdd != null && filesToAdd.Count > 0)
                 {
                     for (int i = 0; i < filesToAdd.Count; i++)
@@ -289,17 +244,35 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 if(mediaItem==null)
                                 {        
                                     //Search Media in SinovadDb
-                                    var result = tvSerieService.SearchAsync(tvSerieName).Result;
+                                    var result = sinovadMediaDataBaseService.SearchTvSerieAsync(tvSerieName).Result;
                                     if (result.Data != null)
                                     {
-                                        var tvSerie = result.Data;
-                                        mediaItem = CreateMediaItemByTvSerie(tvSerieName, tvSerie,MetadataAgents.SinovadDb);
+                                        var sinovadTvSerie = result.Data;
+                                        var mediaItemDto = new MediaItemDto();
+                                        mediaItemDto.SourceId = sinovadTvSerie.Id.ToString();
+                                        mediaItemDto.FirstAirDate = sinovadTvSerie.FirstAirDate;
+                                        mediaItemDto.LastAirDate = sinovadTvSerie.LastAirDate;
+                                        mediaItemDto.Overview = sinovadTvSerie.Overview;
+                                        mediaItemDto.Actors=sinovadTvSerie.Actors;
+                                        mediaItemDto.Directors=sinovadTvSerie.Directors;
+                                        if(sinovadTvSerie.ListGenres!=null)
+                                        {
+                                            mediaItemDto.Genres = string.Join(", ", sinovadTvSerie.ListGenres.Select(x => x.Name));
+                                        }
+                                        mediaItemDto.PosterPath = sinovadTvSerie.PosterPath;
+                                        mediaItemDto.Title = sinovadTvSerie.Name;
+                                        mediaItemDto.MediaTypeId = MediaType.TvSerie;
+                                        mediaItemDto.MetadataAgentsId = MetadataAgents.SinovadDb;
+                                        mediaItemDto.ListGenres = sinovadTvSerie.ListGenres.MapTo<List<MediaGenreDto>>();
+                                        mediaItemDto.SearchQuery = tvSerieName;
+                                        mediaItem = CreateMediaItem(mediaItemDto);
                                     }
                                     if(mediaItem==null)
                                     {
                                         //Search Media in Tmdb
-                                        var tvSerie = _tmdbService.SearchTvShow(tvSerieName);
-                                        mediaItem = CreateMediaItemByTvSerie(tvSerieName, tvSerie, MetadataAgents.TMDb);
+                                        var mediaItemDto = _tmdbService.SearchTvShow(tvSerieName);
+                                        mediaItemDto.SearchQuery = tvSerieName;
+                                        mediaItem = CreateMediaItem(mediaItemDto);
                                     }
                                 }
                                 if(mediaItem==null)
@@ -311,36 +284,87 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                     mediaItem = _unitOfWork.MediaItems.Add(mediaItem);
                                     _unitOfWork.Save();
                                 }
+                                var season = _unitOfWork.MediaSeasons.GetByExpression(x => x.MediaItemId == mediaItem.Id && x.SeasonNumber == seasonNumber);
+                                if (season == null)
+                                {
+                                    if (mediaItem.MetadataAgentsId == MetadataAgents.TMDb)
+                                    {
+                                        var seasonDto = _tmdbService.GetTvSeason(int.Parse(mediaItem.SourceId), seasonNumber);
+                                        if (seasonDto != null)
+                                        {
+                                            season = seasonDto.MapTo<MediaSeason>();
+                                            season.MediaItemId = mediaItem.Id;
+                                        }
+                                    }
+                                    if (mediaItem.MetadataAgentsId == MetadataAgents.SinovadDb)
+                                    {
+                                        var res = sinovadMediaDataBaseService.GetTvSeasonAsync(int.Parse(mediaItem.SourceId), seasonNumber).Result;
+                                        if (res.Data != null)
+                                        {
+                                            var sinovadSeason= res.Data;
+                                            season = new MediaSeason();
+                                            season.MediaItemId=mediaItem.Id;
+                                            season.SourceId = sinovadSeason.Id.ToString();
+                                            season.Name = sinovadSeason.Name;
+                                            season.SeasonNumber= sinovadSeason.SeasonNumber;
+                                            season.Overview = sinovadSeason.Summary;
+                                        }
+                                    }
+                                    if (season == null)
+                                    {
+                                        season = new MediaSeason();
+                                        season.MediaItemId = mediaItem.Id;
+                                        season.SeasonNumber = seasonNumber;
+                                        season.Name = "Temporada " + seasonNumber;
+                                    }
+                                    season = _unitOfWork.MediaSeasons.Add(season);
+                                    _unitOfWork.Save();
+                                }
+                                var episode = _unitOfWork.MediaEpisodes.GetByExpression(x => x.MediaItemId == mediaItem.Id && x.SeasonNumber == seasonNumber && x.EpisodeNumber == episodeNumber);
+                                if(episode == null)
+                                {
+                                    if (mediaItem.MetadataAgentsId == MetadataAgents.TMDb)
+                                    {         
+                                        MediaEpisodeDto episodeDto = _tmdbService.GetTvEpisode(int.Parse(mediaItem.SourceId), seasonNumber, episodeNumber);
+                                        if (episodeDto != null)
+                                        {
+                                            episode = episodeDto.MapTo<MediaEpisode>();
+                                            episode.MediaItemId = mediaItem.Id;
+                                        }                          
+                                    }
+                                    if (mediaItem.MetadataAgentsId == MetadataAgents.SinovadDb)
+                                    {                     
+                                        var res = sinovadMediaDataBaseService.GetTvEpisodeAsync(int.Parse(mediaItem.SourceId), seasonNumber, episodeNumber).Result;
+                                        if (res.Data != null)
+                                        {
+                                            var sinovadEpisode = res.Data;
+                                            episode = new MediaEpisode();
+                                            episode.MediaItemId = mediaItem.Id;
+                                            episode.SeasonNumber = seasonNumber;
+                                            episode.EpisodeNumber = episodeNumber;
+                                            episode.Name = sinovadEpisode.Title;
+                                            episode.PosterPath = sinovadEpisode.ImageUrl;
+                                            episode.Overview = sinovadEpisode.Summary;
+                                            episode.SourceId = sinovadEpisode.Id.ToString();
+                                        }          
+                                    }
+                                    if (episode == null)
+                                    {
+                                        episode = new MediaEpisode();
+                                        episode.MediaItemId = mediaItem.Id;
+                                        episode.SeasonNumber = seasonNumber;
+                                        episode.EpisodeNumber = episodeNumber;
+                                        episode.Name = "Episodio " + episodeNumber;
+                                    }
+                                    episode = _unitOfWork.MediaEpisodes.Add(episode);
+                                    _unitOfWork.Save();
+                                }
+
                                 var mediaFile = new MediaFile();
                                 mediaFile.LibraryId = libraryId;
-                                mediaFile.EpisodeNumber = episodeNumber;
-                                mediaFile.SeasonNumber = seasonNumber;
-                                mediaFile.PhysicalPath = physicalPath;               
+                                mediaFile.PhysicalPath = physicalPath;
                                 mediaFile.MediaItemId = mediaItem.Id;
-                                mediaFile.Title = mediaItem.Title;
-                                mediaFile.EpisodeName = "Episodio " + episodeNumber;
-                                if (mediaItem.MetadataAgentsId == MetadataAgents.SinovadDb)
-                                {
-                                    var res = episodeService.GetTvEpisodeAsync(int.Parse(mediaItem.SourceId), seasonNumber, episodeNumber).Result;
-                                    if (res.Data != null)
-                                    {
-                                        var episode = res.Data;
-                                        mediaFile.Subtitle = "T" + seasonNumber + ":E" + episodeNumber + " " + episode.Title;
-                                        mediaFile.EpisodeName = episode.Title;
-                                        mediaFile.Overview = episode.Summary;
-                                    }
-                                }
-                                if (mediaItem.MetadataAgentsId == MetadataAgents.TMDb)
-                                {
-                                    EpisodeDto episode = _tmdbService.GetTvEpisode(int.Parse(mediaItem.SourceId), seasonNumber, episodeNumber);
-                                    if (episode != null)
-                                    {
-                                        mediaFile.Subtitle = "T" + seasonNumber + ":E" + episodeNumber + " " + episode.Title;
-                                        mediaFile.EpisodeName = episode.Title;
-                                        mediaFile.Overview = episode.Summary;
-                                        mediaFile.PosterPath = episode.StillPath;
-                                    }
-                                }
+                                mediaFile.MediaEpisodeId = episode.Id;                
                                 _unitOfWork.MediaFiles.Add(mediaFile);
                                 _unitOfWork.Save();
                             }
@@ -367,33 +391,17 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
         }
 
 
-        private MediaItem CreateMediaItemByMovie(string searchQuery, MovieDto movie)
+        private MediaItem CreateMediaItem(MediaItemDto mediaItemDto)
         {
-            var mediaItem = new MediaItem();
-            mediaItem.SearchQuery = searchQuery;
-            mediaItem.Title = movie.Title;
-            mediaItem.Overview = movie.Overview;
-            mediaItem.MediaTypeId = MediaType.Movie;
-            mediaItem.PosterPath = movie.PosterPath;
-            mediaItem.ReleaseDate = movie.ReleaseDate;
-            if (movie.TmdbId != null && movie.TmdbId > 0)
-            {
-                mediaItem.SourceId = movie.TmdbId.ToString();
-                mediaItem.MetadataAgentsId = MetadataAgents.TMDb;
-            }else if (movie.Imdbid != null && movie.Imdbid != "")
-            {
-                mediaItem.SourceId = movie.Imdbid.ToString();
-                mediaItem.MetadataAgentsId = MetadataAgents.IMDb;
-            }
-
+            var mediaItem = mediaItemDto.MapTo<MediaItem>();
             var listMediaItemGenres = new List<MediaItemGenre>();
-            foreach (var genreName in movie.ListGenreNames)
+            foreach (var genre in mediaItemDto.ListGenres)
             {
-                var mediaGenre = _unitOfWork.MediaGenres.GetByExpression(x => x.Name != null && x.Name.ToLower().Trim() == genreName.ToLower().Trim());
+                var mediaGenre = _unitOfWork.MediaGenres.GetByExpression(x => x.Name != null && x.Name.ToLower().Trim() == genre.Name.ToLower().Trim());
                 if (mediaGenre == null)
                 {
                     mediaGenre = new MediaGenre();
-                    mediaGenre.Name = genreName;
+                    mediaGenre.Name = genre.Name;
                     mediaGenre = _unitOfWork.MediaGenres.Add(mediaGenre);
                     _unitOfWork.Save();
                 }
@@ -416,7 +424,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 DeleteVideosNotFoundInLibrary(libraryId, paths);
                 if (filesToAdd != null && filesToAdd.Count > 0)
                 {
-                    var listVideosTmp = new List<VideoDto>();
                     for (int i = 0; i < filesToAdd.Count; i++)
                     {
                         try
@@ -437,10 +444,10 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                             var mediaItem = _unitOfWork.MediaItems.GetByExpression(x => x.SearchQuery != null && x.SearchQuery.ToLower().Trim() == movieName.ToLower().Trim() && x.MediaTypeId==MediaType.Movie);
                             if(mediaItem==null)
                             {
-                                MovieDto movie = GetMovieFromExternalDataBase(movieName, year);
-                                if (movie != null)
+                                MediaItemDto mediaItemDto = GetMovieFromExternalDataBase(movieName, year);
+                                if (mediaItemDto != null)
                                 {
-                                    mediaItem = CreateMediaItemByMovie(movieName, movie);
+                                    mediaItem = CreateMediaItem(mediaItemDto);
                                 }
                             }
                             if(mediaItem == null) {
@@ -455,9 +462,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                             mediaFile.LibraryId = libraryId;
                             mediaFile.PhysicalPath = physicalPath;
                             mediaFile.MediaItemId = mediaItem.Id;
-                            mediaFile.Title = mediaItem.Title;
-                            mediaFile.Overview=mediaItem.Overview;
-                            mediaFile.PosterPath = mediaItem.PosterPath;
                             _unitOfWork.MediaFiles.Add(mediaFile);
                             _unitOfWork.Save();
                         }catch (Exception e)
@@ -479,16 +483,16 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             try
             {
                 AddMessage(LogType.Information, "Check if there are videos to delete");
-                List<Video> listVideosToDelete = new List<Video>();
-                Expression<Func<Video, bool>> expressionVideosToDelete = x => !paths.Contains(x.PhysicalPath) && x.LibraryId == libraryId;
-                listVideosToDelete = _unitOfWork.Videos.GetAllByExpressionAsync(expressionVideosToDelete).Result.ToList();
+                List<MediaFile> listVideosToDelete = new List<MediaFile>();
+                Expression<Func<MediaFile, bool>> expressionVideosToDelete = x => !paths.Contains(x.PhysicalPath) && x.LibraryId == libraryId;
+                listVideosToDelete = _unitOfWork.MediaFiles.GetAllByExpressionAsync(expressionVideosToDelete).Result.ToList();
                 if (listVideosToDelete.Count > 0)
                 {
                     AddMessage(LogType.Information, "There are videos ready to delete");
                     List<string> listIdsVideosDelete = listVideosToDelete.Select(o => o.Id.ToString()).ToList();
-                    Expression<Func<VideoProfile, bool>> expressionVideoProfilesToDelete = x => listIdsVideosDelete.Contains(x.VideoId.ToString());
-                    _unitOfWork.VideoProfiles.DeleteByExpression(expressionVideoProfilesToDelete);
-                    _unitOfWork.Videos.DeleteList(listVideosToDelete);
+                    Expression<Func<MediaFilePlayback, bool>> expressionVideoProfilesToDelete = x => listIdsVideosDelete.Contains(x.MediaFileId.ToString());
+                    _unitOfWork.MediaFilePlaybacks.DeleteByExpression(expressionVideoProfilesToDelete);
+                    _unitOfWork.MediaFiles.DeleteList(listVideosToDelete);
                     _unitOfWork.Save();
                 }
             }
@@ -498,21 +502,10 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             }
         }
 
-        private void RegisterVideos(List<VideoDto> listVideosDto)
+        private MediaItemDto GetMovieFromExternalDataBase(string movieName, string year)
         {
-            if (listVideosDto.Count > 0)
-            {
-                var listVideos = listVideosDto.MapTo<List<Video>>();
-                AddMessage(LogType.Information, "Saving all new videos");
-                _unitOfWork.Videos.AddList(listVideos);
-                _unitOfWork.Save();  
-            }
-        }
-
-        private MovieDto GetMovieFromExternalDataBase(string movieName, string year)
-        {
-            MovieDto movie = _tmdbService.SearchMovie(movieName, year);
-            if (movie != null && movie.ListGenreNames != null && movie.ListGenreNames.Count > 0)
+            MediaItemDto movie = _tmdbService.SearchMovie(movieName, year);
+            if (movie != null && movie.ListGenres != null && movie.ListGenres.Count > 0)
             {
                 AddMessage(LogType.Information, "Movie finded in TMDb Data Base " + movie.Title + " " + year);
                 return movie;
@@ -520,7 +513,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             else
             {
                 movie = _imdbService.SearchMovie(movieName, year);
-                if (movie != null && movie.ListGenreNames != null && movie.ListGenreNames.Count > 0)
+                if (movie != null && movie.ListGenres != null && movie.ListGenres.Count > 0)
                 {
                     AddMessage(LogType.Information, "Movie finded in Imdb Data Base " + movie.Title + " " + year);
                     return movie;
@@ -540,12 +533,12 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             {
                 AddMessage(LogType.Information, "Prepare video paths");
    
-                List<Video> listVideosToAvoidAdd = new List<Video>();
+                List<MediaFile> listVideosToAvoidAdd = new List<MediaFile>();
                 if (paths.Count > 0)
                 {
                     AddMessage(LogType.Information, "Check if videos were already registered");
-                    Expression<Func<Video, bool>> expressionVideosToAvoidAdd = x => paths.Contains(x.PhysicalPath) && x.LibraryId == libraryId;
-                    listVideosToAvoidAdd = _unitOfWork.Videos.GetAllByExpressionAsync(expressionVideosToAvoidAdd).Result.ToList();
+                    Expression<Func<MediaFile, bool>> expressionVideosToAvoidAdd = x => paths.Contains(x.PhysicalPath) && x.LibraryId == libraryId;
+                    listVideosToAvoidAdd = _unitOfWork.MediaFiles.GetAllByExpressionAsync(expressionVideosToAvoidAdd).Result.ToList();
                 }
                 if (listVideosToAvoidAdd.Count > 0)
                 {
@@ -582,12 +575,247 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             }
         }
 
+        public Response<List<ItemsGroupDto>> GetMediaItemsByLibrary(int libraryId, int profileId)
+        {
+            var response = new Response<List<ItemsGroupDto>>();
+            try
+            {
+                List<ItemDto> listItems = _unitOfWork.MediaItems.GetItemsByLibrary(libraryId);
+                List<ItemDto> listLastAddedItems = _unitOfWork.MediaItems.GetItemsRecentlyAddedByLibrary(libraryId);
+                List<ItemDto> listItemsWatched = _unitOfWork.MediaItems.GetItemsByLibraryAndProfile(libraryId,profileId);
+                listLastAddedItems = listLastAddedItems.OrderByDescending(c => c.Created).ToList();
+                if (listItemsWatched != null && listItemsWatched.Count > 0)
+                {
+                    listItemsWatched = listItemsWatched.OrderByDescending(c => c.LastModified).ToList();
+                }
+                var genres = _unitOfWork.MediaGenres.GetAllAsync().Result;
 
+                var listItemsGroup = new List<ItemsGroupDto>();
+                if (listItemsWatched != null && listItemsWatched.Count > 0)
+                {
+                    var itemsGroup = new ItemsGroupDto();
+                    itemsGroup.Id = -1;
+                    itemsGroup.Name = "Continuar viendo";
+                    itemsGroup.ListItems = listItemsWatched;
+                    listItemsGroup.Add(itemsGroup);
+                }
+                if (listLastAddedItems != null && listLastAddedItems.Count > 0)
+                {
+                    var itemsGroup = new ItemsGroupDto();
+                    itemsGroup.Id = 0;
+                    itemsGroup.Name = "Agregados recientemente";
+                    itemsGroup.ListItems = listLastAddedItems;
+                    listItemsGroup.Add(itemsGroup);
+                }
+                if (genres != null && genres.Count() > 0)
+                {
+                    foreach (var genre in genres)
+                    {
+                        var list = listItems.Where(ele => ele.GenreId == genre.Id).ToList();
+                        if (list != null && list.Count > 0)
+                        {
+                            var itemsGroup = new ItemsGroupDto();
+                            itemsGroup.Id = genre.Id;
+                            itemsGroup.Name = genre.Name;
+                            itemsGroup.ListItems = list;
+                            listItemsGroup.Add(itemsGroup);
+                        }
+                    }
+                }
+                response.Data = listItemsGroup;
+                response.IsSuccess = true;
+                response.Message = "Successful";
+            }
+            catch (Exception ex)
+            {
+                response.Message = ex.Message;
+                _sharedService._tracer.LogError(ex.StackTrace);
+            }
+            return response;
+        }
 
+        public Response<List<ItemsGroupDto>> GetMediaItemsByMediaType(MediaType mediaTypeId, int profileId)
+        {
+            var response = new Response<List<ItemsGroupDto>>();
+            try
+            {
+                List<ItemDto> listItems = _unitOfWork.MediaItems.GetAllItemsByMediaType(mediaTypeId);
+                List<ItemDto> listLastAddedItems = _unitOfWork.MediaItems.GetAllItemsRecentlyAddedByMediaType(mediaTypeId);
+                List<ItemDto> listItemsWatched = _unitOfWork.MediaItems.GetAllItemsByMediaTypeAndProfile(mediaTypeId, profileId);
+                listLastAddedItems = listLastAddedItems.OrderByDescending(c => c.Created).ToList();
+                if (listItemsWatched != null && listItemsWatched.Count > 0)
+                {
+                    listItemsWatched = listItemsWatched.OrderByDescending(c => c.LastModified).ToList();
+                }
+                var genres = _unitOfWork.MediaGenres.GetAllAsync().Result;
+                var listItemsGroup = new List<ItemsGroupDto>();
+                if (listItemsWatched != null && listItemsWatched.Count > 0)
+                {
+                    var itemsGroup = new ItemsGroupDto();
+                    itemsGroup.Id = -1;
+                    itemsGroup.Name = "Continuar viendo";
+                    itemsGroup.ListItems = listItemsWatched;
+                    listItemsGroup.Add(itemsGroup);
+                }
+                if (listLastAddedItems != null && listLastAddedItems.Count > 0)
+                {
+                    var itemsGroup = new ItemsGroupDto();
+                    itemsGroup.Id = 0;
+                    itemsGroup.Name = "Agregados recientemente";
+                    itemsGroup.ListItems = listLastAddedItems;
+                    listItemsGroup.Add(itemsGroup);
+                }
+                if (genres != null && genres.Count() > 0)
+                {
+                    foreach (var genre in genres)
+                    {
+                        var list = listItems.Where(ele => ele.GenreId == genre.Id).ToList();
+                        if (list != null && list.Count > 0)
+                        {
+                            var itemsGroup = new ItemsGroupDto();
+                            itemsGroup.Id = genre.Id;
+                            itemsGroup.Name = genre.Name;
+                            itemsGroup.ListItems = list;
+                            listItemsGroup.Add(itemsGroup);
+                        }
+                    }
+                }
+                response.Data = listItemsGroup;
+                response.IsSuccess = true;
+                response.Message = "Successful";
+            }
+            catch (Exception ex)
+            {
+                response.Message = ex.Message;
+                _sharedService._tracer.LogError(ex.StackTrace);
+            }
+            return response;
+        }
 
+        public Response<List<ItemsGroupDto>> GetAllMediaItems(int profileId)
+        {
+            var response = new Response<List<ItemsGroupDto>>();
+            try
+            {
+                List<ItemDto> listItems = _unitOfWork.MediaItems.GetAllItems();
+                List<ItemDto> listLastAddedItems = _unitOfWork.MediaItems.GetAllItemsRecentlyAdded();
+                List<ItemDto> listItemsWatched = _unitOfWork.MediaItems.GetAllItemsByProfile(profileId);
+                listLastAddedItems = listLastAddedItems.OrderByDescending(c => c.Created).ToList();
+                if (listItemsWatched != null && listItemsWatched.Count > 0)
+                {
+                    listItemsWatched = listItemsWatched.OrderByDescending(c => c.LastModified).ToList();
+                }
+                var genres = _unitOfWork.MediaGenres.GetAllAsync().Result;
+                var listItemsGroup = new List<ItemsGroupDto>();
+                if (listItemsWatched != null && listItemsWatched.Count > 0)
+                {
+                    var itemsGroup = new ItemsGroupDto();
+                    itemsGroup.Id = -1;
+                    itemsGroup.Name = "Continuar viendo";
+                    itemsGroup.ListItems = listItemsWatched;
+                    listItemsGroup.Add(itemsGroup);
+                }
+                if (listLastAddedItems != null && listLastAddedItems.Count > 0)
+                {
+                    var itemsGroup = new ItemsGroupDto();
+                    itemsGroup.Id = 0;
+                    itemsGroup.Name = "Agregados recientemente";
+                    itemsGroup.ListItems = listLastAddedItems;
+                    listItemsGroup.Add(itemsGroup);
+                }
+                if (genres != null && genres.Count() > 0)
+                {
+                    foreach (var genre in genres)
+                    {
+                        var list = listItems.Where(ele => ele.GenreId == genre.Id).ToList();
+                        if (list != null && list.Count > 0)
+                        {
+                            var itemsGroup = new ItemsGroupDto();
+                            itemsGroup.Id = genre.Id;
+                            itemsGroup.Name = genre.Name;
+                            itemsGroup.ListItems = list;
+                            listItemsGroup.Add(itemsGroup);
+                        }
+                    }
+                }
+                response.Data = listItemsGroup;
+                response.IsSuccess = true;
+                response.Message = "Successful";
+            }
+            catch (Exception ex)
+            {
+                response.Message = ex.Message;
+                _sharedService._tracer.LogError(ex.StackTrace);
+            }
+            return response;
+        }
 
+        public Response<ItemDetailDto> GetMediaItemDetail(int mediaItemId)
+        {
 
+            var response = new Response<ItemDetailDto>();
+            try
+            {
+                ItemDetailDto itemDetail = new ItemDetailDto();
+                var mediaItem = _unitOfWork.MediaItems.Get(mediaItemId);
+                itemDetail.SourceId = mediaItem.SourceId;
+                itemDetail.PosterPath = mediaItem.PosterPath;
+                itemDetail.MediaServerGuid = _sharedData.MediaServerData.Guid;
+                itemDetail.Title = mediaItem.Title;
+                itemDetail.Overview=mediaItem.Overview;
+                itemDetail.ReleaseDate=mediaItem.ReleaseDate;
+                itemDetail.FirstAirDate = mediaItem.FirstAirDate;
+                itemDetail.LastAirDate = mediaItem.LastAirDate;
+                itemDetail.MediaItemId = mediaItemId;
+                itemDetail.MediaTypeId = mediaItem.MediaTypeId;
+                itemDetail.MetadataAgentsId = mediaItem.MetadataAgentsId;
+                var mediaFiles = _unitOfWork.MediaFiles.GetAllByExpression(x=>x.MediaItemId == mediaItemId);
+                itemDetail.ListMediaFiles = mediaFiles.MapTo<List<MediaFileDto>>();
+                var firstMediaFile=itemDetail.ListMediaFiles[0];
+                itemDetail.LibraryId = firstMediaFile.LibraryId;
+                if (mediaItem.MediaTypeId==MediaType.Movie)
+                {
+                    if(mediaItem.MetadataAgentsId==MetadataAgents.TMDb)
+                    {
+                        itemDetail = _tmdbService.GetMovieDetail(itemDetail);
+                    }
+                }
+                if(mediaItem.MediaTypeId==MediaType.TvSerie)
+                {
+                    var listSeasons=GetSeasonsByMediaFiles(itemDetail.ListMediaFiles);
+                    if (mediaItem.MetadataAgentsId == MetadataAgents.TMDb)
+                    {
+                        itemDetail = _tmdbService.GetTvSerieData(itemDetail, listSeasons, itemDetail.ListMediaFiles);
+                    }
+                }
+                response.Data = itemDetail;
+                response.IsSuccess = true;
+                response.Message = "Successful";
+            }catch (Exception ex)
+            {
+                response.Message = ex.Message;
+                _sharedService._tracer.LogError(ex.StackTrace);
+            }
+            return response;
+        }
 
+        private List<MediaSeasonDto> GetSeasonsByMediaFiles(List<MediaFileDto> listMediaFiles)
+        {
+            List<MediaSeasonDto> listSeasons = new List<MediaSeasonDto>();
+            for (var i = 0; i < listMediaFiles.Count; i++)
+            {
+                var video = listMediaFiles[i];
+                var seasonNumber = video.SeasonNumber;
+                var season = new MediaSeasonDto();
+                season.SeasonNumber = seasonNumber;
+                var index = listSeasons.FindIndex(item => item.SeasonNumber == seasonNumber);
+                if (index == -1)
+                {
+                    listSeasons.Add(season);
+                }
+            }
+            return listSeasons;
+        }
 
     }
 }

@@ -37,6 +37,12 @@ namespace SinovadMediaServer.Application.DTOs
         public DateTime Created { get; set; }
         public DateTime LastModified { get; set; }
         public bool ContinueVideo { get; set; }
+        public string? SourceId { get; set; }
+        public MediaType? MediaTypeId { get; set; }
+        public MetadataAgents? MetadataAgentsId { get; set; }
+        public string SearchQuery { get; set; }
+        public int FileId { get; set; }
+        public int MediaItemId { get; set; }
 
     }
 }

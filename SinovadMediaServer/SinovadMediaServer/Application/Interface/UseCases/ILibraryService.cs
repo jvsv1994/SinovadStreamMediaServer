@@ -1,5 +1,6 @@
 ﻿using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Application.DTOs;
+using SinovadMediaServer.Domain.Enums;
 
 namespace SinovadMediaServer.Application.Interface.UseCases
 {
@@ -13,6 +14,11 @@ namespace SinovadMediaServer.Application.Interface.UseCases
         Response<object> Delete(int id);
         Response<object> DeleteList(string ids);
         Response<object> SearchFiles(SearchFilesDto searchFilesDto);
+        Response<List<ItemsGroupDto>> GetMediaItemsByLibrary(int libraryId, int profileId);
+        Response<List<ItemsGroupDto>> GetMediaItemsByMediaType(MediaType mediaTypeId, int profileId);
+        Response<List<ItemsGroupDto>> GetAllMediaItems(int profileId);
+        Response<ItemDetailDto> GetMediaItemDetail(int mediaItemId);
+
     }
 
 }

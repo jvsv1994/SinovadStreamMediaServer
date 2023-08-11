@@ -11,13 +11,13 @@ namespace SinovadMediaServer.Persistence.Repositories
         private IGenericRepository<Library> _accountLibraries;
         private IGenericRepository<TranscoderSettings> _transcoderSettings;
         private IGenericRepository<TranscodingProcess> _transcodingProcesses;
-        private IGenericRepository<MediaItem> _mediaItems;
+        private IMediaItemRepository _mediaItems;
         private IGenericRepository<MediaGenre> _mediaGenres;
         private IGenericRepository<MediaItemGenre> _mediaItemGenres;
+        private IGenericRepository<MediaSeason> _mediaSeasons;
+        private IGenericRepository<MediaEpisode> _mediaEpisodes;
         private IGenericRepository<MediaFile> _mediaFiles;
-        private IGenericRepository<MediaFileProfile> _mediaFileProfiles;
-        private IVideoRepository _videos;
-        private IGenericRepository<VideoProfile> _videoProfiles;
+        private IGenericRepository<MediaFilePlayback> _mediaFileProfiles;
 
 
         public UnitOfWork(ApplicationDbContext context)
@@ -55,12 +55,12 @@ namespace SinovadMediaServer.Persistence.Repositories
             }
         }
 
-        public IGenericRepository<MediaItem> MediaItems
+        public IMediaItemRepository MediaItems
         {
             get
             {
                 return _mediaItems == null ?
-                _mediaItems = new GenericRepository<MediaItem>(_context) :
+                _mediaItems = new MediaItemRepository(_context) :
                 _mediaItems;
             }
         }
@@ -83,6 +83,26 @@ namespace SinovadMediaServer.Persistence.Repositories
             }
         }
 
+        public IGenericRepository<MediaSeason> MediaSeasons
+        {
+            get
+            {
+                return _mediaSeasons == null ?
+                _mediaSeasons = new GenericRepository<MediaSeason>(_context) :
+                _mediaSeasons;
+            }
+        }
+
+        public IGenericRepository<MediaEpisode> MediaEpisodes
+        {
+            get
+            {
+                return _mediaEpisodes == null ?
+                _mediaEpisodes = new GenericRepository<MediaEpisode>(_context) :
+                _mediaEpisodes;
+            }
+        }
+
         public IGenericRepository<MediaFile> MediaFiles
         {
             get
@@ -93,33 +113,13 @@ namespace SinovadMediaServer.Persistence.Repositories
             }
         }
 
-        public IGenericRepository<MediaFileProfile> MediaFileProfiles
+        public IGenericRepository<MediaFilePlayback> MediaFilePlaybacks
         {
             get
             {
                 return _mediaFileProfiles == null ?
-                _mediaFileProfiles = new GenericRepository<MediaFileProfile>(_context) :
+                _mediaFileProfiles = new GenericRepository<MediaFilePlayback>(_context) :
                 _mediaFileProfiles;
-            }
-        }
-
-        public IVideoRepository Videos
-        {
-            get
-            {
-                return _videos == null ?
-                _videos = new VideoRepository(_context) :
-                _videos;
-            }
-        }
-
-        public IGenericRepository<VideoProfile> VideoProfiles
-        {
-            get
-            {
-                return _videoProfiles == null ?
-                _videoProfiles = new GenericRepository<VideoProfile>(_context) :
-                _videoProfiles;
             }
         }
 
