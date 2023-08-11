@@ -109,13 +109,14 @@ namespace SinovadMediaServer.Infrastructure.Tmdb
                 movieDto.MediaTypeId = MediaType.Movie;
                 movieDto.MetadataAgentsId = MetadataAgents.TMDb;
                 movieDto.SearchQuery = movieName;
-                if (movieFinded.Credits!=null && movieFinded.Credits.Cast!=null)
+                TMDbLib.Objects.Movies.Credits credits = _tmdbClient.GetMovieCreditsAsync(movieFinded.Id).Result;
+                if (credits != null && credits.Cast!=null)
                 {
-                    movieDto.Actors = string.Join(", ", movieFinded.Credits.Cast.Select(x => x.Name));
+                    movieDto.Actors = string.Join(", ", credits.Cast.Select(x => x.Name).Take(10));
                 }
-                if (movieFinded.Credits != null && movieFinded.Credits.Crew != null)
+                if (credits != null && credits.Crew != null)
                 {
-                    movieDto.Directors = string.Join(", ", movieFinded.Credits.Crew.Select(x => x.Name));
+                    movieDto.Directors = string.Join(", ", credits.Crew.Select(x => x.Name).Take(10));
                 }
                 if (movieFinded.Genres != null && movieFinded.Genres.Count > 0)
                 {
@@ -167,13 +168,14 @@ namespace SinovadMediaServer.Infrastructure.Tmdb
                 tvSerieDto.MediaTypeId = MediaType.TvSerie;
                 tvSerieDto.MetadataAgentsId = MetadataAgents.TMDb;
                 tvSerieDto.SearchQuery = name;
-                if (tvShow.Credits != null && tvShow.Credits.Cast != null)
+                TMDbLib.Objects.Movies.Credits credits = _tmdbClient.GetMovieCreditsAsync(tvShow.Id).Result;
+                if (credits != null && credits.Cast != null)
                 {
-                    tvSerieDto.Actors = string.Join(", ", tvShow.Credits.Cast.Select(x => x.Name));
+                    tvSerieDto.Actors = string.Join(", ", credits.Cast.Select(x => x.Name).Take(10));
                 }
-                if (tvShow.Credits != null && tvShow.Credits.Crew != null)
+                if (credits != null && credits.Crew != null)
                 {
-                    tvSerieDto.Directors = string.Join(", ", tvShow.Credits.Crew.Select(x => x.Name));
+                    tvSerieDto.Directors = string.Join(", ", credits.Crew.Select(x => x.Name).Take(10));
                 }
                 if (tvShow.Genres != null && tvShow.Genres.Count > 0)
                 {
