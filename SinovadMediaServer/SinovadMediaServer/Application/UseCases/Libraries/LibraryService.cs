@@ -188,15 +188,32 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
                 foreach (var library in searchFilesDto.ListLibraries)
                 {
-                    var listPaths = Directory.GetFiles(library.PhysicalPath, "*.*", SearchOption.AllDirectories).Where(s => s.EndsWith(".mkv") || s.EndsWith(".mp4") || s.EndsWith(".avi")).ToList();
+                    var listPaths = new List<string>();
 
-                    if (library.MediaTypeCatalogDetailId == (int)MediaType.Movie)
+                    var exists=Directory.Exists(library.PhysicalPath);
+                    if(exists)
                     {
-                        RegisterMovieFiles(library.Id, listPaths);
-                    }
-                    if (library.MediaTypeCatalogDetailId == (int)MediaType.TvSerie)
-                    {
-                        RegisterTvSeriesFiles(library.Id, listPaths);
+                        listPaths = Directory.GetFiles(library.PhysicalPath, "*.*", SearchOption.AllDirectories).Where(s => s.EndsWith(".mkv") || s.EndsWith(".mp4") || s.EndsWith(".avi")).ToList();
+                        if (library.MediaTypeCatalogDetailId == (int)MediaType.Movie)
+                        {
+                            RegisterMovieFiles(library.Id, listPaths);
+                        }
+                        if (library.MediaTypeCatalogDetailId == (int)MediaType.TvSerie)
+                        {
+                            RegisterTvSeriesFiles(library.Id, listPaths);
+                        }
+                    }else{
+                        Expression<Func<MediaFile, bool>> expressionVideosToDelete = x => x.LibraryId == library.Id;
+                        var listVideosToDelete = _unitOfWork.MediaFiles.GetAllByExpression(expressionVideosToDelete).ToList();
+                        if (listVideosToDelete.Count > 0)
+                        {
+                            AddMessage(LogType.Information, "There are videos ready to delete");
+                            List<string> listIdsVideosDelete = listVideosToDelete.Select(o => o.Id.ToString()).ToList();
+                            Expression<Func<MediaFilePlayback, bool>> expressionVideoProfilesToDelete = x => listIdsVideosDelete.Contains(x.MediaFileId.ToString());
+                            _unitOfWork.MediaFilePlaybacks.DeleteByExpression(expressionVideoProfilesToDelete);
+                            _unitOfWork.MediaFiles.DeleteList(listVideosToDelete);
+                            _unitOfWork.Save();
+                        }
                     }
                 }
                 response.IsSuccess = true;
