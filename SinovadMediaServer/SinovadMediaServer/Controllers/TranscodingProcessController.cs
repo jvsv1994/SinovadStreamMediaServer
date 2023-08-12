@@ -26,10 +26,10 @@ namespace SinovadMediaServer.Controllers
             return BadRequest(response.Message);
         }
 
-        [HttpGet("GetAllByMediaServerAsync/{mediaServerId}")]
-        public async Task<ActionResult> GetAllByMediaServerAsync(int mediaServerId)
+        [HttpGet("GetAllAsync")]
+        public async Task<ActionResult> GetAllAsync()
         {
-            var response = await _transcodingProcessService.GetAllByMediaServerAsync(mediaServerId);
+            var response = await _transcodingProcessService.GetAllAsync();
             if (response.IsSuccess)
             {
                 return Ok(response);

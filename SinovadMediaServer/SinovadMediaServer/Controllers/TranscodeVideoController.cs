@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SinovadMediaServer.Application.DTOs;
+using SinovadMediaServer.Application.Interface.UseCases;
+using SinovadMediaServer.Application.UseCases.TranscodingProcesses;
 using SinovadMediaServer.Infrastructure;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Strategies;
@@ -14,10 +16,13 @@ namespace SinovadMediaServer.Controllers
 
         private readonly SinovadApiService _sinovadApiService;
 
+        private readonly ITranscodingProcessService _transcodingProcessService;
+
         private readonly SharedData _sharedData;
 
-        public TranscodeVideoController(SinovadApiService restService, SharedData sharedData)
+        public TranscodeVideoController(SinovadApiService restService, SharedData sharedData, ITranscodingProcessService transcodingProcessService)
         {
+            _transcodingProcessService = transcodingProcessService;
             _sinovadApiService = restService;
             _sharedData = sharedData;
         }
@@ -28,8 +33,7 @@ namespace SinovadMediaServer.Controllers
             try
             {
                 Dictionary<string, object> data = new Dictionary<string, object>();
-                var transcodeProcessStrategy = new TranscodeProcessStrategy(_sharedData, _sinovadApiService);
-                var list = await transcodeProcessStrategy.DeleteListByGuids(guids);
+                var list = _transcodingProcessService.DeleteByListGuids(guids);
                 var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(list));
                 return Ok(Convert.ToBase64String(plainTextBytes));
             }

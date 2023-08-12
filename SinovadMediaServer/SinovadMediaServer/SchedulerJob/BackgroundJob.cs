@@ -1,26 +1,21 @@
 ﻿using Quartz;
-using SinovadMediaServer.Infrastructure;
-using SinovadMediaServer.Shared;
-using SinovadMediaServer.Strategies;
+using SinovadMediaServer.Application.Interface.UseCases;
 
 namespace SinovadMediaServer.SchedulerJob
 {
     public class BackgroundJob : IJob
     {
-        private readonly SharedData _sharedData;
 
-        private readonly SinovadApiService _sinovadApiService;
+        private readonly ITranscodingProcessService _transcodingProcessService;
 
-        public BackgroundJob(SharedData sharedData, SinovadApiService restService)
+        public BackgroundJob(ITranscodingProcessService transcodingProcessService)
         {
-            _sharedData = sharedData;
-            _sinovadApiService = restService;
+            _transcodingProcessService = transcodingProcessService;
         }
 
         public async Task Execute(IJobExecutionContext context)
         {
-            var genericStrategy = new TranscodeProcessStrategy(_sharedData,_sinovadApiService);
-            await genericStrategy.DeleteOldTranscodeVideoProcess();
+            await _transcodingProcessService.DeleteOldTranscodeVideoProcess();
         }
     }
 }
