@@ -14,7 +14,7 @@ namespace SinovadMediaServer.Controllers
             try
             {
                 var manageDirectoryStrategy = new ManageDirectoryStrategy();
-                return await manageDirectoryStrategy.getListMainDirectories();
+                return await manageDirectoryStrategy.GetListMainDirectories();
             }
             catch (Exception e)
             {
@@ -30,7 +30,7 @@ namespace SinovadMediaServer.Controllers
                 var base64Bytes = Convert.FromBase64String(base64path);
                 var path = System.Text.Encoding.UTF8.GetString(base64Bytes);
                 var manageDirectoryStrategy = new ManageDirectoryStrategy();
-                return await manageDirectoryStrategy.getSubDirectories(path);
+                return await manageDirectoryStrategy.GetSubDirectories(path);
             }
             catch (Exception e)
             {

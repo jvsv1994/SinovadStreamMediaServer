@@ -15,7 +15,8 @@ namespace SinovadMediaServer.Application.Interface.UseCases
         Response<object> DeleteList(string ids);
         Response<List<Guid>> DeleteByListGuids(string guids);
         Task<bool> DeleteOldTranscodeVideoProcess();
-
+        Task<TranscodePrepareVideoDto> PrepareProcess(TranscodePrepareVideoDto transcodePrepareVideo);
+        TranscodeRunVideoDto RunProcess(TranscodePrepareVideoDto transcodePrepareVideo);
     }
 
 }

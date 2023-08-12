@@ -1,8 +1,4 @@
 ﻿using SinovadMediaServer.CustomModels;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
 
 namespace SinovadMediaServer.Strategies
 {
@@ -13,7 +9,7 @@ namespace SinovadMediaServer.Strategies
         {
         }
 
-        public async Task<List<CustomDirectory>> getListMainDirectories()
+        public async Task<List<CustomDirectory>> GetListMainDirectories()
         {
             List<CustomDirectory> listMainDirectory = new List<CustomDirectory>();
             var folderPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
@@ -22,7 +18,7 @@ namespace SinovadMediaServer.Strategies
             userProfileDirectory.path = folderPath;
             userProfileDirectory.name = userName;
             userProfileDirectory.isMainDirectory = true;
-            userProfileDirectory.listSubdirectory = getSubDirectories(folderPath).Result;
+            userProfileDirectory.listSubdirectory = GetSubDirectories(folderPath).Result;
             listMainDirectory.Add(userProfileDirectory);
             System.IO.DriveInfo[] sdu = System.IO.DriveInfo.GetDrives();
             for (int i = 0; i < sdu.Length; i++)
@@ -32,13 +28,13 @@ namespace SinovadMediaServer.Strategies
                 driveDirectory.isMainDirectory = true;
                 driveDirectory.path = driverInfo.Name;
                 driveDirectory.name = driverInfo.Name.Replace("\\", "");
-                driveDirectory.listSubdirectory = getSubDirectories(driverInfo.Name).Result;
+                driveDirectory.listSubdirectory = GetSubDirectories(driverInfo.Name).Result;
                 listMainDirectory.Add(driveDirectory);
             }
             return listMainDirectory;
         }
 
-        public async Task<List<CustomDirectory>> getSubDirectories(string fullpath)
+        public async Task<List<CustomDirectory>> GetSubDirectories(string fullpath)
         {
             List<CustomDirectory> listSubdirectory = new List<CustomDirectory>();
             try

@@ -1,10 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.UseCases;
-using SinovadMediaServer.Application.UseCases.TranscodingProcesses;
 using SinovadMediaServer.Infrastructure;
-using SinovadMediaServer.Shared;
-using SinovadMediaServer.Strategies;
 using System.Text.Json;
 
 namespace SinovadMediaServer.Controllers
@@ -14,17 +11,11 @@ namespace SinovadMediaServer.Controllers
     public class TranscodeVideoController : Controller
     {
 
-        private readonly SinovadApiService _sinovadApiService;
-
         private readonly ITranscodingProcessService _transcodingProcessService;
 
-        private readonly SharedData _sharedData;
-
-        public TranscodeVideoController(SinovadApiService restService, SharedData sharedData, ITranscodingProcessService transcodingProcessService)
+        public TranscodeVideoController(SinovadApiService restService,ITranscodingProcessService transcodingProcessService)
         {
             _transcodingProcessService = transcodingProcessService;
-            _sinovadApiService = restService;
-            _sharedData = sharedData;
         }
 
         [HttpDelete]
@@ -48,8 +39,7 @@ namespace SinovadMediaServer.Controllers
         {
             try
             {
-                var transcodeVideoStrategy = new TranscodeVideoStrategy(_sinovadApiService, _sharedData);
-                TranscodeRunVideoDto transcodeRunVideoDto = transcodeVideoStrategy.Run(transcodePrepareVideo);
+                TranscodeRunVideoDto transcodeRunVideoDto = _transcodingProcessService.RunProcess(transcodePrepareVideo);
                 var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(transcodeRunVideoDto));
                 return Ok(Convert.ToBase64String(plainTextBytes));
             }
@@ -64,9 +54,8 @@ namespace SinovadMediaServer.Controllers
         {
             try
             {
-                var transcodeVideoStrategy = new TranscodeVideoStrategy(_sinovadApiService, _sharedData);
-                TranscodePrepareVideoDto transcodePrepareVideo = await transcodeVideoStrategy.Prepare(transcodeVideoDto);
-                TranscodeRunVideoDto transcodeRunVideoDto = transcodeVideoStrategy.Run(transcodePrepareVideo);
+                TranscodePrepareVideoDto transcodePrepareVideo = await _transcodingProcessService.PrepareProcess(transcodeVideoDto);
+                TranscodeRunVideoDto transcodeRunVideoDto = _transcodingProcessService.RunProcess(transcodePrepareVideo);
                 var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(transcodeRunVideoDto));
                 return Ok(Convert.ToBase64String(plainTextBytes));
             }
