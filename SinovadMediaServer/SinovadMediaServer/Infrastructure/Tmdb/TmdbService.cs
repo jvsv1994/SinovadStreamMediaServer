@@ -1,7 +1,4 @@
-﻿
-using Microsoft.Extensions.Options;
-using SinovadMediaServer.Application.Configuration;
-using SinovadMediaServer.Application.DTOs;
+﻿using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
 using SinovadMediaServer.Application.Shared;
 using SinovadMediaServer.Domain.Enums;
@@ -15,14 +12,16 @@ namespace SinovadMediaServer.Infrastructure.Tmdb
     public class TmdbService : ITmdbService
     {
 
+        private readonly string _apiKey = "c9607052e23356d0513a671e2019a333";
+
         private readonly SharedService _sharedService;
 
         private readonly TMDbClient _tmdbClient;
 
-        public TmdbService(SharedService sharedService, IOptions<MyConfig> options)
+        public TmdbService(SharedService sharedService)
         {
             _sharedService = sharedService;
-            _tmdbClient = new TMDbClient(options.Value.TMDbApiKey);
+            _tmdbClient = new TMDbClient(_apiKey);
         }
 
         public MediaItemDto SearchMovie(string movieName, string year)

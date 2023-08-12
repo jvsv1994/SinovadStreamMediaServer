@@ -20,8 +20,6 @@ public partial class ApplicationDbContext:DbContext
     }
 
 
-    private string dataBase = "SinovadMediaServer.db";
-
     public virtual DbSet<TranscoderSettings> TranscoderSettings { get; set; }
     public virtual DbSet<Library> Libraries { get; set; }
     public virtual DbSet<TranscodingProcess> TranscodingProcesses { get; set; }
@@ -35,8 +33,13 @@ public partial class ApplicationDbContext:DbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
+        var myDocumentsPath = System.Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var folderName = "Sinovad Media Server";
+        var path = myDocumentsPath + "/" + folderName;
+        System.IO.Directory.CreateDirectory(path);
+        var dataSource = Path.Combine(path, "SinovadMediaServer.db");
         optionsBuilder.AddInterceptors(_auditableEntitySaveChangesInterceptor);
-        optionsBuilder.UseSqlite(connectionString: "Filename=" + dataBase, sqliteOptionsAction: op =>
+        optionsBuilder.UseSqlite($"Data Source={dataSource};", sqliteOptionsAction: op =>
         {
             op.MigrationsAssembly(Assembly.GetExecutingAssembly().FullName);
         });

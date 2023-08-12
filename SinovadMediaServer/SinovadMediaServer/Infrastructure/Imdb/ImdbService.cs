@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using SinovadMediaServer.Application.Configuration;
-using SinovadMediaServer.Application.DTOs;
+﻿using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
 using SinovadMediaServer.Domain.Enums;
 
@@ -11,9 +9,11 @@ namespace SinovadMediaServer.Infrastructure.Imdb
 
         private readonly IMDbApiLib.ApiLib _imdbApiLib;
 
-        public ImdbService(IOptions<MyConfig> options)
+        private readonly string _apiKey = "k_aovgfcx9";
+
+        public ImdbService()
         {
-            _imdbApiLib = new IMDbApiLib.ApiLib(options.Value.IMDbApiKey);
+            _imdbApiLib = new IMDbApiLib.ApiLib(_apiKey);
         }
 
         public MediaItemDto SearchMovie(string movieName, string year)

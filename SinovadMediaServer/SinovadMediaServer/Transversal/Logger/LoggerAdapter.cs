@@ -1,6 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using SinovadMediaServer.Application.Configuration;
 using SinovadMediaServer.Transversal.Interface;
 using System.Diagnostics;
 using System.Reflection;
@@ -9,13 +7,13 @@ namespace SinovadMediaServer.Transversal.Logger
 {
     public class LoggerAdapter<T> : IAppLogger<T>
     {
-        public static IOptions<MyConfig> _config { get; set; }
 
         public readonly ILogger<T> _logger;
 
-        public LoggerAdapter(IOptions<MyConfig> config, ILoggerFactory loggerFactory)
+        private readonly string _pathLog= "wwwroot\\log.txt";
+
+        public LoggerAdapter( ILoggerFactory loggerFactory)
         {
-            _config = config;
             _logger = loggerFactory.CreateLogger<T>();
         }
 
@@ -24,7 +22,7 @@ namespace SinovadMediaServer.Transversal.Logger
             try
             {
                 message = GetFinalMessage(new StackTrace().GetFrame(1).GetMethod(), message);
-                CustomLog.GetInstance(_config.Value.PathLog).Save(message);
+                CustomLog.GetInstance(_pathLog).Save(message);
                 _logger.LogInformation(message, args);
             }
             catch (Exception ex)
@@ -38,7 +36,7 @@ namespace SinovadMediaServer.Transversal.Logger
             try
             {
                 message = GetFinalMessage(new StackTrace().GetFrame(1).GetMethod(), message);
-                CustomLog.GetInstance(_config.Value.PathLog).Save(message);
+                CustomLog.GetInstance(_pathLog).Save(message);
                 _logger.LogWarning(message, args);
             }
             catch (Exception ex)
@@ -52,7 +50,7 @@ namespace SinovadMediaServer.Transversal.Logger
             try
             {
                 message = GetFinalMessage(new StackTrace().GetFrame(1).GetMethod(), message);
-                CustomLog.GetInstance(_config.Value.PathLog).Save(GetFinalMessage(new StackTrace().GetFrame(1).GetMethod(), message));
+                CustomLog.GetInstance(_pathLog).Save(GetFinalMessage(new StackTrace().GetFrame(1).GetMethod(), message));
                 _logger.LogError(message, args);
             }
             catch (Exception ex)
@@ -72,7 +70,7 @@ namespace SinovadMediaServer.Transversal.Logger
             }
             catch (Exception ex)
             {
-                CustomLog.GetInstance(_config.Value.PathLog).Save(ex.StackTrace);
+                CustomLog.GetInstance(_pathLog).Save(ex.StackTrace);
                 _logger.LogError(ex.StackTrace);
             }
             return message;

@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Options;
-using SinovadMediaServer.Application.Configuration;
-using SinovadMediaServer.Transversal.Interface;
+﻿using SinovadMediaServer.Transversal.Interface;
 using System.Globalization;
 using System.Text;
 
@@ -9,12 +7,8 @@ namespace SinovadMediaServer.Application.Shared
     public class SharedService
     {
         public IAppLogger<SharedService> _tracer;
-
-        public MyConfig _config;
-
-        public SharedService(IAppLogger<SharedService> logger, IOptions<MyConfig> config)
+        public SharedService(IAppLogger<SharedService> logger)
         {
-            _config = config.Value;
             _tracer = logger;
         }
 

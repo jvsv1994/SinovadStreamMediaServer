@@ -7,7 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Quartz;
 using SinovadMediaServer.Application.Builder;
-using SinovadMediaServer.Application.Configuration;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
 using SinovadMediaServer.Application.Interface.Persistence;
@@ -45,8 +44,6 @@ namespace SinovadMediaServer
 
         private static List<String> _listUrls;
 
-        private static IConfiguration _configuration;
-
         public Form1(string[] args)
         {            
             _sharedData = new SharedData();
@@ -81,11 +78,6 @@ namespace SinovadMediaServer
               .UseUrls(_listUrls.ToArray())
               .UseContentRoot(Directory.GetCurrentDirectory())
               .UseWebRoot(Path.Combine("wwwroot"))
-              .ConfigureAppConfiguration(configBuilder =>
-              {
-                configBuilder.AddJsonFile(Path.Combine(Directory.GetCurrentDirectory(),"appsettings.json"));
-                _configuration = configBuilder.Build();
-              })
               .ConfigureServices((services) =>
               {
                   services.AddScoped<AuditableEntitySaveChangesInterceptor>();
@@ -114,7 +106,6 @@ namespace SinovadMediaServer
                   //
                   services.AddLogging();
                   services.AddScoped(typeof(IAppLogger<>), typeof(LoggerAdapter<>));
-                  services.Configure<MyConfig>(_configuration);
 
                   //Shared
                   services.AddSingleton<SearchMediaLogBuilder>();

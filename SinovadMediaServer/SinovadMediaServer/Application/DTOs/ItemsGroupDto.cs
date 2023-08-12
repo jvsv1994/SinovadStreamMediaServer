@@ -9,6 +9,7 @@ namespace SinovadMediaServer.Application.DTOs
         public int Id { get; set; }
         public string Name { get; set; }
         public List<ItemDto> ListItems { get; set; }
+        public int MediaServerId { get; set; }
 
     }
 }
