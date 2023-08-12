@@ -586,7 +586,8 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
                 {
                     transcodeVideoProcess.MediaServerId = transcodePrepareVideo.MediaServerId;
                 }
-                registerTranscodeVideoProcess(transcodeVideoProcess);
+                _unitOfWork.TranscodingProcesses.Add(transcodeVideoProcess.MapTo<TranscodingProcess>());
+                _unitOfWork.Save();
             }
 
             transcodeRunVideo.VideoPath = videoOutputRoutePath;
@@ -617,11 +618,6 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             }
             transcodeRunVideo.TranscodePrepareVideo = transcodePrepareVideo;
             return transcodeRunVideo;
-        }
-
-        private void registerTranscodeVideoProcess(TranscodingProcessDto transcodeVideoProcess)
-        {
-            _unitOfWork.TranscodingProcesses.Add(transcodeVideoProcess.MapTo<TranscodingProcess>());
         }
 
         private async Task<bool> checkIfExistFile(string outputFilePhysicalPathFinal)
