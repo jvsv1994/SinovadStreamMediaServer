@@ -39,10 +39,6 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Proxy\" />
-    <Folder Include="Response\" />
-  </ItemGroup>
-  <ItemGroup>
    <Content Include="wwwroot\**">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
    </Content>
