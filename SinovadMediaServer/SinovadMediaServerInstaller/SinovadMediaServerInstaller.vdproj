@@ -11,11 +11,12 @@
 "SccLocalPath" = "8:"
 "SccAuxPath" = "8:"
 "SccProvider" = "8:"
+"BackwardsCompatibleGUIDGeneration" = "8:TRUE"
     "Hierarchy"
     {
         "Entry"
         {
-        "MsmKey" = "8:_487CB7648484424FA0C9CED157F372C8"
+        "MsmKey" = "8:_AEC3DAFBE2BA44FC87BA6ACAAFAFA140"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -69,7 +70,7 @@
         "PackageFilesAs" = "3:2"
         "PackageFileSize" = "3:-2147483648"
         "CabType" = "3:1"
-        "Compression" = "3:2"
+        "Compression" = "3:1"
         "SignOutput" = "11:FALSE"
         "CertificateFile" = "8:"
         "PrivateKeyFile" = "8:"
@@ -210,13 +211,13 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:Sinovad Media Server"
         "ProductCode" = "8:{CC768DDC-58A7-4283-99EB-65119CFA575A}"
-        "PackageCode" = "8:{03C9C25E-7CB4-44D3-B78A-5D30E793CE69}"
+        "PackageCode" = "8:{BF947877-420E-4C50-A1C0-2CB01653B3DE}"
         "UpgradeCode" = "8:{466B5B55-67DF-4E7C-9F83-B8D35335325F}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
-        "RemovePreviousVersions" = "11:FALSE"
+        "RemovePreviousVersions" = "11:TRUE"
         "DetectNewerInstalledVersion" = "11:TRUE"
-        "InstallAllUsers" = "11:FALSE"
+        "InstallAllUsers" = "11:TRUE"
         "ProductVersion" = "8:1.0.0"
         "Manufacturer" = "8:Sinovad"
         "ARPHELPTELEPHONE" = "8:"
@@ -330,21 +331,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_27FFE1D6E9444A8D9DB7E730AB38E4A1"
-            {
-            "Name" = "8:SinovadMediaServer"
-            "Arguments" = "8:"
-            "Description" = "8:"
-            "ShowCmd" = "3:1"
-            "IconIndex" = "3:0"
-            "Transitive" = "11:FALSE"
-            "Target" = "8:_487CB7648484424FA0C9CED157F372C8"
-            "Folder" = "8:_C862BCD8BB724065AA13F584DA553051"
-            "WorkingFolder" = "8:_0A74476359BA4ED7BF3DD27D802219A6"
-            "Icon" = "8:_CDF9F371A1A7496B89B04E68C554A81B"
-            "Feature" = "8:"
-            }
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_3F7B8F752FAF43A7A25D81265682B506"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_7643CD36D719444DA4FB40BC19F1B1C9"
             {
             "Name" = "8:Sinovad Media Server"
             "Arguments" = "8:"
@@ -352,7 +339,21 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_487CB7648484424FA0C9CED157F372C8"
+            "Target" = "8:_AEC3DAFBE2BA44FC87BA6ACAAFAFA140"
+            "Folder" = "8:_C862BCD8BB724065AA13F584DA553051"
+            "WorkingFolder" = "8:_0A74476359BA4ED7BF3DD27D802219A6"
+            "Icon" = "8:_CDF9F371A1A7496B89B04E68C554A81B"
+            "Feature" = "8:"
+            }
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_DD8A6A402DA44E48B1A2B34CE20AC433"
+            {
+            "Name" = "8:Sinovad Media Server"
+            "Arguments" = "8:"
+            "Description" = "8:"
+            "ShowCmd" = "3:1"
+            "IconIndex" = "3:0"
+            "Transitive" = "11:FALSE"
+            "Target" = "8:_AEC3DAFBE2BA44FC87BA6ACAAFAFA140"
             "Folder" = "8:_EF33A68A0E8C4B208D07F8DA27ABBEE2"
             "WorkingFolder" = "8:_0A74476359BA4ED7BF3DD27D802219A6"
             "Icon" = "8:_CDF9F371A1A7496B89B04E68C554A81B"
@@ -757,9 +758,9 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_487CB7648484424FA0C9CED157F372C8"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_AEC3DAFBE2BA44FC87BA6ACAAFAFA140"
             {
-            "SourcePath" = "8:..\\SinovadMediaServer\\obj\\Debug\\net7.0-windows\\apphost.exe"
+            "SourcePath" = "8:..\\SinovadMediaServer\\obj\\Release\\net7.0-windows\\apphost.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_0A74476359BA4ED7BF3DD27D802219A6"
