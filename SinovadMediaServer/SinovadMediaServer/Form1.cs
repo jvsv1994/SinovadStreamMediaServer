@@ -2,7 +2,6 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Quartz;
@@ -135,6 +134,9 @@ namespace SinovadMediaServer
               })
               .Configure(app =>
               {
+                  using (var scope = app.ApplicationServices.CreateScope())
+                  using (var context = scope.ServiceProvider.GetService<ApplicationDbContext>())
+                      context.Database.EnsureCreatedAsync();
                   app.UseCors("AllowAnyOrigin");
                   app.UseHttpsRedirection();
                   app.Use(async (context, next) =>
@@ -177,12 +179,6 @@ namespace SinovadMediaServer
                   app.UseStatusCodePagesWithReExecute("/");//to fix angular routing issues
                   app.UseDefaultFiles();
                   app.UseStaticFiles();
-                  using (var scope = app.ApplicationServices.CreateScope())
-                  using (var context = scope.ServiceProvider.GetService<ApplicationDbContext>())
-                      context.Database.EnsureCreatedAsync();
-
-                  //var context = app.ApplicationServices.GetRequiredService<ApplicationDbContext>();
-                  //context.Database.EnsureCreatedAsync();
                   var sharedData = app.ApplicationServices.GetService<SharedData>();
                   sharedData.ApiToken=_sharedData.ApiToken;
                   sharedData.UserData = _sharedData.UserData;
