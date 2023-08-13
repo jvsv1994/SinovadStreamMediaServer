@@ -267,7 +267,12 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 var episodeText = seasonepisodeArray[1];
                                 var seasonNumber = int.Parse(seasonText);
                                 var episodeNumber = int.Parse(episodeText);
-                                var mediaItem = _unitOfWork.MediaItems.GetByExpression(x => x.SearchQuery!=null && x.SearchQuery.ToLower().Trim() == tvSerieName.ToLower().Trim() && x.MediaTypeId == MediaType.TvSerie);
+                                var mediaItemList = _unitOfWork.MediaItems.GetAllByExpression(x => x.SearchQuery!=null && x.SearchQuery.ToLower().Trim() == tvSerieName.ToLower().Trim() && x.MediaTypeId == MediaType.TvSerie);
+                                MediaItem mediaItem = null;
+                                if(mediaItemList!=null && mediaItemList.Count()>0)
+                                {
+                                    mediaItem = mediaItemList.FirstOrDefault();
+                                }
                                 if(mediaItem==null)
                                 {
                                     //Search Media in SinovadDb
@@ -328,7 +333,12 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                     mediaItem = _unitOfWork.MediaItems.Add(mediaItem);
                                     _unitOfWork.Save();
                                 }
-                                var season = _unitOfWork.MediaSeasons.GetByExpression(x => x.MediaItemId == mediaItem.Id && x.SeasonNumber == seasonNumber);
+                                MediaSeason season = null;
+                                var seasonList = _unitOfWork.MediaSeasons.GetAllByExpression(x => x.MediaItemId == mediaItem.Id && x.SeasonNumber == seasonNumber);
+                                if(seasonList!=null && seasonList.Count()>0)
+                                {
+                                    season = seasonList.FirstOrDefault();
+                                }
                                 if (season == null)
                                 {
                                     if (mediaItem.MetadataAgentsId == MetadataAgents.TMDb)
@@ -364,7 +374,12 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                     season = _unitOfWork.MediaSeasons.Add(season);
                                     _unitOfWork.Save();
                                 }
-                                var episode = _unitOfWork.MediaEpisodes.GetByExpression(x => x.MediaItemId == mediaItem.Id && x.SeasonNumber == seasonNumber && x.EpisodeNumber == episodeNumber);
+                                var episodeList = _unitOfWork.MediaEpisodes.GetAllByExpression(x => x.MediaItemId == mediaItem.Id && x.SeasonNumber == seasonNumber && x.EpisodeNumber == episodeNumber);
+                                MediaEpisode episode = null;
+                                if(episodeList!=null && episodeList.Count()>0)
+                                {
+                                    episode= episodeList.FirstOrDefault();
+                                }
                                 if(episode == null)
                                 {
                                     if (mediaItem.MetadataAgentsId == MetadataAgents.TMDb)
@@ -485,7 +500,12 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                             var partsMovieNameWithoutExtension = fileNameWithoutExtension.Split(" ");
                             var movieName = fileNameWithoutExtension.Substring(0, fileNameWithoutExtension.Length - 5);
                             var year = fileNameWithoutExtension.Substring(fileNameWithoutExtension.Length - 4, 4);
-                            var mediaItem = _unitOfWork.MediaItems.GetByExpression(x => x.SearchQuery != null && x.SearchQuery.ToLower().Trim() == movieName.ToLower().Trim() && x.MediaTypeId==MediaType.Movie);
+                            var mediaItemList = _unitOfWork.MediaItems.GetAllByExpression(x => x.SearchQuery != null && x.SearchQuery.ToLower().Trim() == movieName.ToLower().Trim() && x.MediaTypeId==MediaType.Movie);
+                            MediaItem mediaItem=null;
+                            if(mediaItemList!=null && mediaItemList.Count()>0)
+                            {
+                                mediaItem= mediaItemList.FirstOrDefault();
+                            }
                             if(mediaItem==null)
                             {
                                 MediaItemDto mediaItemDto = GetMovieFromExternalDataBase(movieName, year);
