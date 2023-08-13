@@ -139,8 +139,10 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             var response = new Response<object>();
             try
             {
-                Expression<Func<MediaFile, bool>> expresionMediaFilesToDelete = x => x.Id==id;
+                Expression<Func<MediaFile, bool>> expresionMediaFilesToDelete = x => x.LibraryId==id;
                 DeleteMediaFilesByExpresion(expresionMediaFilesToDelete);
+                _unitOfWork.Libraries.Delete(id);
+                _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
             }
@@ -162,8 +164,10 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 {
                     listIds = ids.Split(",").Select(x => Convert.ToInt32(x)).ToList();
                 }
-                Expression<Func<MediaFile, bool>> expresionMediaFilesToDelete = x => listIds.Contains(x.Id);
+                Expression<Func<MediaFile, bool>> expresionMediaFilesToDelete = x => listIds.Contains((int)x.LibraryId);
                 DeleteMediaFilesByExpresion(expresionMediaFilesToDelete);
+                _unitOfWork.Libraries.DeleteByExpression(x=> listIds.Contains(x.Id));
+                _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
             }
