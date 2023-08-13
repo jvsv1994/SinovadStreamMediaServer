@@ -269,11 +269,13 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 var episodeNumber = int.Parse(episodeText);
                                 var mediaItem = _unitOfWork.MediaItems.GetByExpression(x => x.SearchQuery!=null && x.SearchQuery.ToLower().Trim() == tvSerieName.ToLower().Trim() && x.MediaTypeId == MediaType.TvSerie);
                                 if(mediaItem==null)
-                                {        
+                                {
                                     //Search Media in SinovadDb
+                                    AddMessage(LogType.Information, "Searching " + tvSerieName+" in Sinovad Media DataBase");
                                     var result = sinovadMediaDataBaseService.SearchTvSerieAsync(tvSerieName).Result;
                                     if (result.Data != null)
                                     {
+                                        AddMessage(LogType.Information,"Found "+ tvSerieName + " in Sinovad Media DataBase");
                                         var sinovadTvSerie = result.Data;
                                         var mediaItemDto = new MediaItemDto();
                                         mediaItemDto.SourceId = sinovadTvSerie.Id.ToString();
@@ -294,17 +296,31 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                         mediaItemDto.ListGenres = sinovadTvSerie.ListGenres.MapTo<List<MediaGenreDto>>();
                                         mediaItemDto.SearchQuery = tvSerieName;
                                         mediaItem = CreateMediaItem(mediaItemDto);
+                                    }else{
+                                        AddMessage(LogType.Information,"Not found "+tvSerieName + " in Sinovad Media DataBase");
                                     }
-                                    if(mediaItem==null)
+                                    if (mediaItem==null)
                                     {
+                                        AddMessage(LogType.Information, "Searching " + tvSerieName + " in Tmdb DataBase");
                                         //Search Media in Tmdb
                                         var mediaItemDto = _tmdbService.SearchTvShow(tvSerieName);
-                                        mediaItemDto.SearchQuery = tvSerieName;
-                                        mediaItem = CreateMediaItem(mediaItemDto);
+                                        if(mediaItemDto!=null)
+                                        {
+                                            AddMessage(LogType.Information, "Found " + tvSerieName + " in Tmdb DataBase");
+                                            mediaItemDto.SearchQuery = tvSerieName;
+                                            mediaItem = CreateMediaItem(mediaItemDto);
+                                        }else
+                                        {
+                                            AddMessage(LogType.Information, "Not found " + tvSerieName + " in Tmdb DataBase");
+                                        }
                                     }
-                                }
-                                if(mediaItem==null)
+                                }else
                                 {
+                                    AddMessage(LogType.Information, "Found " + tvSerieName + " in Local Storage");
+                                }
+                                if (mediaItem==null)
+                                {
+                                    AddMessage(LogType.Information, "Not found " + tvSerieName + " in any external DataBase");
                                     mediaItem = new MediaItem();
                                     mediaItem.Title = tvSerieName;
                                     mediaItem.SearchQuery = tvSerieName;

@@ -10,11 +10,17 @@ namespace SinovadMediaServer.Transversal.Logger
 
         public readonly ILogger<T> _logger;
 
-        private readonly string _pathLog= "wwwroot\\log.txt";
+        private string _pathLog;
 
         public LoggerAdapter( ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory.CreateLogger<T>();
+            var myDocumentsPath = System.Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+            var folderName = "Sinovad Media Server";
+            var path = myDocumentsPath + "/" + folderName;
+            System.IO.Directory.CreateDirectory(path);
+            var pathLog = Path.Combine(path, "log.txt");
+            _pathLog = pathLog;
         }
 
         public void LogInformation(string message, params object[] args)
