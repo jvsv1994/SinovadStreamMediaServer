@@ -137,6 +137,16 @@ namespace SinovadMediaServer.Controllers
             return BadRequest(response.Message);
         }
 
+        [HttpGet("GetMediaItemDetailByMediaFileAndProfile")]
+        public ActionResult GetMediaItemDetailByMediaFileAndProfile([FromQuery] int mediaFileId, [FromQuery] int profileId)
+        {
+            var response = _libraryService.GetMediaItemDetailByMediaFileAndProfile(mediaFileId, profileId);
+            if (response.IsSuccess)
+            {
+                return Ok(response);
+            }
+            return BadRequest(response.Message);
+        }
 
         [HttpGet("GetAllMediaItemsBySearchQuery")]
         public ActionResult GetAllMediaItemsBySearchQuery([FromQuery] string searchQuery)

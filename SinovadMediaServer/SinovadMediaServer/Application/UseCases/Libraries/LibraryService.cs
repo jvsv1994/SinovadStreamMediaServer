@@ -768,6 +768,75 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             return response;
         }
 
+        public Response<ItemDetailDto> GetMediaItemDetailByMediaFileAndProfile(int mediaFileId,int profileId)
+        {
+            var response = new Response<ItemDetailDto>();
+            try
+            {
+                ItemDetailDto itemDetail = new ItemDetailDto();
+                var mediaFile=_unitOfWork.MediaFiles.Get(mediaFileId);
+                if(mediaFile!=null)
+                {
+                    if (mediaFile.MediaItemId != null)
+                    {
+                        var mediaItemId = (int)mediaFile.MediaItemId;
+                        var mediaItem = _unitOfWork.MediaItems.Get(mediaItemId);
+                        itemDetail.MediaItem = mediaItem.MapTo<MediaItemDto>();
+                        var mediaFiles = _unitOfWork.MediaFiles.GetAllByExpression(x => x.MediaItemId == mediaItemId);
+                        itemDetail.ListMediaFiles = mediaFiles.MapTo<List<MediaFileDto>>();
+                        var mediaFilePlayback= _unitOfWork.MediaFilePlaybacks.GetByExpression(x=>x.MediaFileId==mediaFileId && x.ProfileId==profileId);
+                        if (mediaFilePlayback!=null)
+                        {
+                            mediaFilePlayback.MediaFile = null;
+                            itemDetail.LastMediaFilePlayback = mediaFilePlayback.MapTo<MediaFilePlaybackDto>();
+                        }
+                        if (mediaItem.MediaTypeId == MediaType.TvSerie)
+                        {
+                            var listSeasonsToAdd = new List<MediaSeasonDto>();
+                            var listSeasons = _unitOfWork.MediaSeasons.GetAllByExpression(x => x.MediaItemId == mediaItemId).MapTo<List<MediaSeasonDto>>();
+                            var listEpisodes = _unitOfWork.MediaEpisodes.GetAllByExpression(x => x.MediaItemId == mediaItemId).MapTo<List<MediaEpisodeDto>>();
+                            foreach (var season in listSeasons)
+                            {
+                                var existMediaFiles = false;
+                                season.ListEpisodes = listEpisodes.Where(x => x.SeasonNumber == season.SeasonNumber).OrderBy(x => x.EpisodeNumber).ToList();
+                                foreach (var episodeDto in season.ListEpisodes)
+                                {
+                                    var listMediaFiles = itemDetail.ListMediaFiles.Where(x => x.MediaEpisodeId == episodeDto.Id).ToList();
+                                    episodeDto.ListMediaFiles = listMediaFiles;
+                                    if (episodeDto.ListMediaFiles.Count > 0)
+                                    {
+                                        existMediaFiles = true;
+                                    }
+                                    if(mediaFile.MediaEpisodeId != null && episodeDto.Id== mediaFile.MediaEpisodeId)
+                                    {
+                                        itemDetail.CurrentEpisode = episodeDto;
+                                    }
+                                }
+                                if (existMediaFiles)
+                                {
+                                    listSeasonsToAdd.Add(season);
+                                }
+                                if (itemDetail.CurrentEpisode != null && itemDetail.CurrentEpisode.SeasonNumber==season.SeasonNumber)
+                                {
+                                    itemDetail.CurrentSeason = season;
+                                }
+                            }
+                            itemDetail.ListSeasons = listSeasonsToAdd;
+                        }
+                    }
+                }
+                response.Data = itemDetail;
+                response.IsSuccess = true;
+                response.Message = "Successful";
+            }
+            catch (Exception ex)
+            {
+                response.Message = ex.Message;
+                _sharedService._tracer.LogError(ex.StackTrace);
+            }
+            return response;
+        }
+
         public Response<object> UpdateMediaFilePlayback(MediaFilePlaybackDto mediaFilePlaybackDto)
         {
             var response = new Response<object>();

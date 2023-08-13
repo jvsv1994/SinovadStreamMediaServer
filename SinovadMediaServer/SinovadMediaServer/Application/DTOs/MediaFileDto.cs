@@ -1,4 +1,6 @@
-﻿namespace SinovadMediaServer.Application.DTOs
+﻿using SinovadMediaServer.Domain.Entities;
+
+namespace SinovadMediaServer.Application.DTOs
 {
     public class MediaFileDto
     {
@@ -7,5 +9,7 @@
         public int? MediaEpisodeId { get; set; }
         public int? LibraryId { get; set; }
         public string? PhysicalPath { get; set; }
+        public MediaFilePlayback? MediaFilePlaytback { get; set; }
+
     }
 }
