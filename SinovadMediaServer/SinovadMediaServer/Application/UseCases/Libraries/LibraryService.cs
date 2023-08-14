@@ -1,4 +1,5 @@
-﻿using SinovadMediaServer.Application.Builder;
+﻿using Microsoft.AspNetCore.SignalR;
+using SinovadMediaServer.Application.Builder;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
 using SinovadMediaServer.Application.Interface.Persistence;
@@ -9,6 +10,7 @@ using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Infrastructure;
 using SinovadMediaServer.Infrastructure.SinovadApi;
 using SinovadMediaServer.Shared;
+using SinovadMediaServer.SignailIR;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Mapping;
 using System.Linq.Expressions;
@@ -31,7 +33,9 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
         private readonly IImdbService _imdbService;
 
-        public LibraryService(IUnitOfWork unitOfWork, SinovadApiService sinovadApiService, SharedData sharedData, SharedService sharedService, ITmdbService tmdbService, IImdbService imdbService, SearchMediaLogBuilder searchMediaBuilder)
+        private readonly IHubContext<CustomHub> _hubContext;
+
+        public LibraryService(IUnitOfWork unitOfWork, SinovadApiService sinovadApiService, SharedData sharedData, SharedService sharedService, ITmdbService tmdbService, IImdbService imdbService, SearchMediaLogBuilder searchMediaBuilder,IHubContext<CustomHub> hubContext)
         {
             _unitOfWork = unitOfWork;
             _sharedService = sharedService;
@@ -39,6 +43,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             _imdbService = imdbService;
             _sinovadApiService = sinovadApiService;
             _sharedData = sharedData;
+            _hubContext = hubContext;
         }
 
         public async Task<Response<LibraryDto>> GetAsync(int id)
@@ -87,6 +92,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
+                _hubContext.Clients.All.SendAsync("RefreshLibraries");
             }
             catch (Exception ex)
             {
@@ -106,6 +112,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
+                _hubContext.Clients.All.SendAsync("RefreshLibraries");
             }
             catch (Exception ex)
             {
@@ -125,6 +132,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
+                _hubContext.Clients.All.SendAsync("RefreshLibraries");
             }
             catch (Exception ex)
             {
@@ -145,6 +153,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
+                _hubContext.Clients.All.SendAsync("RefreshLibraries");
             }
             catch (Exception ex)
             {
@@ -170,6 +179,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
+                _hubContext.Clients.All.SendAsync("RefreshLibraries");
             }
             catch (Exception ex)
             {
@@ -233,6 +243,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.MediaFilePlaybacks.DeleteByExpression(expressionVideoProfilesToDelete);
                 _unitOfWork.MediaFiles.DeleteList(listMediaFilesToDelete);
                 _unitOfWork.Save();
+                _hubContext.Clients.All.SendAsync("RefreshMediaItems");
             }
         }
 
@@ -426,6 +437,10 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 mediaFile.MediaEpisodeId = episode.Id;                
                                 _unitOfWork.MediaFiles.Add(mediaFile);
                                 _unitOfWork.Save();
+                                if(IsMultipleOf(i,50))
+                                {
+                                    _hubContext.Clients.All.SendAsync("RefreshMediaItems");
+                                }
                             }
                             else
                             {
@@ -447,6 +462,12 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 AddMessage(LogType.Error, e.Message);
             }
             AddMessage(LogType.Information, "Ending search tv series");
+            _hubContext.Clients.All.SendAsync("RefreshMediaItems");
+        }
+
+        private bool IsMultipleOf(int multiple, int dividend)
+        {
+            return (multiple % dividend) == 0;
         }
 
 
@@ -541,6 +562,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 AddMessage(LogType.Error, e.Message);
             }
             AddMessage(LogType.Information, "Ending search movies");
+            _hubContext.Clients.All.SendAsync("RefreshMediaItems");
         }
 
         private void DeleteVideosNotFoundInLibrary(int libraryId, List<string> paths)
@@ -771,12 +793,12 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 var listSeasonsToAdd = new List<MediaSeasonDto>();
                 if(mediaItem.MediaTypeId==MediaType.TvSerie)
                 {
-                    var listSeasons=_unitOfWork.MediaSeasons.GetAllByExpression(x=>x.MediaItemId==mediaItemId).MapTo<List<MediaSeasonDto>>();
+                    var listSeasons=_unitOfWork.MediaSeasons.GetAllByExpression(x=>x.MediaItemId==mediaItemId).DistinctBy(x=>x.SeasonNumber).MapTo<List<MediaSeasonDto>>();
                     var listEpisodes= _unitOfWork.MediaEpisodes.GetAllByExpression(x => x.MediaItemId == mediaItemId).MapTo<List<MediaEpisodeDto>>();
                     foreach (var season in listSeasons)
                     {
                         var existMediaFiles = false;
-                        season.ListEpisodes = listEpisodes.Where(x => x.SeasonNumber == season.SeasonNumber).OrderBy(x=>x.EpisodeNumber).ToList();
+                        season.ListEpisodes = listEpisodes.Where(x => x.SeasonNumber == season.SeasonNumber).DistinctBy(x => x.EpisodeNumber).OrderBy(x=>x.EpisodeNumber).ToList();
                         foreach (var episodeDto in season.ListEpisodes)
                         {
                            var listMediaFiles=itemDetail.ListMediaFiles.Where(x => x.MediaEpisodeId == episodeDto.Id).ToList();
@@ -829,12 +851,12 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                         if (mediaItem.MediaTypeId == MediaType.TvSerie)
                         {
                             var listSeasonsToAdd = new List<MediaSeasonDto>();
-                            var listSeasons = _unitOfWork.MediaSeasons.GetAllByExpression(x => x.MediaItemId == mediaItemId).MapTo<List<MediaSeasonDto>>();
+                            var listSeasons = _unitOfWork.MediaSeasons.GetAllByExpression(x => x.MediaItemId == mediaItemId).DistinctBy(x => x.SeasonNumber).MapTo<List<MediaSeasonDto>>();
                             var listEpisodes = _unitOfWork.MediaEpisodes.GetAllByExpression(x => x.MediaItemId == mediaItemId).MapTo<List<MediaEpisodeDto>>();
                             foreach (var season in listSeasons)
                             {
                                 var existMediaFiles = false;
-                                season.ListEpisodes = listEpisodes.Where(x => x.SeasonNumber == season.SeasonNumber).OrderBy(x => x.EpisodeNumber).ToList();
+                                season.ListEpisodes = listEpisodes.Where(x => x.SeasonNumber == season.SeasonNumber).DistinctBy(x => x.EpisodeNumber).OrderBy(x => x.EpisodeNumber).ToList();
                                 foreach (var episodeDto in season.ListEpisodes)
                                 {
                                     var listMediaFiles = itemDetail.ListMediaFiles.Where(x => x.MediaEpisodeId == episodeDto.Id).ToList();

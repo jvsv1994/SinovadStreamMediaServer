@@ -24,6 +24,7 @@ using SinovadMediaServer.Persistence.Interceptors;
 using SinovadMediaServer.Persistence.Repositories;
 using SinovadMediaServer.SchedulerJob;
 using SinovadMediaServer.Shared;
+using SinovadMediaServer.SignailIR;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Interface;
 using SinovadMediaServer.Transversal.Logger;
@@ -102,6 +103,7 @@ namespace SinovadMediaServer
                   {
                       options.JsonSerializerOptions.PropertyNamingPolicy = null;
                   });
+                  services.AddSignalR();
                   //
                   services.AddLogging();
                   services.AddScoped(typeof(IAppLogger<>), typeof(LoggerAdapter<>));
@@ -149,6 +151,7 @@ namespace SinovadMediaServer
                   app.UseEndpoints(endpoints =>
                   {
                       endpoints.MapControllers();
+                      endpoints.MapHub<CustomHub>("/sinovadHub");
                   });
                   var transcoderSettingsService = app.ApplicationServices.GetService<ITranscoderSettingsService>();
                   var result=  transcoderSettingsService.GetAsync().Result;
