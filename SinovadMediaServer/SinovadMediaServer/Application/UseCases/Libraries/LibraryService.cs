@@ -202,6 +202,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
                 foreach (var library in searchFilesDto.ListLibraries)
                 {
+                    AddMessage(LogType.Information, "Starting search files in library "+library.Name);
                     var listPaths = new List<string>();
 
                     var exists=Directory.Exists(library.PhysicalPath);
@@ -227,7 +228,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                AddMessage(LogType.Error, ex.StackTrace);
             }
             return response;
         }
