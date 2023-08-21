@@ -1,4 +1,5 @@
-﻿using SinovadMediaServer.Application.DTOs;
+﻿using Microsoft.AspNetCore.SignalR.Client;
+using SinovadMediaServer.Application.DTOs;
 
 #nullable disable
 
@@ -12,6 +13,8 @@ namespace SinovadMediaServer.Shared
         public TranscoderSettingsDto TranscoderSettingsData { get; set; }
         public UserDto UserData { get; set; }
         public List<CatalogDetailDto> ListPresets { get; set; }
+        public HubConnection HubConnection { get; set; }
+
 
     }
 }

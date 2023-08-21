@@ -41,12 +41,12 @@ namespace SinovadMediaServer.Persistence.Repositories
 
         public TEntity GetByExpression(Expression<Func<TEntity, bool>> predicate)
         {
-            return _table.SingleOrDefault(predicate);
+            return _table.FirstOrDefault(predicate);
         }
 
         public async Task<TEntity> GetByExpressionAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
         {
-            return await _table.SingleOrDefaultAsync(predicate, cancellationToken);
+            return await _table.FirstOrDefaultAsync(predicate, cancellationToken);
         }
 
         public IEnumerable<TEntity> GetAll()

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.SignalR.Client;
 using SinovadMediaServer.Application.Builder;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
@@ -10,7 +11,6 @@ using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Infrastructure;
 using SinovadMediaServer.Infrastructure.SinovadApi;
 using SinovadMediaServer.Shared;
-using SinovadMediaServer.SignailIR;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Mapping;
 using System.Linq.Expressions;
@@ -33,9 +33,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
         private readonly IImdbService _imdbService;
 
-        private readonly IHubContext<CustomHub> _hubContext;
-
-        public LibraryService(IUnitOfWork unitOfWork, SinovadApiService sinovadApiService, SharedData sharedData, SharedService sharedService, ITmdbService tmdbService, IImdbService imdbService, SearchMediaLogBuilder searchMediaBuilder,IHubContext<CustomHub> hubContext)
+        public LibraryService(IUnitOfWork unitOfWork, SinovadApiService sinovadApiService, SharedData sharedData, SharedService sharedService, ITmdbService tmdbService, IImdbService imdbService)
         {
             _unitOfWork = unitOfWork;
             _sharedService = sharedService;
@@ -43,7 +41,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             _imdbService = imdbService;
             _sinovadApiService = sinovadApiService;
             _sharedData = sharedData;
-            _hubContext = hubContext;
         }
 
         public async Task<Response<LibraryDto>> GetAsync(int id)
@@ -92,7 +89,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
-                _hubContext.Clients.All.SendAsync("RefreshLibraries");
+                _sharedData.HubConnection.InvokeAsync("UpdateLibraries", _sharedData.MediaServerData.Guid);
             }
             catch (Exception ex)
             {
@@ -112,7 +109,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
-                _hubContext.Clients.All.SendAsync("RefreshLibraries");
+                _sharedData.HubConnection.InvokeAsync("UpdateLibraries", _sharedData.MediaServerData.Guid);
             }
             catch (Exception ex)
             {
@@ -132,7 +129,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
-                _hubContext.Clients.All.SendAsync("RefreshLibraries");
+                _sharedData.HubConnection.InvokeAsync("UpdateLibraries", _sharedData.MediaServerData.Guid);
             }
             catch (Exception ex)
             {
@@ -153,7 +150,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
-                _hubContext.Clients.All.SendAsync("RefreshLibraries");
+                _sharedData.HubConnection.InvokeAsync("UpdateLibraries", _sharedData.MediaServerData.Guid);
             }
             catch (Exception ex)
             {
@@ -179,7 +176,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
-                _hubContext.Clients.All.SendAsync("RefreshLibraries");
+                _sharedData.HubConnection.InvokeAsync("UpdateLibraries", _sharedData.MediaServerData.Guid);
             }
             catch (Exception ex)
             {
@@ -244,7 +241,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.MediaFilePlaybacks.DeleteByExpression(expressionVideoProfilesToDelete);
                 _unitOfWork.MediaFiles.DeleteList(listMediaFilesToDelete);
                 _unitOfWork.Save();
-                _hubContext.Clients.All.SendAsync("RefreshMediaItems");
             }
         }
 
@@ -440,7 +436,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 _unitOfWork.Save();
                                 if(IsMultipleOf(i,50))
                                 {
-                                    _hubContext.Clients.All.SendAsync("RefreshMediaItems");
+                                    _sharedData.HubConnection.InvokeAsync("UpdateItemsByMediaServer", _sharedData.MediaServerData.Guid);
                                 }
                             }
                             else
@@ -463,7 +459,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 AddMessage(LogType.Error, e.Message);
             }
             AddMessage(LogType.Information, "Ending search tv series");
-            _hubContext.Clients.All.SendAsync("RefreshMediaItems");
+            _sharedData.HubConnection.InvokeAsync("UpdateItemsByMediaServer", _sharedData.MediaServerData.Guid);
         }
 
         private bool IsMultipleOf(int multiple, int dividend)
@@ -563,7 +559,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 AddMessage(LogType.Error, e.Message);
             }
             AddMessage(LogType.Information, "Ending search movies");
-            _hubContext.Clients.All.SendAsync("RefreshMediaItems");
+            _sharedData.HubConnection.InvokeAsync("UpdateItemsByMediaServer", _sharedData.MediaServerData.Guid);
         }
 
         private void DeleteVideosNotFoundInLibrary(int libraryId, List<string> paths)

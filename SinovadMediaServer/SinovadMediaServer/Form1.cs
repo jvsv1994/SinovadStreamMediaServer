@@ -2,6 +2,7 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Quartz;
@@ -24,7 +25,6 @@ using SinovadMediaServer.Persistence.Interceptors;
 using SinovadMediaServer.Persistence.Repositories;
 using SinovadMediaServer.SchedulerJob;
 using SinovadMediaServer.Shared;
-using SinovadMediaServer.SignailIR;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Interface;
 using SinovadMediaServer.Transversal.Logger;
@@ -35,6 +35,7 @@ namespace SinovadMediaServer
 {
     public partial class Form1 : Form
     {
+        private string _hubUrl = "https://streamapi.sinovad.com/mediaServerHub";
 
         private static SharedData _sharedData;
 
@@ -44,6 +45,8 @@ namespace SinovadMediaServer
 
         private static List<String> _listUrls;
 
+        HubConnection _hubConnection;
+
         public Form1(string[] args)
         {            
             _sharedData = new SharedData();
@@ -52,9 +55,16 @@ namespace SinovadMediaServer
             InitializeComponent();
             ValidateMediaServer();
         }
-
-        private static void StartWebServer()
+        private void StartWebServer()
         {
+            _hubConnection = new HubConnectionBuilder().WithUrl(_hubUrl).Build();
+            _hubConnection.Closed += async (error) =>
+            {
+                System.Threading.Thread.Sleep(5000);
+                await _hubConnection.StartAsync();
+            };
+            _hubConnection.StartAsync();
+            _sharedData.HubConnection = _hubConnection;
             var builder = WebHost.CreateDefaultBuilder();
             var app = builder
             .UseKestrel()
@@ -151,7 +161,6 @@ namespace SinovadMediaServer
                   app.UseEndpoints(endpoints =>
                   {
                       endpoints.MapControllers();
-                      endpoints.MapHub<CustomHub>("/sinovadHub");
                   });
                   var transcoderSettingsService = app.ApplicationServices.GetService<ITranscoderSettingsService>();
                   var result=  transcoderSettingsService.GetAsync().Result;

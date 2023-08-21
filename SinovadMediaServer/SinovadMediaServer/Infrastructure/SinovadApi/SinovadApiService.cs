@@ -64,9 +64,12 @@ namespace SinovadMediaServer.Infrastructure
                     {
                         responseMessage = await httpClient.DeleteAsync(_restApiUrl + path);
                     }
-                    var taskResponse = await responseMessage.Content.ReadAsStringAsync();
-                    response = JsonSerializer.Deserialize<Response<Data>>(taskResponse);
-                    if (responseMessage.StatusCode != HttpStatusCode.OK)
+ 
+                    if(responseMessage.IsSuccessStatusCode)
+                    {
+                        var taskResponse = await responseMessage.Content.ReadAsStringAsync();
+                        response = JsonSerializer.Deserialize<Response<Data>>(taskResponse);
+                    }else
                     {
                         throw new Exception(response.Message);
                     }
