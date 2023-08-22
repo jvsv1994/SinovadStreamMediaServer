@@ -64,6 +64,8 @@ namespace SinovadMediaServer
                 await _hubConnection.StartAsync();
             };
             _hubConnection.StartAsync();
+            _hubConnection.InvokeAsync("AddConnectionToUserClientsGroup",_sharedData.UserData.Guid);
+            _hubConnection.InvokeAsync("AddConnectionToMediaServerClientsGroup", _sharedData.MediaServerData.Guid);
             _sharedData.HubConnection = _hubConnection;
             var builder = WebHost.CreateDefaultBuilder();
             var app = builder
@@ -198,6 +200,7 @@ namespace SinovadMediaServer
                   sharedData.TranscoderSettingsData = _sharedData.TranscoderSettingsData;
                   sharedData.ListPresets=_sharedData.ListPresets;
                   sharedData.WebUrl=_sharedData.WebUrl;
+                  sharedData.HubConnection = _sharedData.HubConnection;
               }).Build();
             Task.Run(() =>
             {
