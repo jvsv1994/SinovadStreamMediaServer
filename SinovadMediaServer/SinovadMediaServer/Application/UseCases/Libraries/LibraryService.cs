@@ -1,8 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.Extensions.FileProviders;
 using SinovadMediaServer.Application.Builder;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
@@ -13,7 +10,6 @@ using SinovadMediaServer.Domain.Entities;
 using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Infrastructure;
 using SinovadMediaServer.Infrastructure.SinovadApi;
-using SinovadMediaServer.MiddlewareInjector;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Mapping;
