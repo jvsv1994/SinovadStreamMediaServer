@@ -17,6 +17,7 @@ using SinovadMediaServer.Application.UseCases.TranscoderSetting;
 using SinovadMediaServer.Application.UseCases.TranscodingProcesses;
 using SinovadMediaServer.Configuration;
 using SinovadMediaServer.Domain.Enums;
+using SinovadMediaServer.HostedService;
 using SinovadMediaServer.Infrastructure;
 using SinovadMediaServer.Infrastructure.Imdb;
 using SinovadMediaServer.Infrastructure.Tmdb;
@@ -115,7 +116,7 @@ namespace SinovadMediaServer
                   {
                       options.JsonSerializerOptions.PropertyNamingPolicy = null;
                   });
-                  services.AddSignalR();
+                  services.AddHostedService<MediaServerHostedService>();
                   //
                   services.AddLogging();
                   services.AddScoped(typeof(IAppLogger<>), typeof(LoggerAdapter<>));

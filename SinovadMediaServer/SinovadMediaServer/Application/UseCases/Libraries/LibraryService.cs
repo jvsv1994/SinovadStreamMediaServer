@@ -89,7 +89,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
-                _sharedData.HubConnection.InvokeAsync("UpdateLibraries", _sharedData.MediaServerData.Guid);
+                _sharedData.HubConnection.InvokeAsync("UpdateLibrariesByMediaServer", _sharedData.MediaServerData.Guid);
             }
             catch (Exception ex)
             {
@@ -109,7 +109,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
-                _sharedData.HubConnection.InvokeAsync("UpdateLibraries", _sharedData.MediaServerData.Guid);
+                _sharedData.HubConnection.InvokeAsync("UpdateLibrariesByMediaServer", _sharedData.MediaServerData.Guid);
             }
             catch (Exception ex)
             {
@@ -129,7 +129,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
-                _sharedData.HubConnection.InvokeAsync("UpdateLibraries", _sharedData.MediaServerData.Guid);
+                _sharedData.HubConnection.InvokeAsync("UpdateLibrariesByMediaServer", _sharedData.MediaServerData.Guid);
             }
             catch (Exception ex)
             {
@@ -150,7 +150,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
-                _sharedData.HubConnection.InvokeAsync("UpdateLibraries", _sharedData.MediaServerData.Guid);
+                _sharedData.HubConnection.InvokeAsync("UpdateLibrariesByMediaServer", _sharedData.MediaServerData.Guid);
             }
             catch (Exception ex)
             {
@@ -176,7 +176,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _unitOfWork.Save();
                 response.IsSuccess = true;
                 response.Message = "Successful";
-                _sharedData.HubConnection.InvokeAsync("UpdateLibraries", _sharedData.MediaServerData.Guid);
+                _sharedData.HubConnection.InvokeAsync("UpdateLibrariesByMediaServer", _sharedData.MediaServerData.Guid);
             }
             catch (Exception ex)
             {
