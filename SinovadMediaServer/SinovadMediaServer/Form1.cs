@@ -68,87 +68,69 @@ namespace SinovadMediaServer
             };
             _hubConnection.StartAsync();
             _hubConnection.InvokeAsync("AddConnectionToUserClientsGroup",_sharedData.UserData.Guid);
-            _hubConnection.InvokeAsync("AddConnectionToMediaServerClientsGroup", _sharedData.MediaServerData.Guid);
             _sharedData.HubConnection = _hubConnection;
             var builder = WebHost.CreateDefaultBuilder();
             var app = builder
             .UseKestrel()
-              //.ConfigureKestrel(options =>
-              //{
-              //    var port = 5179;
-              //    var pfxFilePath = @"kestrel.pfx";
-              //    // The password you specified when exporting the PFX file using OpenSSL.
-              //    // This would normally be stored in configuration or an environment variable;
-              //    // I've hard-coded it here just to make it easier to see what's going on.
-              //    var pfxPassword = "changeit";
+            .UseUrls(_listUrls.ToArray())
+            .UseContentRoot(Directory.GetCurrentDirectory())
+            .UseWebRoot(Path.Combine("wwwroot"))
+            .ConfigureServices((services) =>
+            {
+                services.AddScoped<AuditableEntitySaveChangesInterceptor>();
+                services.AddDbContext<ApplicationDbContext>();
+                services.AddQuartz(q =>
+                {
+                    q.UseMicrosoftDependencyInjectionScopedJobFactory();
+                    // Just use the name of your job that you created in the Jobs folder.
+                    var jobKey = new JobKey("CheckFilesToDelete");
+                    q.AddJob<BackgroundJob>(opts => opts.WithIdentity(jobKey));
 
-              //    options.Listen(IPAddress.Any, port, listenOptions =>
-              //    {
-              //        // Enable support for HTTP1 and HTTP2 (required if you want to host gRPC endpoints)
-              //        listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
-              //        // Configure Kestrel to use a certificate from a local .PFX file for hosting HTTPS
-              //        listenOptions.UseHttps(pfxFilePath, pfxPassword);
-              //    });
-              //})
-              .UseUrls(_listUrls.ToArray())
-              .UseContentRoot(Directory.GetCurrentDirectory())
-              .UseWebRoot(Path.Combine("wwwroot"))
-              .ConfigureServices((services) =>
-              {
-                  services.AddScoped<AuditableEntitySaveChangesInterceptor>();
-                  services.AddDbContext<ApplicationDbContext>();
-                  services.AddQuartz(q =>
-                  {
-                      q.UseMicrosoftDependencyInjectionScopedJobFactory();
-                      // Just use the name of your job that you created in the Jobs folder.
-                      var jobKey = new JobKey("CheckFilesToDelete");
-                      q.AddJob<BackgroundJob>(opts => opts.WithIdentity(jobKey));
+                    q.AddTrigger(opts => opts
+                        .ForJob(jobKey)
+                        .WithIdentity("CheckFilesToDelete-trigger")
+                        //This Cron interval can be described as "run every minute" (when second is zero)
+                        //.WithCronSchedule("0 /8 * ? * *")
+                        //At minute o past every 3rd hour.
+                        .WithCronSchedule("0 * /3 ? * *")
+                    );
+                });
+                services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
+                services.AddControllers().AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNamingPolicy = null;
+                });
+                services.AddHostedService<MediaServerHostedService>();
+                services.AddSingleton<MiddlewareInjectorOptions>();
+                services.AddLogging();
+                services.AddScoped(typeof(IAppLogger<>), typeof(LoggerAdapter<>));
 
-                      q.AddTrigger(opts => opts
-                          .ForJob(jobKey)
-                          .WithIdentity("CheckFilesToDelete-trigger")
-                          //This Cron interval can be described as "run every minute" (when second is zero)
-                          //.WithCronSchedule("0 /8 * ? * *")
-                          //At minute o past every 3rd hour.
-                          .WithCronSchedule("0 * /3 ? * *")
-                      );
-                  });
-                  services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
-                  services.AddControllers().AddJsonOptions(options =>
-                  {
-                      options.JsonSerializerOptions.PropertyNamingPolicy = null;
-                  });
-                  services.AddHostedService<MediaServerHostedService>();
-                  services.AddSingleton<MiddlewareInjectorOptions>();
-                  services.AddLogging();
-                  services.AddScoped(typeof(IAppLogger<>), typeof(LoggerAdapter<>));
+                //Shared
+                services.AddSingleton<SearchMediaLogBuilder>();
+                services.AddSingleton<SharedData>();
+                services.AddAutoMapper(Assembly.GetExecutingAssembly());
+                services.AddScoped<SinovadApiService>();
+                services.AddScoped<SharedService>();
+                //Repositories
+                services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
+                services.AddScoped<IUnitOfWork, UnitOfWork>();
+                //Infrastructure
+                services.AddScoped<ITmdbService, TmdbService>();
+                services.AddScoped<IImdbService, ImdbService>();
+                //Services
+                services.AddScoped<ITranscoderSettingsService, TranscoderSettingsService>();
+                services.AddScoped<ITranscodingProcessService, TranscodingProcessService>();
+                services.AddScoped<ILibraryService, LibraryService>();
 
-                  //Shared
-                  services.AddSingleton<SearchMediaLogBuilder>();
-                  services.AddSingleton<SharedData>();
-                  services.AddAutoMapper(Assembly.GetExecutingAssembly());
-                  services.AddScoped<SinovadApiService>();
-                  services.AddScoped<SharedService>();
-                  //Repositories
-                  services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-                  services.AddScoped<IUnitOfWork, UnitOfWork>();
-                  //Infrastructure
-                  services.AddScoped<ITmdbService, TmdbService>();
-                  services.AddScoped<IImdbService, ImdbService>();
-                  //Services
-                  services.AddScoped<ITranscoderSettingsService, TranscoderSettingsService>();
-                  services.AddScoped<ITranscodingProcessService, TranscodingProcessService>();
-                  services.AddScoped<ILibraryService, LibraryService>();
-
-                  services.AddMemoryCache();
-                  services.AddCors(options => options.AddPolicy("AllowAnyOrigin",
-                  builder =>
-                  {
-                      builder
-                      .AllowAnyOrigin()
-                      .AllowAnyMethod()
-                      .AllowAnyHeader();
-                  }));
+                services.AddMemoryCache();
+                services.AddCors(options => options.AddPolicy("AllowAnyOrigin",
+                builder =>
+                {
+                    builder
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+                }));
               })
               .Configure(app =>
               {
