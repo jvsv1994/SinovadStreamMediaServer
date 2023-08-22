@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.FileProviders;
 using SinovadMediaServer.Application.Builder;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
@@ -10,6 +13,7 @@ using SinovadMediaServer.Domain.Entities;
 using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Infrastructure;
 using SinovadMediaServer.Infrastructure.SinovadApi;
+using SinovadMediaServer.MiddlewareInjector;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Mapping;
@@ -33,7 +37,10 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
         private readonly IImdbService _imdbService;
 
-        public LibraryService(IUnitOfWork unitOfWork, SinovadApiService sinovadApiService, SharedData sharedData, SharedService sharedService, ITmdbService tmdbService, IImdbService imdbService)
+        private readonly AutoMapper.IMapper _mapper;
+
+
+        public LibraryService(IUnitOfWork unitOfWork, SinovadApiService sinovadApiService, SharedData sharedData, SharedService sharedService, ITmdbService tmdbService, IImdbService imdbService, AutoMapper.IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _sharedService = sharedService;
@@ -41,6 +48,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             _imdbService = imdbService;
             _sinovadApiService = sinovadApiService;
             _sharedData = sharedData;
+            _mapper = mapper;
         }
 
         public async Task<Response<LibraryDto>> GetAsync(int id)
@@ -49,7 +57,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             try
             {
                 var result = await _unitOfWork.Libraries.GetAsync(id);
-                response.Data = result.MapTo<LibraryDto>();
+                response.Data = _mapper.Map<LibraryDto>(result);
                 response.IsSuccess = true;
                 response.Message = "Successful";
             }
@@ -67,7 +75,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             try
             {
                 var result = await _unitOfWork.Libraries.GetAllAsync();
-                response.Data = result.MapTo<List<LibraryDto>>();
+                response.Data = _mapper.Map<List<LibraryDto>>(result);
                 response.IsSuccess = true;
                 response.Message = "Successful";
             }
@@ -84,7 +92,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             var response = new Response<object>();
             try
             {
-                var library = libraryDto.MapTo<Library>();
+                var library = _mapper.Map<Library>(libraryDto);
                 _unitOfWork.Libraries.Add(library);
                 _unitOfWork.Save();
                 response.IsSuccess = true;
@@ -104,7 +112,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             var response = new Response<object>();
             try
             {
-                var mediaServers = list.MapTo<List<Library>>();
+                var mediaServers = _mapper.Map<List<Library>>(list);
                 _unitOfWork.Libraries.AddList(mediaServers);
                 _unitOfWork.Save();
                 response.IsSuccess = true;
@@ -124,7 +132,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             var response = new Response<object>();
             try
             {
-                var library = libraryDto.MapTo<Library>();
+                var library = _mapper.Map<Library>(libraryDto);
                 _unitOfWork.Libraries.Update(library);
                 _unitOfWork.Save();
                 response.IsSuccess = true;
@@ -354,7 +362,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                         var seasonDto = _tmdbService.GetTvSeason(int.Parse(mediaItem.SourceId), seasonNumber);
                                         if (seasonDto != null)
                                         {
-                                            season = seasonDto.MapTo<MediaSeason>();
+                                            season = _mapper.Map<MediaSeason>(seasonDto);
                                             season.MediaItemId = mediaItem.Id;
                                         }
                                     }
@@ -395,7 +403,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                         MediaEpisodeDto episodeDto = _tmdbService.GetTvEpisode(int.Parse(mediaItem.SourceId), seasonNumber, episodeNumber);
                                         if (episodeDto != null)
                                         {
-                                            episode = episodeDto.MapTo<MediaEpisode>();
+                                            episode = _mapper.Map<MediaEpisode>(episodeDto);
                                             episode.MediaItemId = mediaItem.Id;
                                         }                          
                                     }
@@ -470,7 +478,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
         private MediaItem CreateMediaItem(MediaItemDto mediaItemDto)
         {
-            var mediaItem = mediaItemDto.MapTo<MediaItem>();
+            var mediaItem = _mapper.Map<MediaItem>(mediaItemDto);
             var listMediaItemGenres = new List<MediaItemGenre>();
             foreach (var genre in mediaItemDto.ListGenres)
             {
@@ -784,14 +792,14 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             {
                 ItemDetailDto itemDetail = new ItemDetailDto();
                 var mediaItem = _unitOfWork.MediaItems.Get(mediaItemId);
-                itemDetail.MediaItem = mediaItem.MapTo<MediaItemDto>();
+                itemDetail.MediaItem = _mapper.Map<MediaItemDto>(mediaItem);
                 var mediaFiles = _unitOfWork.MediaFiles.GetAllByExpression(x=>x.MediaItemId == mediaItemId);
-                itemDetail.ListMediaFiles = mediaFiles.MapTo<List<MediaFileDto>>();
+                itemDetail.ListMediaFiles = _mapper.Map<List<MediaFileDto>>(mediaFiles);
                 var listSeasonsToAdd = new List<MediaSeasonDto>();
                 if(mediaItem.MediaTypeId==MediaType.TvSerie)
                 {
-                    var listSeasons=_unitOfWork.MediaSeasons.GetAllByExpression(x=>x.MediaItemId==mediaItemId).DistinctBy(x=>x.SeasonNumber).MapTo<List<MediaSeasonDto>>();
-                    var listEpisodes= _unitOfWork.MediaEpisodes.GetAllByExpression(x => x.MediaItemId == mediaItemId).MapTo<List<MediaEpisodeDto>>();
+                    var listSeasons=_mapper.Map<List<MediaSeasonDto>>(_unitOfWork.MediaSeasons.GetAllByExpression(x => x.MediaItemId == mediaItemId).DistinctBy(x => x.SeasonNumber));
+                    var listEpisodes= _mapper.Map<List<MediaEpisodeDto>>(_unitOfWork.MediaEpisodes.GetAllByExpression(x => x.MediaItemId == mediaItemId));
                     foreach (var season in listSeasons)
                     {
                         var existMediaFiles = false;
@@ -836,20 +844,20 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                     {
                         var mediaItemId = (int)mediaFile.MediaItemId;
                         var mediaItem = _unitOfWork.MediaItems.Get(mediaItemId);
-                        itemDetail.MediaItem = mediaItem.MapTo<MediaItemDto>();
+                        itemDetail.MediaItem = _mapper.Map<MediaItemDto>(mediaItem);
                         var mediaFiles = _unitOfWork.MediaFiles.GetAllByExpression(x => x.MediaItemId == mediaItemId);
-                        itemDetail.ListMediaFiles = mediaFiles.MapTo<List<MediaFileDto>>();
+                        itemDetail.ListMediaFiles = _mapper.Map<List<MediaFileDto>>(mediaFiles);
                         var mediaFilePlayback= _unitOfWork.MediaFilePlaybacks.GetByExpression(x=>x.MediaFileId==mediaFileId && x.ProfileId==profileId);
                         if (mediaFilePlayback!=null)
                         {
                             mediaFilePlayback.MediaFile = null;
-                            itemDetail.LastMediaFilePlayback = mediaFilePlayback.MapTo<MediaFilePlaybackDto>();
+                            itemDetail.LastMediaFilePlayback = _mapper.Map<MediaFilePlaybackDto>(mediaFilePlayback);
                         }
                         if (mediaItem.MediaTypeId == MediaType.TvSerie)
                         {
                             var listSeasonsToAdd = new List<MediaSeasonDto>();
-                            var listSeasons = _unitOfWork.MediaSeasons.GetAllByExpression(x => x.MediaItemId == mediaItemId).DistinctBy(x => x.SeasonNumber).MapTo<List<MediaSeasonDto>>();
-                            var listEpisodes = _unitOfWork.MediaEpisodes.GetAllByExpression(x => x.MediaItemId == mediaItemId).MapTo<List<MediaEpisodeDto>>();
+                            var listSeasons =  _mapper.Map<List<MediaSeasonDto>>(_unitOfWork.MediaSeasons.GetAllByExpression(x => x.MediaItemId == mediaItemId).DistinctBy(x => x.SeasonNumber));
+                            var listEpisodes = _mapper.Map<List<MediaEpisodeDto>>(_unitOfWork.MediaEpisodes.GetAllByExpression(x => x.MediaItemId == mediaItemId));
                             foreach (var season in listSeasons)
                             {
                                 var existMediaFiles = false;
@@ -905,7 +913,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                     _unitOfWork.MediaFilePlaybacks.Update(mediaFilePlayback);
                 }else
                 {
-                    mediaFilePlayback = mediaFilePlaybackDto.MapTo<MediaFilePlayback>();
+                    mediaFilePlayback = _mapper.Map<MediaFilePlayback>(mediaFilePlaybackDto);
                     _unitOfWork.MediaFilePlaybacks.Add(mediaFilePlayback);
                 }
                 _unitOfWork.Save();

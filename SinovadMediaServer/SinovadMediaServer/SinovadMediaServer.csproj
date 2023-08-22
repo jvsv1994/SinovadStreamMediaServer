@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="12.0.1" />
     <PackageReference Include="FFMpegCore" Version="5.1.0" />
     <PackageReference Include="IMDbApiLib" Version="1.9.4" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />

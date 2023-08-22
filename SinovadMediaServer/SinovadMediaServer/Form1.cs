@@ -21,6 +21,7 @@ using SinovadMediaServer.HostedService;
 using SinovadMediaServer.Infrastructure;
 using SinovadMediaServer.Infrastructure.Imdb;
 using SinovadMediaServer.Infrastructure.Tmdb;
+using SinovadMediaServer.MiddlewareInjector;
 using SinovadMediaServer.Persistence.Contexts;
 using SinovadMediaServer.Persistence.Interceptors;
 using SinovadMediaServer.Persistence.Repositories;
@@ -31,6 +32,7 @@ using SinovadMediaServer.Transversal.Interface;
 using SinovadMediaServer.Transversal.Logger;
 using System.Diagnostics;
 using System.DirectoryServices.AccountManagement;
+using System.Reflection;
 
 namespace SinovadMediaServer
 {
@@ -117,13 +119,14 @@ namespace SinovadMediaServer
                       options.JsonSerializerOptions.PropertyNamingPolicy = null;
                   });
                   services.AddHostedService<MediaServerHostedService>();
-                  //
+                  services.AddSingleton<MiddlewareInjectorOptions>();
                   services.AddLogging();
                   services.AddScoped(typeof(IAppLogger<>), typeof(LoggerAdapter<>));
 
                   //Shared
                   services.AddSingleton<SearchMediaLogBuilder>();
                   services.AddSingleton<SharedData>();
+                  services.AddAutoMapper(Assembly.GetExecutingAssembly());
                   services.AddScoped<SinovadApiService>();
                   services.AddScoped<SharedService>();
                   //Repositories
@@ -182,15 +185,23 @@ namespace SinovadMediaServer
                   }else{
                       _sharedData.TranscoderSettingsData = result.Data;
                   }
-                  var fileOptions = new FileServerOptions
+                  var injectorOptions = app.ApplicationServices.GetService<MiddlewareInjectorOptions>();
+                  app.UseMiddlewareInjector(injectorOptions);
+                  injectorOptions.InjectMiddleware(app =>
                   {
-                      FileProvider = new PhysicalFileProvider(_sharedData.TranscoderSettingsData.TemporaryFolder),
-                      RequestPath = new PathString("/transcoded"),
-                      EnableDirectoryBrowsing = true,
-                      EnableDefaultFiles = false
-                  };
-                  fileOptions.StaticFileOptions.ServeUnknownFileTypes = true;
-                  app.UseFileServer(fileOptions);
+                      if (_sharedData.TranscoderSettingsData != null)
+                      {
+                          var fileOptions = new FileServerOptions
+                          {
+                              FileProvider = new PhysicalFileProvider(_sharedData.TranscoderSettingsData.TemporaryFolder),
+                              RequestPath = new PathString("/transcoded"),
+                              EnableDirectoryBrowsing = true,
+                              EnableDefaultFiles = false
+                          };
+                          fileOptions.StaticFileOptions.ServeUnknownFileTypes = true;
+                          app.UseFileServer(fileOptions);
+                      }
+                  });
                   app.UseStatusCodePagesWithReExecute("/");//to fix angular routing issues
                   app.UseDefaultFiles();
                   app.UseStaticFiles();

@@ -20,11 +20,14 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
 
         private readonly SharedData _sharedData;
 
-        public TranscodingProcessService(IUnitOfWork unitOfWork, SharedService sharedService,SharedData sharedData)
+        private readonly AutoMapper.IMapper _mapper;
+
+        public TranscodingProcessService(IUnitOfWork unitOfWork, SharedService sharedService,SharedData sharedData, AutoMapper.IMapper mapper)
         {
             _unitOfWork = unitOfWork;
             _sharedService = sharedService;
-            _sharedData= sharedData;
+            _sharedData = sharedData;
+            _mapper = mapper;
         }
 
         public async Task<Response<TranscodingProcessDto>> GetAsync(int id)
@@ -33,7 +36,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             try
             {
                 var result = await _unitOfWork.TranscodingProcesses.GetAsync(id);
-                response.Data = result.MapTo<TranscodingProcessDto>();
+                response.Data = _mapper.Map<TranscodingProcessDto>(result);
                 response.IsSuccess = true;
                 response.Message = "Successful";
             }
@@ -51,7 +54,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             try
             {
                 var result = await _unitOfWork.TranscodingProcesses.GetAllAsync();
-                response.Data = result.MapTo<List<TranscodingProcessDto>>();
+                response.Data = _mapper.Map<List<TranscodingProcessDto>>(result);
                 response.IsSuccess = true;
                 response.Message = "Successful";
             }
@@ -74,7 +77,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
                     listGuids = guids.Split(",").Select(x => Guid.Parse(x.ToString())).ToList();
                 }
                 var result = await _unitOfWork.TranscodingProcesses.GetAllByExpressionAsync(x => listGuids.Contains(x.RequestGuid));
-                response.Data = result.MapTo<List<TranscodingProcessDto>>();
+                response.Data = _mapper.Map<List<TranscodingProcessDto>>(result);
                 response.IsSuccess = true;
                 response.Message = "Successful";
             }
@@ -91,7 +94,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             var response = new Response<object>();
             try
             {
-                var transcodingProcess = transcodingProcessDto.MapTo<TranscodingProcess>();
+                var transcodingProcess = _mapper.Map<TranscodingProcess>(transcodingProcessDto);
                 _unitOfWork.TranscodingProcesses.Add(transcodingProcess);
                 _unitOfWork.Save();
                 response.IsSuccess = true;
@@ -110,7 +113,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             var response = new Response<object>();
             try
             {
-                var transcodingProcess = listTranscodingProcessDto.MapTo<List<TranscodingProcess>>();
+                var transcodingProcess = _mapper.Map<List<TranscodingProcess>>(listTranscodingProcessDto);
                 _unitOfWork.TranscodingProcesses.AddList(transcodingProcess);
                 _unitOfWork.Save();
                 response.IsSuccess = true;
@@ -129,7 +132,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             var response = new Response<object>();
             try
             {
-                var transcodingProcess = transcodingProcessDto.MapTo<TranscodingProcess>();
+                var transcodingProcess = _mapper.Map<TranscodingProcess>(transcodingProcessDto);
                 _unitOfWork.TranscodingProcesses.Update(transcodingProcess);
                 _unitOfWork.Save();
                 response.IsSuccess = true;
@@ -196,7 +199,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
                 }
 
                 var listTranscodingProcess = _unitOfWork.TranscodingProcesses.GetAllByExpression(x=> listGuids.Contains(x.RequestGuid));
-                var listProcessDeletedGUIDs = PerformDeleteListTranscodeVideoProcess(listTranscodingProcess.MapTo<List<TranscodingProcessDto>>(), true).Result;
+                var listProcessDeletedGUIDs = PerformDeleteListTranscodeVideoProcess(_mapper.Map<List<TranscodingProcessDto>>(listTranscodingProcess), true).Result;
                 if(listProcessDeletedGUIDs!=null && listProcessDeletedGUIDs.Count()>0)
                 {
                     _unitOfWork.TranscodingProcesses.DeleteByExpression(x => listProcessDeletedGUIDs.Contains(x.RequestGuid));
@@ -219,7 +222,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             var listTranscodeVideoProcess = await _unitOfWork.TranscodingProcesses.GetAllAsync();
             if (listTranscodeVideoProcess != null && listTranscodeVideoProcess.Count() > 0)
             {
-                await PerformDeleteListTranscodeVideoProcess(listTranscodeVideoProcess.MapTo<List<TranscodingProcessDto>>(), false);
+                await PerformDeleteListTranscodeVideoProcess(_mapper.Map<List<TranscodingProcessDto>>(listTranscodeVideoProcess), false);
             }
             return true;
         }
@@ -586,7 +589,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
                 {
                     transcodeVideoProcess.MediaServerId = transcodePrepareVideo.MediaServerId;
                 }
-                _unitOfWork.TranscodingProcesses.Add(transcodeVideoProcess.MapTo<TranscodingProcess>());
+                _unitOfWork.TranscodingProcesses.Add(_mapper.Map<TranscodingProcess>(transcodeVideoProcess));
                 _unitOfWork.Save();
             }
 

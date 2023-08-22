@@ -1,12 +1,12 @@
 ﻿#nullable disable
 
-using SinovadMediaServer;
 
 namespace SinovadMediaServer.Application.DTOs
 {
     public class TranscoderSettingsDto
     {
         public int Id { get; set; }
+        public Guid Guid { get; set; }
         public int MediaServerId { get; set; }
         public int VideoTransmissionTypeCatalogId { get; set; }
         public int VideoTransmissionTypeCatalogDetailId { get; set; }

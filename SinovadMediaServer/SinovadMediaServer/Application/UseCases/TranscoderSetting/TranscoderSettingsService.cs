@@ -1,10 +1,14 @@
-﻿using SinovadMediaServer.Application.DTOs;
+﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.FileProviders;
+using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Persistence;
 using SinovadMediaServer.Application.Interface.UseCases;
 using SinovadMediaServer.Application.Shared;
 using SinovadMediaServer.Domain.Entities;
+using SinovadMediaServer.MiddlewareInjector;
+using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Common;
-using SinovadMediaServer.Transversal.Mapping;
 
 namespace SinovadMediaServer.Application.UseCases.TranscoderSetting
 {
@@ -14,10 +18,19 @@ namespace SinovadMediaServer.Application.UseCases.TranscoderSetting
 
         private readonly SharedService _sharedService;
 
-        public TranscoderSettingsService(IUnitOfWork unitOfWork, SharedService sharedService)
+        private readonly SharedData _sharedData;
+
+        private readonly AutoMapper.IMapper _mapper;
+
+        private readonly MiddlewareInjectorOptions _middlewareInjectorOptions;
+
+        public TranscoderSettingsService(IUnitOfWork unitOfWork, SharedService sharedService, SharedData sharedData, AutoMapper.IMapper mapper,MiddlewareInjectorOptions middlewareInjectorOptions)
         {
             _unitOfWork = unitOfWork;
             _sharedService = sharedService;
+            _sharedData = sharedData;
+            _mapper = mapper;
+            _middlewareInjectorOptions = middlewareInjectorOptions;
         }
         public async Task<Response<TranscoderSettingsDto>> GetAsync()
         {
@@ -27,68 +40,11 @@ namespace SinovadMediaServer.Application.UseCases.TranscoderSetting
                 var list = await _unitOfWork.TranscoderSettings.GetAllAsync();
                 if(list!=null && list.Count()>0)
                 {
-                    response.Data = list.FirstOrDefault().MapTo<TranscoderSettingsDto>();
+                    response.Data = _mapper.Map<TranscoderSettingsDto>(list.FirstOrDefault());
                 }
                 response.IsSuccess = true;
                 response.Message = "Successful";
             }catch (Exception ex)
-            {
-                response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
-            }
-            return response;
-        }
-
-        public Response<object> Create(TranscoderSettingsDto transcoderSettingsDto)
-        {
-            var response = new Response<object>();
-            try
-            {
-                var transcoderSettings = transcoderSettingsDto.MapTo<TranscoderSettings>();
-                _unitOfWork.TranscoderSettings.Add(transcoderSettings);
-                _unitOfWork.Save();
-                response.IsSuccess = true;
-                response.Message = "Successful";
-            }
-            catch (Exception ex)
-            {
-                response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
-            }
-            return response;
-        }
-
-        public Response<object> CreateList(List<TranscoderSettingsDto> listTranscoderSettingsDto)
-        {
-            var response = new Response<object>();
-            try
-            {
-                var transcoderSettings = listTranscoderSettingsDto.MapTo<List<TranscoderSettings>>();
-                _unitOfWork.TranscoderSettings.AddList(transcoderSettings);
-                _unitOfWork.Save();
-                response.IsSuccess = true;
-                response.Message = "Successful";
-            }
-            catch (Exception ex)
-            {
-                response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
-            }
-            return response;
-        }
-
-        public Response<object> Update(TranscoderSettingsDto transcoderSettingsDto)
-        {
-            var response = new Response<object>();
-            try
-            {
-                var transcoderSettings = transcoderSettingsDto.MapTo<TranscoderSettings>();
-                _unitOfWork.TranscoderSettings.Update(transcoderSettings);
-                _unitOfWork.Save();
-                response.IsSuccess = true;
-                response.Message = "Successful";
-            }
-            catch (Exception ex)
             {
                 response.Message = ex.Message;
                 _sharedService._tracer.LogError(ex.StackTrace);
@@ -101,65 +57,41 @@ namespace SinovadMediaServer.Application.UseCases.TranscoderSetting
             var response = new Response<TranscoderSettingsDto>();
             try
             {
-                var ts = await _unitOfWork.TranscoderSettings.GetByExpressionAsync(x => x.MediaServerId == transcoderSettingsDto.MediaServerId);
-                if (ts != null)
+                var transcoderSettings = _mapper.Map<TranscoderSettings>(transcoderSettingsDto);
+                if(transcoderSettings.Id!=null && transcoderSettings.Id>0)
                 {
-                    _unitOfWork.TranscoderSettings.Update(ts);
-                }
-                else
-                {
-                    var transcoderSettings = transcoderSettingsDto.MapTo<TranscoderSettings>();
-                    ts = await _unitOfWork.TranscoderSettings.AddAsync(transcoderSettings);
+                    _unitOfWork.TranscoderSettings.Update(transcoderSettings);
+                }else{
+                    transcoderSettings = await _unitOfWork.TranscoderSettings.AddAsync(transcoderSettings);
                 }
                 await _unitOfWork.SaveAsync();
-                response.Data = ts.MapTo<TranscoderSettingsDto>();
+                var tsDto= _mapper.Map<TranscoderSettingsDto>(transcoderSettings);
+                response.Data = tsDto;
                 response.IsSuccess = true;
                 response.Message = "Successful";
+                if(_sharedData.TranscoderSettingsData!=null)
+                {
+                    _sharedData.TranscoderSettingsData = tsDto;
+                }
+                _middlewareInjectorOptions.InjectMiddleware(app =>
+                {
+                    if (_sharedData.TranscoderSettingsData != null)
+                    {
+                        var fileOptions = new FileServerOptions
+                        {
+                            FileProvider = new PhysicalFileProvider(_sharedData.TranscoderSettingsData.TemporaryFolder),
+                            RequestPath = new PathString("/transcoded"),
+                            EnableDirectoryBrowsing = true,
+                            EnableDefaultFiles = false
+                        };
+                        fileOptions.StaticFileOptions.ServeUnknownFileTypes = true;
+                        app.UseFileServer(fileOptions);
+                    }
+                });
             }
             catch (Exception ex)
             {
                 response.Message = ex.StackTrace;
-                _sharedService._tracer.LogError(ex.StackTrace);
-            }
-            return response;
-        }
-
-        public Response<object> Delete(int id)
-        {
-            var response = new Response<object>();
-            try
-            {
-                _unitOfWork.TranscoderSettings.Delete(id);
-                _unitOfWork.Save();
-                response.IsSuccess = true;
-                response.Message = "Successful";
-            }
-            catch (Exception ex)
-            {
-                response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
-            }
-            return response;
-        }
-
-        public Response<object> DeleteList(string ids)
-        {
-            var response = new Response<object>();
-            try
-            {
-                List<int> listIds = new List<int>();
-                if (!string.IsNullOrEmpty(ids))
-                {
-                    listIds = ids.Split(",").Select(x => Convert.ToInt32(x)).ToList();
-                }
-                _unitOfWork.TranscoderSettings.DeleteByExpression(x => listIds.Contains(x.Id));
-                _unitOfWork.Save();
-                response.IsSuccess = true;
-                response.Message = "Successful";
-            }
-            catch (Exception ex)
-            {
-                response.Message = ex.Message;
                 _sharedService._tracer.LogError(ex.StackTrace);
             }
             return response;
