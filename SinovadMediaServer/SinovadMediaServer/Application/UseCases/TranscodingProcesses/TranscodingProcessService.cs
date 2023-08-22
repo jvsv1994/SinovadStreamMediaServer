@@ -7,7 +7,6 @@ using SinovadMediaServer.CustomModels;
 using SinovadMediaServer.Domain.Entities;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Common;
-using SinovadMediaServer.Transversal.Mapping;
 using System.Diagnostics;
 
 namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
