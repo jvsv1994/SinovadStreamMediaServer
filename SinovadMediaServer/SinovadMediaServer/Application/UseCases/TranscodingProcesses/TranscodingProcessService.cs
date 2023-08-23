@@ -2,11 +2,11 @@
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Persistence;
 using SinovadMediaServer.Application.Interface.UseCases;
-using SinovadMediaServer.Application.Shared;
 using SinovadMediaServer.CustomModels;
 using SinovadMediaServer.Domain.Entities;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Common;
+using SinovadMediaServer.Transversal.Interface;
 using System.Diagnostics;
 
 namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
@@ -15,18 +15,19 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
     {
         private IUnitOfWork _unitOfWork;
 
-        private readonly SharedService _sharedService;
 
         private readonly SharedData _sharedData;
 
         private readonly AutoMapper.IMapper _mapper;
 
-        public TranscodingProcessService(IUnitOfWork unitOfWork, SharedService sharedService,SharedData sharedData, AutoMapper.IMapper mapper)
+        private readonly IAppLogger<TranscodingProcessService> _logger;
+
+        public TranscodingProcessService(IUnitOfWork unitOfWork,SharedData sharedData, AutoMapper.IMapper mapper, IAppLogger<TranscodingProcessService> logger)
         {
             _unitOfWork = unitOfWork;
-            _sharedService = sharedService;
             _sharedData = sharedData;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<Response<TranscodingProcessDto>> GetAsync(int id)
@@ -42,7 +43,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -60,7 +61,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -83,7 +84,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -102,7 +103,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -121,7 +122,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -140,7 +141,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -158,7 +159,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -181,7 +182,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -211,19 +212,18 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
 
-        public async Task<bool> DeleteOldTranscodeVideoProcess()
+        public async Task DeleteOldTranscodeVideoProcess()
         {
-            var listTranscodeVideoProcess = await _unitOfWork.TranscodingProcesses.GetAllAsync();
+            var listTranscodeVideoProcess =  await _unitOfWork.TranscodingProcesses.GetAllAsync();
             if (listTranscodeVideoProcess != null && listTranscodeVideoProcess.Count() > 0)
             {
-                await PerformDeleteListTranscodeVideoProcess(_mapper.Map<List<TranscodingProcessDto>>(listTranscodeVideoProcess), false);
+               await PerformDeleteListTranscodeVideoProcess(_mapper.Map<List<TranscodingProcessDto>>(listTranscodeVideoProcess), false);
             }
-            return true;
         }
 
         private async Task<List<Guid>> PerformDeleteListTranscodeVideoProcess(List<TranscodingProcessDto> listTranscodeVideoProcess, Boolean forceDelete)

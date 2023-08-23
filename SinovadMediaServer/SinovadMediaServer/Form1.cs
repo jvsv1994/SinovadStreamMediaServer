@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Quartz;
-using SinovadMediaServer.Application.Builder;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
 using SinovadMediaServer.Application.Interface.Persistence;
@@ -61,11 +60,6 @@ namespace SinovadMediaServer
         private void StartWebServer()
         {
             _hubConnection = new HubConnectionBuilder().WithUrl(_hubUrl).Build();
-            _hubConnection.Closed += async (error) =>
-            {
-                System.Threading.Thread.Sleep(5000);
-                await _hubConnection.StartAsync();
-            };
             _hubConnection.StartAsync();
             _hubConnection.InvokeAsync("AddConnectionToUserClientsGroup",_sharedData.UserData.Guid);
             _sharedData.HubConnection = _hubConnection;
@@ -106,7 +100,6 @@ namespace SinovadMediaServer
                 services.AddScoped(typeof(IAppLogger<>), typeof(LoggerAdapter<>));
 
                 //Shared
-                services.AddSingleton<SearchMediaLogBuilder>();
                 services.AddSingleton<SharedData>();
                 services.AddAutoMapper(Assembly.GetExecutingAssembly());
                 services.AddScoped<SinovadApiService>();

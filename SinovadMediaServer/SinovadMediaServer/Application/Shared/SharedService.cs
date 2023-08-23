@@ -1,16 +1,10 @@
-﻿using SinovadMediaServer.Transversal.Interface;
-using System.Globalization;
+﻿using System.Globalization;
 using System.Text;
 
 namespace SinovadMediaServer.Application.Shared
 {
     public class SharedService
     {
-        public IAppLogger<SharedService> _tracer;
-        public SharedService(IAppLogger<SharedService> logger)
-        {
-            _tracer = logger;
-        }
 
         public string GetFormattedText(string input)
         {

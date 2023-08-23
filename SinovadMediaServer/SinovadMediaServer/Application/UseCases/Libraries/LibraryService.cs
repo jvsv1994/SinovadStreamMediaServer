@@ -1,17 +1,16 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
-using SinovadMediaServer.Application.Builder;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
 using SinovadMediaServer.Application.Interface.Persistence;
 using SinovadMediaServer.Application.Interface.UseCases;
-using SinovadMediaServer.Application.Shared;
 using SinovadMediaServer.Domain.Entities;
 using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Infrastructure;
 using SinovadMediaServer.Infrastructure.SinovadApi;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Common;
+using SinovadMediaServer.Transversal.Interface;
 using SinovadMediaServer.Transversal.Mapping;
 using System.Linq.Expressions;
 
@@ -21,13 +20,9 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
     {
         private IUnitOfWork _unitOfWork;
 
-        private readonly SharedService _sharedService;
-
         private SharedData _sharedData;
 
         private readonly SinovadApiService _sinovadApiService;
-        private SearchMediaLog? _searchMediaLog { get; set; }
-
 
         private readonly ITmdbService _tmdbService;
 
@@ -35,16 +30,18 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
         private readonly AutoMapper.IMapper _mapper;
 
+        private readonly IAppLogger<LibraryService> _logger;
 
-        public LibraryService(IUnitOfWork unitOfWork, SinovadApiService sinovadApiService, SharedData sharedData, SharedService sharedService, ITmdbService tmdbService, IImdbService imdbService, AutoMapper.IMapper mapper)
+
+        public LibraryService(IUnitOfWork unitOfWork, SinovadApiService sinovadApiService, SharedData sharedData, ITmdbService tmdbService, IImdbService imdbService, AutoMapper.IMapper mapper, IAppLogger<LibraryService> logger)
         {
             _unitOfWork = unitOfWork;
-            _sharedService = sharedService;
             _tmdbService = tmdbService;
             _imdbService = imdbService;
             _sinovadApiService = sinovadApiService;
             _sharedData = sharedData;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<Response<LibraryDto>> GetAsync(int id)
@@ -60,7 +57,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -78,7 +75,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -98,7 +95,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -118,7 +115,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -138,7 +135,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -159,7 +156,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -185,7 +182,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -640,20 +637,13 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
         {
             if (logType == LogType.Information)
             {
-                _sharedService._tracer.LogInformation(message); ;
-                message = "<span style=" + "\"" + "color:white;" + "\">" + message + "</span>";
+                _logger.LogInformation(message); ;
             }
             if (logType == LogType.Error)
             {
-                _sharedService._tracer.LogError(message);
-                message = "<span style=" + "\"" + "color:red;" + "\">" + message + "</span>";
-            }
-            if (_searchMediaLog != null)
-            {
-                _searchMediaLog._textLines.Add(message);
+                _logger.LogError(message);
             }
         }
-
 
         private List<ItemsGroupDto> BuildListItemsGroup(List<ItemDto> listItems, List<ItemDto> listLastAddedItems, List<ItemDto> listItemsWatched)
         {
@@ -717,7 +707,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -737,7 +727,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -757,7 +747,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -775,7 +765,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -822,7 +812,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             }catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -891,7 +881,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -918,7 +908,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             }catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }

@@ -4,11 +4,11 @@ using Microsoft.Extensions.FileProviders;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Persistence;
 using SinovadMediaServer.Application.Interface.UseCases;
-using SinovadMediaServer.Application.Shared;
 using SinovadMediaServer.Domain.Entities;
 using SinovadMediaServer.MiddlewareInjector;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Common;
+using SinovadMediaServer.Transversal.Interface;
 
 namespace SinovadMediaServer.Application.UseCases.TranscoderSetting
 {
@@ -16,21 +16,21 @@ namespace SinovadMediaServer.Application.UseCases.TranscoderSetting
     {
         private IUnitOfWork _unitOfWork;
 
-        private readonly SharedService _sharedService;
-
         private readonly SharedData _sharedData;
 
         private readonly AutoMapper.IMapper _mapper;
 
         private readonly MiddlewareInjectorOptions _middlewareInjectorOptions;
 
-        public TranscoderSettingsService(IUnitOfWork unitOfWork, SharedService sharedService, SharedData sharedData, AutoMapper.IMapper mapper,MiddlewareInjectorOptions middlewareInjectorOptions)
+        private readonly IAppLogger<TranscoderSettingsService> _logger;
+
+        public TranscoderSettingsService(IUnitOfWork unitOfWork, SharedData sharedData, AutoMapper.IMapper mapper,MiddlewareInjectorOptions middlewareInjectorOptions, IAppLogger<TranscoderSettingsService> logger)
         {
             _unitOfWork = unitOfWork;
-            _sharedService = sharedService;
             _sharedData = sharedData;
             _mapper = mapper;
             _middlewareInjectorOptions = middlewareInjectorOptions;
+            _logger = logger;
         }
         public async Task<Response<TranscoderSettingsDto>> GetAsync()
         {
@@ -47,7 +47,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscoderSetting
             }catch (Exception ex)
             {
                 response.Message = ex.Message;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
@@ -92,7 +92,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscoderSetting
             catch (Exception ex)
             {
                 response.Message = ex.StackTrace;
-                _sharedService._tracer.LogError(ex.StackTrace);
+                _logger.LogError(ex.StackTrace);
             }
             return response;
         }
