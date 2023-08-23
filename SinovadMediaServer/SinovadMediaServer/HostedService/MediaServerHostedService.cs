@@ -31,7 +31,7 @@ namespace SinovadMediaServer.HostedService
                 await _sharedData.HubConnection.StartAsync();
                 _logger.LogInformation("Hub Connection Start Again");
             };
-            _timer = new Timer(UpdateMediaServerConnection,null,TimeSpan.Zero,TimeSpan.FromSeconds(3));
+            _timer = new Timer(UpdateMediaServerConnection,null,TimeSpan.Zero,TimeSpan.FromSeconds(1));
             return Task.CompletedTask;
         }
 
