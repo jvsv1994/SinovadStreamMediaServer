@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Hosting;
 using SinovadMediaServer.Application.Interface.UseCases;
-using SinovadMediaServer.Application.UseCases.TranscodingProcesses;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Interface;
 using Timer = System.Threading.Timer;
