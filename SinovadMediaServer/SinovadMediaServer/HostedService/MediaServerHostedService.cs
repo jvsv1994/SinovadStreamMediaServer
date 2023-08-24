@@ -26,10 +26,26 @@ namespace SinovadMediaServer.HostedService
             _logger.LogInformation("Hosted Service Start");
             _sharedData.HubConnection.Closed += async (error) =>
             {
-                _logger.LogInformation("Hub Connection Closed");
-                System.Threading.Thread.Sleep(5000);
-                await _sharedData.HubConnection.StartAsync();
-                _logger.LogInformation("Hub Connection Start Again");
+                try
+                {
+                    _logger.LogInformation("Hub Connection Closed");
+                    System.Threading.Thread.Sleep(5000);
+                    _logger.LogInformation("Hub Connection Before Start Again");
+                    await _sharedData.HubConnection.StartAsync(cancellationToken);
+                    _logger.LogInformation("Hub Connection After Start Again");
+
+                }catch(Exception exception)
+                {
+                    _logger.LogError(exception.Message);
+                }
+            };
+            _sharedData.HubConnection.Reconnected += async (res) =>
+            {
+               _logger.LogInformation("Hub Connection Reconnected");    
+            };
+            _sharedData.HubConnection.Reconnecting += async (res) =>
+            {
+                _logger.LogInformation("Hub Connection Reconnecting");
             };
             _timer = new Timer(UpdateMediaServerConnection,null,TimeSpan.Zero,TimeSpan.FromSeconds(1));
             return Task.CompletedTask;
