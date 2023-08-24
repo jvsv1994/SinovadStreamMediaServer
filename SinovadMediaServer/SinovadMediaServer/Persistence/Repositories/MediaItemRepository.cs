@@ -3,7 +3,6 @@ using SinovadMediaServer.Application.Interface.Persistence;
 using SinovadMediaServer.Domain.Entities;
 using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Persistence.Contexts;
-using TMDbLib.Objects.Movies;
 
 namespace SinovadMediaServer.Persistence.Repositories
 {
@@ -210,7 +209,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       FileId = mediaFile.Id,
                                       LibraryId = library.Id,
                                       PhysicalPath = mediaFile.PhysicalPath,
-                                      Created = (DateTime)mediaFile.Created,
+                                      Created = (DateTime)mediaFilePlayback.LastModified,
                                       MediaItemId = mediaItem.Id,
                                       MediaEpisodeId = mediaFile.MediaEpisodeId,
                                       EpisodeNumber = mediaFilePlayback.EpisodeNumber,
@@ -281,7 +280,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       FileId = mediaFile.Id,
                                       LibraryId = library.Id,
                                       PhysicalPath = mediaFile.PhysicalPath,
-                                      Created = (DateTime)mediaFile.Created,
+                                      Created = (DateTime)mediaFilePlayback.LastModified,
                                       MediaItemId = mediaItem.Id,
                                       MediaEpisodeId=mediaFile.MediaEpisodeId,
                                       EpisodeNumber=mediaFilePlayback.EpisodeNumber,
@@ -353,7 +352,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       FileId = mediaFile.Id,
                                       LibraryId = libraryId,
                                       PhysicalPath = mediaFile.PhysicalPath,
-                                      Created = (DateTime)mediaFile.Created,
+                                      Created = (DateTime)mediaFilePlayback.LastModified,
                                       MediaItemId = mediaItem.Id,
                                       MediaEpisodeId = mediaFile.MediaEpisodeId,
                                       EpisodeNumber = mediaFilePlayback.EpisodeNumber,

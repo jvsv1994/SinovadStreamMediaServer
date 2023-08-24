@@ -13,24 +13,14 @@ namespace SinovadMediaServer.Application.DTOs
         public int? SeasonNumber { get; set; }
         public int? EpisodeNumber { get; set; }
         public string Overview { get; set; }
-        public DateTime? ReleaseDate { get; set; }
-        public DateTime? FirstAirDate { get; set; }
-        public DateTime? LastAirDate { get; set; }
-        public int? TmdbId { get; set; }
-        public string Imdbid { get; set; }
         public string PosterPath { get; set; }
         public string PhysicalPath { get; set; }
-        public int TvSerieId { get; set; }
-        public int MovieId { get; set; }
         public int GenreId { get; set; }
-        public int VideoId { get; set; }
         public Guid MediaServerGuid { get; set; }
         public int MediaServerId { get; set; }
         public int LibraryId { get; set; }
         public Guid LibraryGuid { get; set; }
         public string GenreName { get; set; }
-        public string IpAddress { get; set; }
-        public string MediaServerUrl { get; set; }
         public MediaServerState MediaServerState { get; set; }
         public MediaType MediaType { get; set; }
         public DateTime Created { get; set; }
