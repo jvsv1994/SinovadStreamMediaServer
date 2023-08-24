@@ -226,6 +226,15 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             }
         }
 
+        public async Task DeleteAllTranscodeVideoProcess()
+        {
+            var listTranscodeVideoProcess = await _unitOfWork.TranscodingProcesses.GetAllAsync();
+            if (listTranscodeVideoProcess != null && listTranscodeVideoProcess.Count() > 0)
+            {
+                await PerformDeleteListTranscodeVideoProcess(_mapper.Map<List<TranscodingProcessDto>>(listTranscodeVideoProcess), true);
+            }
+        }
+
         private async Task<List<Guid>> PerformDeleteListTranscodeVideoProcess(List<TranscodingProcessDto> listTranscodeVideoProcess, Boolean forceDelete)
         {
             List<Guid> listProcessDeletedGUIDs = new List<Guid>();

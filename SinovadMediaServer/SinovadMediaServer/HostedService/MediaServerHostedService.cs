@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Hosting;
+using SinovadMediaServer.Application.Interface.UseCases;
+using SinovadMediaServer.Application.UseCases.TranscodingProcesses;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Interface;
 using Timer = System.Threading.Timer;
@@ -15,10 +17,13 @@ namespace SinovadMediaServer.HostedService
 
         private readonly IAppLogger<MediaServerHostedService> _logger;
 
-        public MediaServerHostedService(SharedData sharedData,IAppLogger<MediaServerHostedService> logger)
+        private readonly ITranscodingProcessService _transcodingProcessService;
+
+        public MediaServerHostedService(SharedData sharedData,IAppLogger<MediaServerHostedService> logger, ITranscodingProcessService transcodingProcessService)
         {
             _sharedData = sharedData;
             _logger = logger;
+            _transcodingProcessService = transcodingProcessService;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -28,6 +33,8 @@ namespace SinovadMediaServer.HostedService
             {
                 try
                 {
+                    _logger.LogInformation("Delete All Transcode Video Process");
+                    await _transcodingProcessService.DeleteAllTranscodeVideoProcess();
                     _logger.LogInformation("Hub Connection Closed");
                     System.Threading.Thread.Sleep(5000);
                     _logger.LogInformation("Hub Connection Before Start Again");
@@ -61,6 +68,7 @@ namespace SinovadMediaServer.HostedService
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Hosted Service Stop");
+            _transcodingProcessService.DeleteAllTranscodeVideoProcess();
             _timer?.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
         }
