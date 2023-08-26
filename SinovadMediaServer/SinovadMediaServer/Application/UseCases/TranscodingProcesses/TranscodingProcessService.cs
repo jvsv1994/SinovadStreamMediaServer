@@ -2,7 +2,6 @@
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Persistence;
 using SinovadMediaServer.Application.Interface.UseCases;
-using SinovadMediaServer.CustomModels;
 using SinovadMediaServer.Domain.Entities;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Common;
@@ -333,8 +332,8 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
             {
                 var argumentsStreamsAudio = "";
                 var argumentsVarStreamMapAudio = "";
-                var listSubtitlesStreams = new List<CustomStream>();
-                var listAudioStreams = new List<CustomStream>();
+                var listSubtitlesStreams = new List<StreamDto>();
+                var listAudioStreams = new List<StreamDto>();
 
                 if (mediaAnalysis.AudioStreams != null && mediaAnalysis.AudioStreams.Count > 0)
                 {
@@ -380,7 +379,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
                         {
                             argumentsVarStreamMapAudio = argumentsVarStreamMapAudio + " a:" + i + ",name:" + name + ",default:" + defaultValue + ",language:" + language + ",agroup:audios";
                         }
-                        var newStream = new CustomStream();
+                        var newStream = new StreamDto();
                         newStream.index = i;
                         newStream.language = audioStream.Language;
                         newStream.isDefault = isDefault;
@@ -446,7 +445,7 @@ namespace SinovadMediaServer.Application.UseCases.TranscodingProcesses
                             argumentsSubtitles = argumentsSubtitles + " -map 0:s:" + i + " -f segment -segment_list subtitle_" + i + ".m3u8 -segment_time 1 " + outputName;
                             try
                             {
-                                var newStream = new CustomStream();
+                                var newStream = new StreamDto();
                                 newStream.index = currentIndex;
                                 newStream.language = subtitleStream.Language;
                                 var title = "";

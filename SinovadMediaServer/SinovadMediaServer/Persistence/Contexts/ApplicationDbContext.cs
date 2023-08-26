@@ -19,7 +19,6 @@ public partial class ApplicationDbContext:DbContext
         _auditableEntitySaveChangesInterceptor = auditableEntitySaveChangesInterceptor;
     }
 
-
     public virtual DbSet<TranscoderSettings> TranscoderSettings { get; set; }
     public virtual DbSet<Library> Libraries { get; set; }
     public virtual DbSet<TranscodingProcess> TranscodingProcesses { get; set; }
@@ -30,6 +29,7 @@ public partial class ApplicationDbContext:DbContext
     public virtual DbSet<MediaEpisode> MediaEpisodes { get; set; }
     public virtual DbSet<MediaFile> MediaFiles { get; set; }
     public virtual DbSet<MediaFilePlayback> MediaFilePlaybacks { get; set; }
+    public virtual DbSet<Alert> Alerts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -55,6 +55,11 @@ public partial class ApplicationDbContext:DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<Alert>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Alert__3214EC279D19B237");
+            entity.ToTable("Alert");
+        });
 
         modelBuilder.Entity<TranscoderSettings>(entity =>
         {

@@ -1,4 +1,4 @@
-﻿using SinovadMediaServer.CustomModels;
+﻿using SinovadMediaServer.Application.DTOs;
 
 namespace SinovadMediaServer.Strategies
 {
@@ -9,34 +9,34 @@ namespace SinovadMediaServer.Strategies
         {
         }
 
-        public async Task<List<CustomDirectory>> GetListMainDirectories()
+        public async Task<List<DirectoryDto>> GetListMainDirectories()
         {
-            List<CustomDirectory> listMainDirectory = new List<CustomDirectory>();
+            List<DirectoryDto> listMainDirectory = new List<DirectoryDto>();
             var folderPath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             string userName = Environment.UserName;
-            var userProfileDirectory = new CustomDirectory();
-            userProfileDirectory.path = folderPath;
-            userProfileDirectory.name = userName;
-            userProfileDirectory.isMainDirectory = true;
-            userProfileDirectory.listSubdirectory = GetSubDirectories(folderPath).Result;
+            var userProfileDirectory = new DirectoryDto();
+            userProfileDirectory.Path = folderPath;
+            userProfileDirectory.Name = userName;
+            userProfileDirectory.IsMainDirectory = true;
+            userProfileDirectory.ListSubdirectories = GetSubDirectories(folderPath).Result;
             listMainDirectory.Add(userProfileDirectory);
             System.IO.DriveInfo[] sdu = System.IO.DriveInfo.GetDrives();
             for (int i = 0; i < sdu.Length; i++)
             {
                 var driverInfo = sdu[i];
-                var driveDirectory = new CustomDirectory();
-                driveDirectory.isMainDirectory = true;
-                driveDirectory.path = driverInfo.Name;
-                driveDirectory.name = driverInfo.Name.Replace("\\", "");
-                driveDirectory.listSubdirectory = GetSubDirectories(driverInfo.Name).Result;
+                var driveDirectory = new DirectoryDto();
+                driveDirectory.IsMainDirectory = true;
+                driveDirectory.Path = driverInfo.Name;
+                driveDirectory.Name = driverInfo.Name.Replace("\\", "");
+                driveDirectory.ListSubdirectories = GetSubDirectories(driverInfo.Name).Result;
                 listMainDirectory.Add(driveDirectory);
             }
             return listMainDirectory;
         }
 
-        public async Task<List<CustomDirectory>> GetSubDirectories(string fullpath)
+        public async Task<List<DirectoryDto>> GetSubDirectories(string fullpath)
         {
-            List<CustomDirectory> listSubdirectory = new List<CustomDirectory>();
+            List<DirectoryDto> listSubdirectory = new List<DirectoryDto>();
             try
             {
                 var directories = System.IO.Directory.GetDirectories(fullpath);
@@ -48,9 +48,9 @@ namespace SinovadMediaServer.Strategies
                         var subdirectoryName = path.Replace(fullpath, "").Replace("\\", "");
                         if (!subdirectoryName.StartsWith("."))
                         {
-                            var userProfileDirectory = new CustomDirectory();
-                            userProfileDirectory.path = path;
-                            userProfileDirectory.name = subdirectoryName;
+                            var userProfileDirectory = new DirectoryDto();
+                            userProfileDirectory.Path = path;
+                            userProfileDirectory.Name = subdirectoryName;
                             listSubdirectory.Add(userProfileDirectory);
                         }
                     }

@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SinovadMediaServer.CustomModels;
+using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Strategies;
 
 namespace SinovadMediaServer.Controllers
@@ -9,7 +9,7 @@ namespace SinovadMediaServer.Controllers
     {
 
         [HttpGet]
-        public async Task<ActionResult<List<CustomDirectory>>> GetMainDirectories()
+        public async Task<ActionResult<List<DirectoryDto>>> GetMainDirectories()
         {
             try
             {
@@ -23,7 +23,7 @@ namespace SinovadMediaServer.Controllers
         }
 
         [HttpGet("{base64path}")]
-        public async Task<ActionResult<List<CustomDirectory>>> GetSubDirectories(string base64path)
+        public async Task<ActionResult<List<DirectoryDto>>> GetSubDirectories(string base64path)
         {
             try
             {

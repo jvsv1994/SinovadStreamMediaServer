@@ -61,4 +61,13 @@
         IMDb = 3
     }
 
+    public enum AlertType
+    {
+        Ok = 1,
+        Plus = 2,
+        Bin = 3,
+        Bullhorn = 4,
+        Tags = 5
+    }
+
 }

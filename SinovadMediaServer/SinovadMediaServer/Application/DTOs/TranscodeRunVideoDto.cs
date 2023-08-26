@@ -1,6 +1,4 @@
-﻿using SinovadMediaServer.CustomModels;
-
-#nullable disable
+﻿#nullable disable
 
 namespace SinovadMediaServer.Application.DTOs
 {

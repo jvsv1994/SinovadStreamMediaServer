@@ -1,6 +1,4 @@
-﻿using SinovadMediaServer.CustomModels;
-
-#nullable disable
+﻿#nullable disable
 
 namespace SinovadMediaServer.Application.DTOs
 {
@@ -21,8 +19,8 @@ namespace SinovadMediaServer.Application.DTOs
         public string VideoOutputName { get; set; }
         public string FinalCommandGenerateStreams { get; set; }
         public string FinalCommandGenerateSubtitles { get; set; }
-        public List<CustomStream> ListAudioStreams { get; set; }
-        public List<CustomStream> ListSubtitlesStreams { get; set; }
+        public List<StreamDto> ListAudioStreams { get; set; }
+        public List<StreamDto> ListSubtitlesStreams { get; set; }
         public int TransmissionMethodId { get; set; }
         public string Preset { get; set; }
 

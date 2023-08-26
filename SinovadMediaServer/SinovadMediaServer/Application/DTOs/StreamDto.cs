@@ -1,8 +1,9 @@
 ﻿#nullable disable
 
-namespace SinovadMediaServer.CustomModels
+
+namespace SinovadMediaServer.Application.DTOs
 {
-    public class CustomStream
+    public class StreamDto
     {
         public int index { get; set; }
         public string language { get; set; }
