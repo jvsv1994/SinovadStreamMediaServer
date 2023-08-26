@@ -4,6 +4,7 @@ using Microsoft.Extensions.Hosting;
 using SinovadMediaServer.Application.Interface.UseCases;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Interface;
+using System.Threading;
 using Timer = System.Threading.Timer;
 
 namespace SinovadMediaServer.HostedService
@@ -25,6 +26,21 @@ namespace SinovadMediaServer.HostedService
             _transcodingProcessService = transcodingProcessService;
         }
 
+        public async Task RetryHubConnection(CancellationToken cancellationToken)
+        {
+            try
+            {
+                System.Threading.Thread.Sleep(5000);
+                _logger.LogInformation("Hub Connection Before Start Again");
+                await _sharedData.HubConnection.StartAsync(cancellationToken);
+                _logger.LogInformation("Hub Connection After Start Again");
+            }catch (Exception exception)
+            {
+                _logger.LogError("Error - "+ exception.Message);
+                await RetryHubConnection(cancellationToken);
+            }
+        }
+
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Hosted Service Start");
@@ -35,12 +51,9 @@ namespace SinovadMediaServer.HostedService
                     _logger.LogInformation("Delete All Transcode Video Process");
                     await _transcodingProcessService.DeleteAllTranscodeVideoProcess();
                     _logger.LogInformation("Hub Connection Closed");
-                    System.Threading.Thread.Sleep(5000);
-                    _logger.LogInformation("Hub Connection Before Start Again");
-                    await _sharedData.HubConnection.StartAsync(cancellationToken);
-                    _logger.LogInformation("Hub Connection After Start Again");
-
-                }catch(Exception exception)
+                    await RetryHubConnection(cancellationToken);
+                }
+                catch(Exception exception)
                 {
                     _logger.LogError(exception.Message);
                 }
