@@ -1,7 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
-using Microsoft.VisualBasic.Devices;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
 using SinovadMediaServer.Application.Interface.Persistence;
@@ -15,8 +14,6 @@ using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Interface;
 using SinovadMediaServer.Transversal.Mapping;
 using System.Linq.Expressions;
-using TMDbLib.Objects.Movies;
-using TMDbLib.Objects.TvShows;
 
 namespace SinovadMediaServer.Application.UseCases.Libraries
 {
