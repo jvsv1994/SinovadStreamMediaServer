@@ -16,7 +16,7 @@
     {
         "Entry"
         {
-        "MsmKey" = "8:_629B4AB139794304A584262FC79CEC10"
+        "MsmKey" = "8:_8C3ED1F4295B49598414435827A40D0D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -331,7 +331,7 @@
         }
         "Shortcut"
         {
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_92E4729455504476AB3D825B04D14C1A"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_2A937030D93240B380E0EAB052FDAAEA"
             {
             "Name" = "8:Sinovad Media Server"
             "Arguments" = "8:"
@@ -339,13 +339,13 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_629B4AB139794304A584262FC79CEC10"
+            "Target" = "8:_8C3ED1F4295B49598414435827A40D0D"
             "Folder" = "8:_C862BCD8BB724065AA13F584DA553051"
             "WorkingFolder" = "8:_0A74476359BA4ED7BF3DD27D802219A6"
             "Icon" = "8:_CDF9F371A1A7496B89B04E68C554A81B"
             "Feature" = "8:"
             }
-            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_CE18D2BBDBFC4C7B86212AE26E459511"
+            "{970C0BB2-C7D0-45D7-ABFA-7EC378858BC0}:_6F31EA6DF69946AD9457540089E03B40"
             {
             "Name" = "8:Sinovad Media Server"
             "Arguments" = "8:"
@@ -353,7 +353,7 @@
             "ShowCmd" = "3:1"
             "IconIndex" = "3:0"
             "Transitive" = "11:FALSE"
-            "Target" = "8:_629B4AB139794304A584262FC79CEC10"
+            "Target" = "8:_8C3ED1F4295B49598414435827A40D0D"
             "Folder" = "8:_EF33A68A0E8C4B208D07F8DA27ABBEE2"
             "WorkingFolder" = "8:_0A74476359BA4ED7BF3DD27D802219A6"
             "Icon" = "8:_CDF9F371A1A7496B89B04E68C554A81B"
@@ -758,7 +758,7 @@
         }
         "ProjectOutput"
         {
-            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_629B4AB139794304A584262FC79CEC10"
+            "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_8C3ED1F4295B49598414435827A40D0D"
             {
             "SourcePath" = "8:..\\SinovadMediaServer\\obj\\Debug\\net7.0-windows\\apphost.exe"
             "TargetName" = "8:"

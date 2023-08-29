@@ -398,7 +398,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 if (seasonDto != null)
                 {
                     seasonDto.MediaItemId = mediaItem.Id;
-                    _alertService.Create("Metadatos encontrados en TMDB Data Base para" + tvSerieName + " S" + seasonNumber, AlertType.Tags);
+                    _alertService.Create("Metadatos encontrados en TMDB Data Base para " + tvSerieName + " S" + seasonNumber, AlertType.Tags);
                 }
             }
             if (mediaItem.MetadataAgentsId == MetadataAgents.SinovadDb)
@@ -413,7 +413,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                     seasonDto.Name = sinovadSeason.Name;
                     seasonDto.SeasonNumber = sinovadSeason.SeasonNumber;
                     seasonDto.Overview = sinovadSeason.Summary;
-                    _alertService.Create("Metadatos encontrados en Sinovad Media Data Base para" + tvSerieName + " S" + seasonNumber, AlertType.Tags);
+                    _alertService.Create("Metadatos encontrados en Sinovad Media Data Base para " + tvSerieName + " S" + seasonNumber, AlertType.Tags);
                 }
             }
             if (seasonDto == null)
