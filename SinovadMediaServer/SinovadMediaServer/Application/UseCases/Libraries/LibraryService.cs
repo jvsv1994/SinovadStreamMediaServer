@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.VisualBasic.Devices;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
 using SinovadMediaServer.Application.Interface.Persistence;
@@ -13,14 +15,16 @@ using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Interface;
 using SinovadMediaServer.Transversal.Mapping;
 using System.Linq.Expressions;
+using TMDbLib.Objects.Movies;
+using TMDbLib.Objects.TvShows;
 
 namespace SinovadMediaServer.Application.UseCases.Libraries
 {
     public class LibraryService : ILibraryService
     {
-        private IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
-        private SharedData _sharedData;
+        private readonly SharedData _sharedData;
 
         private readonly SinovadApiService _sinovadApiService;
 
@@ -32,16 +36,18 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
         private readonly IAppLogger<LibraryService> _logger;
 
+        private readonly IAlertService _alertService;
 
-        public LibraryService(IUnitOfWork unitOfWork, SinovadApiService sinovadApiService, SharedData sharedData, ITmdbService tmdbService, IImdbService imdbService, AutoMapper.IMapper mapper, IAppLogger<LibraryService> logger)
+        public LibraryService(IUnitOfWork unitOfWork, SharedData sharedData, SinovadApiService sinovadApiService, ITmdbService tmdbService, IImdbService imdbService, IMapper mapper, IAppLogger<LibraryService> logger, IAlertService alertService)
         {
             _unitOfWork = unitOfWork;
+            _sharedData = sharedData;
+            _sinovadApiService = sinovadApiService;
             _tmdbService = tmdbService;
             _imdbService = imdbService;
-            _sinovadApiService = sinovadApiService;
-            _sharedData = sharedData;
             _mapper = mapper;
             _logger = logger;
+            _alertService = alertService;
         }
 
         public async Task<Response<LibraryDto>> GetAsync(int id)
@@ -200,7 +206,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
                 foreach (var library in searchFilesDto.ListLibraries)
                 {
-                    AddMessage(LogType.Information, "Starting search files in library "+library.Name);
+                    _alertService.Create("Comenzando a escanear la librería " + library.Name,AlertType.Bullhorn);
                     var listPaths = new List<string>();
 
                     var exists=Directory.Exists(library.PhysicalPath);
@@ -236,7 +242,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             var listMediaFilesToDelete = _unitOfWork.MediaFiles.GetAllByExpression(expresionMediaFilesToDelete).ToList();
             if (listMediaFilesToDelete.Count > 0)
             {
-                AddMessage(LogType.Information, "There are files ready to delete");
+                _alertService.Create("Eliminando archivos en las rutas " + string.Join(",", listMediaFilesToDelete.Select(x => x.PhysicalPath)), AlertType.Bin);
                 List<string> listIdsVideosDelete = listMediaFilesToDelete.Select(o => o.Id.ToString()).ToList();
                 Expression<Func<MediaFilePlayback, bool>> expressionVideoProfilesToDelete = x => listIdsVideosDelete.Contains(x.MediaFileId.ToString());
                 _unitOfWork.MediaFilePlaybacks.DeleteByExpression(expressionVideoProfilesToDelete);
@@ -245,11 +251,9 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             }
         }
 
-
         private void RegisterTvSeriesFiles(int libraryId, List<string> paths)
         {
             var sinovadMediaDataBaseService = new SinovadMediaDatabaseService(_sinovadApiService);
-            AddMessage(LogType.Information, "Starting search tv series");
             try
             {
                 var filesToAdd = GetFilesToAdd(libraryId, paths);
@@ -261,7 +265,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                         try
                         {
                             var path = filesToAdd[i];
-                            AddMessage(LogType.Information, "Processing new file with path " + path);
                             var splitted = path.Split("\\");
                             var fileName = splitted[splitted.Length - 1];
                             var physicalPath = path;
@@ -284,63 +287,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 }
                                 if(mediaItem==null)
                                 {
-                                    //Search Media in SinovadDb
-                                    AddMessage(LogType.Information, "Searching " + tvSerieName+" in Sinovad Media DataBase");
-                                    var result = sinovadMediaDataBaseService.SearchTvSerieAsync(tvSerieName).Result;
-                                    if (result.Data != null)
-                                    {
-                                        AddMessage(LogType.Information,"Found "+ tvSerieName + " in Sinovad Media DataBase");
-                                        var sinovadTvSerie = result.Data;
-                                        var mediaItemDto = new MediaItemDto();
-                                        mediaItemDto.SourceId = sinovadTvSerie.Id.ToString();
-                                        mediaItemDto.FirstAirDate = sinovadTvSerie.FirstAirDate;
-                                        mediaItemDto.LastAirDate = sinovadTvSerie.LastAirDate;
-                                        mediaItemDto.Overview = sinovadTvSerie.Overview;
-                                        mediaItemDto.Actors=sinovadTvSerie.Actors;
-                                        mediaItemDto.Directors=sinovadTvSerie.Directors;
-                                        if(sinovadTvSerie.ListGenres!=null)
-                                        {
-                                            mediaItemDto.Genres = string.Join(", ", sinovadTvSerie.ListGenres.Select(x => x.Name));
-                                        }
-                                        mediaItemDto.PosterPath = sinovadTvSerie.PosterPath;
-                                        mediaItemDto.Title = sinovadTvSerie.Name;
-                                        mediaItemDto.ExtendedTitle = sinovadTvSerie.Name + (sinovadTvSerie.LastAirDate.Value.Year > sinovadTvSerie.FirstAirDate.Value.Year ? " (" + sinovadTvSerie.FirstAirDate.Value.Year + "-" + sinovadTvSerie.LastAirDate.Value.Year + ")" : " (" + sinovadTvSerie.FirstAirDate.Value.Year + ")");
-                                        mediaItemDto.MediaTypeId = MediaType.TvSerie;
-                                        mediaItemDto.MetadataAgentsId = MetadataAgents.SinovadDb;
-                                        mediaItemDto.ListGenres = sinovadTvSerie.ListGenres.MapTo<List<MediaGenreDto>>();
-                                        mediaItemDto.SearchQuery = tvSerieName;
-                                        mediaItem = CreateMediaItem(mediaItemDto);
-                                    }else{
-                                        AddMessage(LogType.Information,"Not found "+tvSerieName + " in Sinovad Media DataBase");
-                                    }
-                                    if (mediaItem==null)
-                                    {
-                                        AddMessage(LogType.Information, "Searching " + tvSerieName + " in Tmdb DataBase");
-                                        //Search Media in Tmdb
-                                        var mediaItemDto = _tmdbService.SearchTvShow(tvSerieName);
-                                        if(mediaItemDto!=null)
-                                        {
-                                            AddMessage(LogType.Information, "Found " + tvSerieName + " in Tmdb DataBase");
-                                            mediaItemDto.SearchQuery = tvSerieName;
-                                            mediaItem = CreateMediaItem(mediaItemDto);
-                                        }else
-                                        {
-                                            AddMessage(LogType.Information, "Not found " + tvSerieName + " in Tmdb DataBase");
-                                        }
-                                    }
-                                }else
-                                {
-                                    AddMessage(LogType.Information, "Found " + tvSerieName + " in Local Storage");
-                                }
-                                if (mediaItem==null)
-                                {
-                                    AddMessage(LogType.Information, "Not found " + tvSerieName + " in any external DataBase");
-                                    mediaItem = new MediaItem();
-                                    mediaItem.Title = tvSerieName;
-                                    mediaItem.SearchQuery = tvSerieName;
-                                    mediaItem.MediaTypeId = MediaType.TvSerie;
-                                    mediaItem = _unitOfWork.MediaItems.Add(mediaItem);
-                                    _unitOfWork.Save();
+                                    mediaItem = GenerateMediaItemFromTvSerie(tvSerieName);
                                 }
                                 MediaSeason season = null;
                                 var seasonList = _unitOfWork.MediaSeasons.GetAllByExpression(x => x.MediaItemId == mediaItem.Id && x.SeasonNumber == seasonNumber);
@@ -348,40 +295,9 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 {
                                     season = seasonList.FirstOrDefault();
                                 }
-                                if (season == null)
+                                if(season == null)
                                 {
-                                    if (mediaItem.MetadataAgentsId == MetadataAgents.TMDb)
-                                    {
-                                        var seasonDto = _tmdbService.GetTvSeason(int.Parse(mediaItem.SourceId), seasonNumber);
-                                        if (seasonDto != null)
-                                        {
-                                            season = _mapper.Map<MediaSeason>(seasonDto);
-                                            season.MediaItemId = mediaItem.Id;
-                                        }
-                                    }
-                                    if (mediaItem.MetadataAgentsId == MetadataAgents.SinovadDb)
-                                    {
-                                        var res = sinovadMediaDataBaseService.GetTvSeasonAsync(int.Parse(mediaItem.SourceId), seasonNumber).Result;
-                                        if (res.Data != null)
-                                        {
-                                            var sinovadSeason= res.Data;
-                                            season = new MediaSeason();
-                                            season.MediaItemId=mediaItem.Id;
-                                            season.SourceId = sinovadSeason.Id.ToString();
-                                            season.Name = sinovadSeason.Name;
-                                            season.SeasonNumber= sinovadSeason.SeasonNumber;
-                                            season.Overview = sinovadSeason.Summary;
-                                        }
-                                    }
-                                    if (season == null)
-                                    {
-                                        season = new MediaSeason();
-                                        season.MediaItemId = mediaItem.Id;
-                                        season.SeasonNumber = seasonNumber;
-                                        season.Name = "Temporada " + seasonNumber;
-                                    }
-                                    season = _unitOfWork.MediaSeasons.Add(season);
-                                    _unitOfWork.Save();
+                                   season = GenerateMediaSeason(tvSerieName, seasonNumber, mediaItem);
                                 }
                                 var episodeList = _unitOfWork.MediaEpisodes.GetAllByExpression(x => x.MediaItemId == mediaItem.Id && x.SeasonNumber == seasonNumber && x.EpisodeNumber == episodeNumber);
                                 MediaEpisode episode = null;
@@ -391,43 +307,8 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 }
                                 if(episode == null)
                                 {
-                                    if (mediaItem.MetadataAgentsId == MetadataAgents.TMDb)
-                                    {         
-                                        MediaEpisodeDto episodeDto = _tmdbService.GetTvEpisode(int.Parse(mediaItem.SourceId), seasonNumber, episodeNumber);
-                                        if (episodeDto != null)
-                                        {
-                                            episode = _mapper.Map<MediaEpisode>(episodeDto);
-                                            episode.MediaItemId = mediaItem.Id;
-                                        }                          
-                                    }
-                                    if (mediaItem.MetadataAgentsId == MetadataAgents.SinovadDb)
-                                    {                     
-                                        var res = sinovadMediaDataBaseService.GetTvEpisodeAsync(int.Parse(mediaItem.SourceId), seasonNumber, episodeNumber).Result;
-                                        if (res.Data != null)
-                                        {
-                                            var sinovadEpisode = res.Data;
-                                            episode = new MediaEpisode();
-                                            episode.MediaItemId = mediaItem.Id;
-                                            episode.SeasonNumber = seasonNumber;
-                                            episode.EpisodeNumber = episodeNumber;
-                                            episode.Name = sinovadEpisode.Title;
-                                            episode.PosterPath = sinovadEpisode.ImageUrl;
-                                            episode.Overview = sinovadEpisode.Summary;
-                                            episode.SourceId = sinovadEpisode.Id.ToString();
-                                        }          
-                                    }
-                                    if (episode == null)
-                                    {
-                                        episode = new MediaEpisode();
-                                        episode.MediaItemId = mediaItem.Id;
-                                        episode.SeasonNumber = seasonNumber;
-                                        episode.EpisodeNumber = episodeNumber;
-                                        episode.Name = "Episodio " + episodeNumber;
-                                    }
-                                    episode = _unitOfWork.MediaEpisodes.Add(episode);
-                                    _unitOfWork.Save();
+                                    episode = GenerateMediaEpisode(tvSerieName,seasonNumber,episodeNumber,mediaItem);
                                 }
-
                                 var mediaFile = new MediaFile();
                                 mediaFile.LibraryId = libraryId;
                                 mediaFile.PhysicalPath = physicalPath;
@@ -435,17 +316,16 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 mediaFile.MediaEpisodeId = episode.Id;                
                                 _unitOfWork.MediaFiles.Add(mediaFile);
                                 _unitOfWork.Save();
-                                if(IsMultipleOf(i,50))
+                                _alertService.Create("Guardando nuevo archivo para " + tvSerieName + " S"+seasonNumber+"E"+episodeNumber+" localizado en " + physicalPath, AlertType.Plus);
+                                if (IsMultipleOf(i,50))
                                 {
                                     _sharedData.HubConnection.InvokeAsync("UpdateItemsByMediaServer", _sharedData.MediaServerData.Guid);
                                 }
-                            }
-                            else
+                            }else
                             {
                                 AddMessage(LogType.Information, "The file path does not comply with the format of an episode");
                             }
-                        }
-                        catch (Exception e)
+                        }catch (Exception e)
                         {
                             AddMessage(LogType.Error, e.Message);
                         }
@@ -461,6 +341,154 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             }
             AddMessage(LogType.Information, "Ending search tv series");
             _sharedData.HubConnection.InvokeAsync("UpdateItemsByMediaServer", _sharedData.MediaServerData.Guid);
+        }
+
+        private MediaEpisode GenerateMediaEpisode(string tvSerieName, int seasonNumber,int episodeNumber, MediaItem mediaItem)
+        {
+            _alertService.Create("Buscando metadatos para " + tvSerieName + " S" + seasonNumber+" E" + episodeNumber, AlertType.Tags);
+            MediaEpisodeDto episodeDto = null;
+            var sinovadMediaDataBaseService = new SinovadMediaDatabaseService(_sinovadApiService);
+            if (mediaItem.MetadataAgentsId == MetadataAgents.TMDb)
+            {
+                episodeDto = _tmdbService.GetTvEpisode(int.Parse(mediaItem.SourceId), seasonNumber, episodeNumber);
+                if (episodeDto != null)
+                {
+                    episodeDto.MediaItemId = mediaItem.Id;
+                    _alertService.Create("Metadatos encontrados en TMDB Data Base para " + tvSerieName + " S" + seasonNumber + " E" + episodeNumber, AlertType.Tags);
+                }
+            }
+            if (mediaItem.MetadataAgentsId == MetadataAgents.SinovadDb)
+            {
+                var res = sinovadMediaDataBaseService.GetTvEpisodeAsync(int.Parse(mediaItem.SourceId), seasonNumber, episodeNumber).Result;
+                if (res.Data != null)
+                {
+                    var sinovadEpisode = res.Data;
+                    episodeDto = new MediaEpisodeDto();
+                    episodeDto.MediaItemId = mediaItem.Id;
+                    episodeDto.SeasonNumber = seasonNumber;
+                    episodeDto.EpisodeNumber = episodeNumber;
+                    episodeDto.Name = sinovadEpisode.Title;
+                    episodeDto.PosterPath = sinovadEpisode.ImageUrl;
+                    episodeDto.Overview = sinovadEpisode.Summary;
+                    episodeDto.SourceId = sinovadEpisode.Id.ToString();
+                    _alertService.Create("Metadatos encontrados en Sinovad Media Data Base para " + tvSerieName + " S" + seasonNumber + " E" + episodeNumber, AlertType.Tags);
+                }
+            }
+            if (episodeDto == null)
+            {
+                episodeDto = new MediaEpisodeDto();
+                episodeDto.MediaItemId = mediaItem.Id;
+                episodeDto.SeasonNumber = seasonNumber;
+                episodeDto.EpisodeNumber = episodeNumber;
+                episodeDto.Name = "Episodio " + episodeNumber;
+                _alertService.Create("Generando metadatos para " + tvSerieName + " S0" + seasonNumber + " E" + episodeNumber, AlertType.Tags);
+            }
+           
+            var episode = _unitOfWork.MediaEpisodes.Add(_mapper.Map<MediaEpisode>(episodeDto));
+            _unitOfWork.Save();
+            _alertService.Create("Guardando metadatos para " + tvSerieName + " S" + seasonNumber + " E" + episodeNumber, AlertType.Plus);
+            return episode;
+        }
+
+        private MediaSeason GenerateMediaSeason(string tvSerieName,int seasonNumber,MediaItem mediaItem)
+        {
+            _alertService.Create("Buscando metadatos para " + tvSerieName + " S" + seasonNumber, AlertType.Tags);
+            var sinovadMediaDataBaseService = new SinovadMediaDatabaseService(_sinovadApiService);
+            MediaSeasonDto seasonDto = null;
+            if (mediaItem.MetadataAgentsId == MetadataAgents.TMDb)
+            {
+                seasonDto = _tmdbService.GetTvSeason(int.Parse(mediaItem.SourceId), seasonNumber);
+                if (seasonDto != null)
+                {
+                    seasonDto.MediaItemId = mediaItem.Id;
+                    _alertService.Create("Metadatos encontrados en TMDB Data Base para" + tvSerieName + " S" + seasonNumber, AlertType.Tags);
+                }
+            }
+            if (mediaItem.MetadataAgentsId == MetadataAgents.SinovadDb)
+            {
+                var res = sinovadMediaDataBaseService.GetTvSeasonAsync(int.Parse(mediaItem.SourceId), seasonNumber).Result;
+                if (res.Data != null)
+                {
+                    var sinovadSeason = res.Data;
+                    seasonDto = new MediaSeasonDto();
+                    seasonDto.MediaItemId = mediaItem.Id;
+                    seasonDto.SourceId = sinovadSeason.Id.ToString();
+                    seasonDto.Name = sinovadSeason.Name;
+                    seasonDto.SeasonNumber = sinovadSeason.SeasonNumber;
+                    seasonDto.Overview = sinovadSeason.Summary;
+                    _alertService.Create("Metadatos encontrados en Sinovad Media Data Base para" + tvSerieName + " S" + seasonNumber, AlertType.Tags);
+                }
+            }
+            if (seasonDto == null)
+            {
+                seasonDto = new MediaSeasonDto();
+                seasonDto.MediaItemId = mediaItem.Id;
+                seasonDto.SeasonNumber = seasonNumber;
+                seasonDto.Name = "Temporada " + seasonNumber;
+                _alertService.Create("Generando metadatos para " + tvSerieName + " S" + seasonNumber, AlertType.Tags);
+            }
+        
+            var season = _unitOfWork.MediaSeasons.Add(_mapper.Map<MediaSeason>(seasonDto));
+            _unitOfWork.Save();
+            _alertService.Create("Guardando metadatos para " + tvSerieName + " S" + seasonNumber, AlertType.Tags);
+            return season;
+        }
+       
+
+        private MediaItem GenerateMediaItemFromTvSerie(string tvSerieName)
+        {
+            _alertService.Create("Buscando metadatos para " + tvSerieName, AlertType.Tags);
+            MediaItemDto mediaItemDto = null;
+            var sinovadMediaDataBaseService = new SinovadMediaDatabaseService(_sinovadApiService);
+            var result = sinovadMediaDataBaseService.SearchTvSerieAsync(tvSerieName).Result;
+            if (result.Data != null)
+            {
+                var sinovadTvSerie = result.Data;
+                mediaItemDto = new MediaItemDto();
+                mediaItemDto.SourceId = sinovadTvSerie.Id.ToString();
+                mediaItemDto.FirstAirDate = sinovadTvSerie.FirstAirDate;
+                mediaItemDto.LastAirDate = sinovadTvSerie.LastAirDate;
+                mediaItemDto.Overview = sinovadTvSerie.Overview;
+                mediaItemDto.Actors = sinovadTvSerie.Actors;
+                mediaItemDto.Directors = sinovadTvSerie.Directors;
+                if (sinovadTvSerie.ListGenres != null)
+                {
+                    mediaItemDto.Genres = string.Join(", ", sinovadTvSerie.ListGenres.Select(x => x.Name));
+                }
+                mediaItemDto.PosterPath = sinovadTvSerie.PosterPath;
+                mediaItemDto.Title = sinovadTvSerie.Name;
+                mediaItemDto.ExtendedTitle = sinovadTvSerie.Name + (sinovadTvSerie.LastAirDate.Value.Year > sinovadTvSerie.FirstAirDate.Value.Year ? " (" + sinovadTvSerie.FirstAirDate.Value.Year + "-" + sinovadTvSerie.LastAirDate.Value.Year + ")" : " (" + sinovadTvSerie.FirstAirDate.Value.Year + ")");
+                mediaItemDto.MediaTypeId = MediaType.TvSerie;
+                mediaItemDto.MetadataAgentsId = MetadataAgents.SinovadDb;
+                mediaItemDto.ListGenres = sinovadTvSerie.ListGenres.MapTo<List<MediaGenreDto>>();
+                mediaItemDto.SearchQuery = tvSerieName;
+                _alertService.Create("Metadatos encontrados en Sinovad Media Data Base para" + tvSerieName, AlertType.Tags);
+            }else
+            {
+                mediaItemDto = _tmdbService.SearchTvShow(tvSerieName);
+                if (mediaItemDto != null)
+                {
+                    mediaItemDto.SearchQuery = tvSerieName;
+                    _alertService.Create("Metadatos encontrados en TMDB Data Base para" + tvSerieName, AlertType.Tags);
+                }
+                else
+                {
+                    mediaItemDto = new MediaItemDto();
+                    mediaItemDto.Title = tvSerieName;
+                    mediaItemDto.ExtendedTitle = tvSerieName;
+                    mediaItemDto.SearchQuery = tvSerieName;
+                    mediaItemDto.MediaTypeId = MediaType.TvSerie;
+                    var listMediaGenres = new List<MediaGenreDto>();
+                    var mediaGenre = new MediaGenreDto();
+                    mediaGenre.Name = "Otros";
+                    listMediaGenres.Add(mediaGenre);
+                    mediaItemDto.ListGenres = listMediaGenres;
+                    _alertService.Create("Generando metadatos para " + tvSerieName, AlertType.Tags);
+                }
+            }  
+             var mediaItem= CreateMediaItem(mediaItemDto);
+             _alertService.Create("Guardando metadatos para " + tvSerieName, AlertType.Plus);      
+            return mediaItem;
         }
 
         private bool IsMultipleOf(int multiple, int dividend)
@@ -495,7 +523,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
         private void RegisterMovieFiles(int libraryId, List<string> paths)
         {
-            AddMessage(LogType.Information, "Starting search movies");
             try
             {
                 var filesToAdd = GetFilesToAdd(libraryId, paths);
@@ -507,7 +534,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                         try
                         {
                             var path = filesToAdd[i];
-                            AddMessage(LogType.Information, "Processing new video with path " + path);
                             var splitted = path.Split("\\");
                             var fileName = splitted[splitted.Length - 1];
                             var physicalPath = path;
@@ -517,37 +543,34 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 fileNameWithoutExtension = fileName.Substring(0, fileName.Length - 4);
                             }
                             var partsMovieNameWithoutExtension = fileNameWithoutExtension.Split(" ");
-                            var movieName = fileNameWithoutExtension.Substring(0, fileNameWithoutExtension.Length - 5);
                             var year = fileNameWithoutExtension.Substring(fileNameWithoutExtension.Length - 4, 4);
-                            var mediaItemList = _unitOfWork.MediaItems.GetAllByExpression(x => x.SearchQuery != null && x.SearchQuery.ToLower().Trim() == movieName.ToLower().Trim() && x.MediaTypeId==MediaType.Movie);
-                            MediaItem mediaItem=null;
-                            if(mediaItemList!=null && mediaItemList.Count()>0)
+                            bool detectYear = int.TryParse(year, out int age);
+                            MediaItem mediaItem = null;
+                            var movieName = "";
+                            if (detectYear)
                             {
-                                mediaItem= mediaItemList.FirstOrDefault();
-                            }
-                            if(mediaItem==null)
-                            {
-                                MediaItemDto mediaItemDto = GetMovieFromExternalDataBase(movieName, year);
-                                if (mediaItemDto != null)
+                                movieName = fileNameWithoutExtension.Substring(0, fileNameWithoutExtension.Length - 5);
+                                var mediaItemList = _unitOfWork.MediaItems.GetAllByExpression(x => x.SearchQuery != null && x.SearchQuery.ToLower().Trim() == movieName.ToLower().Trim() && x.MediaTypeId == MediaType.Movie);
+                                if (mediaItemList != null && mediaItemList.Count() > 0)
                                 {
-                                    mediaItem = CreateMediaItem(mediaItemDto);
+                                    mediaItem = mediaItemList.FirstOrDefault();
                                 }
-                            }
-                            if(mediaItem == null) {
-                                mediaItem = new MediaItem();
-                                mediaItem.Title = movieName;
-                                mediaItem.ExtendedTitle = movieName+ "("+year+")";
-                                mediaItem.SearchQuery = movieName;
-                                mediaItem.MediaTypeId = MediaType.Movie;
-                                mediaItem = _unitOfWork.MediaItems.Add(mediaItem);
-                                _unitOfWork.Save();
-                            }
+                                if (mediaItem == null)
+                                {
+                                    mediaItem = GenerateMediaItemFromMovie(movieName, year);
+                                }
+                            }else
+                            {
+                                movieName = fileNameWithoutExtension;
+                                mediaItem = GenerateMediaItemFromMovieWithoutYear(movieName);
+                            }  
                             var mediaFile = new MediaFile();
                             mediaFile.LibraryId = libraryId;
                             mediaFile.PhysicalPath = physicalPath;
                             mediaFile.MediaItemId = mediaItem.Id;
                             _unitOfWork.MediaFiles.Add(mediaFile);
                             _unitOfWork.Save();
+                            _alertService.Create("Guardando nuevo archivo para " + movieName + " (" + year + ") localizado en "+ physicalPath, AlertType.Plus);
                         }catch (Exception e)
                         {
                             AddMessage(LogType.Error, e.Message);
@@ -559,8 +582,56 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             {
                 AddMessage(LogType.Error, e.Message);
             }
-            AddMessage(LogType.Information, "Ending search movies");
             _sharedData.HubConnection.InvokeAsync("UpdateItemsByMediaServer", _sharedData.MediaServerData.Guid);
+        }
+
+        private MediaItem GenerateMediaItemFromMovie(string movieName, string year)
+        {
+            _alertService.Create("Buscando metadatos para " + movieName + " (" + year + ")", AlertType.Tags);
+            MediaItemDto mediaItemDto = _tmdbService.SearchMovie(movieName, year);
+            if (mediaItemDto != null && mediaItemDto.ListGenres != null && mediaItemDto.ListGenres.Count > 0)
+            {
+                _alertService.Create("Metadatos encontrados en TMDb Data Base para " + movieName + " (" + year + ")", AlertType.Tags);
+            }else{
+                mediaItemDto = _imdbService.SearchMovie(movieName, year);
+                if (mediaItemDto != null && mediaItemDto.ListGenres != null && mediaItemDto.ListGenres.Count > 0)
+                {
+                    _alertService.Create("Metadatos encontrados en IMDB Data Base para " + movieName + " (" + year + ")", AlertType.Tags);
+                }else{
+                    mediaItemDto = new MediaItemDto();
+                    mediaItemDto.Title = movieName;
+                    mediaItemDto.ExtendedTitle = movieName + " (" + year + ")";
+                    mediaItemDto.SearchQuery = movieName;
+                    mediaItemDto.MediaTypeId = MediaType.Movie;
+                    var listMediaGenres = new List<MediaGenreDto>();
+                    var mediaGenre = new MediaGenreDto();
+                    mediaGenre.Name = "Otros";
+                    listMediaGenres.Add(mediaGenre);
+                    mediaItemDto.ListGenres = listMediaGenres;
+                    _alertService.Create("Generando metadatos para " + movieName + " (" + year + ")", AlertType.Tags);       
+                }
+            }
+           var  mediaItem = CreateMediaItem(mediaItemDto);
+            _alertService.Create("Guardando metadatos para " + movieName + " (" + year + ")", AlertType.Plus);
+            return mediaItem;
+        }
+
+        private MediaItem GenerateMediaItemFromMovieWithoutYear(string movieName)
+        {
+            _alertService.Create("Generando metadatos para " + movieName, AlertType.Tags);      
+            var mediaItemDto = new MediaItemDto();
+            mediaItemDto.Title = movieName;
+            mediaItemDto.ExtendedTitle = movieName;
+            mediaItemDto.SearchQuery = movieName;
+            mediaItemDto.MediaTypeId = MediaType.Movie;
+            var listMediaGenres = new List<MediaGenreDto>();
+            var mediaGenre = new MediaGenreDto();
+            mediaGenre.Name = "Otros";
+            listMediaGenres.Add(mediaGenre);
+            mediaItemDto.ListGenres = listMediaGenres;    
+            var mediaItem = CreateMediaItem(mediaItemDto);
+            _alertService.Create("Guardando metadatos para " + movieName, AlertType.Plus);
+            return mediaItem;
         }
 
         private void DeleteVideosNotFoundInLibrary(int libraryId, List<string> paths)
@@ -578,29 +649,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             }
         }
 
-        private MediaItemDto GetMovieFromExternalDataBase(string movieName, string year)
-        {
-            MediaItemDto movie = _tmdbService.SearchMovie(movieName, year);
-            if (movie != null && movie.ListGenres != null && movie.ListGenres.Count > 0)
-            {
-                AddMessage(LogType.Information, "Movie finded in TMDb Data Base " + movie.Title + " " + year);
-                return movie;
-            }
-            else
-            {
-                movie = _imdbService.SearchMovie(movieName, year);
-                if (movie != null && movie.ListGenres != null && movie.ListGenres.Count > 0)
-                {
-                    AddMessage(LogType.Information, "Movie finded in Imdb Data Base " + movie.Title + " " + year);
-                    return movie;
-                }
-                else
-                {
-                    AddMessage(LogType.Information, "Movie not found in any database");
-                }
-            }
-            return null;
-        }
 
         private List<string> GetFilesToAdd(int libraryId, List<string> paths)
         {

@@ -16,6 +16,7 @@ namespace SinovadMediaServer.Application.UseCases.Common.Mappings
             CreateMap<MediaGenre, MediaGenreDto>().ReverseMap();
             CreateMap<MediaItemGenre, MediaItemGenreDto>().ReverseMap();
             CreateMap<MediaFile, MediaFileDto>().ReverseMap();
+            CreateMap<Alert, AlertDto>().ReverseMap();
             CreateMap<MediaFilePlayback, MediaFilePlaybackDto>().ReverseMap();
 
         }

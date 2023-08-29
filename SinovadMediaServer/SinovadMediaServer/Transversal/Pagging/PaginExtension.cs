@@ -6,7 +6,7 @@ namespace SinovadMediaServer.Transversal.Pagging
 {
     public static class PaginExtension
     {
-        public static async Task<DataCollection<T>> GetPagedAsync<T>(this IQueryable<T> query, int pageIndex, int pageSize, string sortBy, string sortDirection, string searchText, string searchBy, CancellationToken cancellationToken = default)
+        public static async Task<DataCollection<T>> GetPagedAsync<T>(this IQueryable<T> query, int pageIndex, int pageSize, string sortBy, string sortDirection, string searchText=null, string searchBy=null, CancellationToken cancellationToken = default)
         {
             var searchQuery = query.SearchBy(searchText, searchBy);
             var result = new DataCollection<T>

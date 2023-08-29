@@ -15,6 +15,7 @@ namespace SinovadMediaServer.Application.Interface.Persistence
         public IGenericRepository<MediaFile> MediaFiles { get; }
         public IGenericRepository<MediaFilePlayback> MediaFilePlaybacks { get; }
         public IGenericRepository<TranscodingProcess> TranscodingProcesses { get; }
+        public IGenericRepository<Alert> Alerts { get; }
         public void Save();
         public Task SaveAsync();
     }

@@ -73,7 +73,7 @@ namespace SinovadMediaServer.Persistence.Repositories
             return _table.Where(function);
         }
 
-        public async Task<DataCollection<TEntity>> GetAllWithPaginationAsync(int page, int take, string sortBy, string sortDirection, string searchText, string searchBy, CancellationToken cancellationToken = default)
+        public async Task<DataCollection<TEntity>> GetAllWithPaginationAsync(int page, int take, string sortBy, string sortDirection, string searchText=null, string searchBy=null, CancellationToken cancellationToken = default)
         {
             return await _table.AsNoTracking().GetPagedAsync(page, take, sortBy, sortDirection, searchText, searchBy, cancellationToken);
         }

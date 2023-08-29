@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using SinovadMediaServer.Transversal.Collection;
+using System.Linq.Expressions;
 
 namespace SinovadMediaServer.Application.Interface.Persistence
 {
@@ -12,6 +13,8 @@ namespace SinovadMediaServer.Application.Interface.Persistence
         Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken = default);
         IEnumerable<TEntity> GetAllByExpression(Expression<Func<TEntity, bool>> predicate);
         Task<IEnumerable<TEntity>> GetAllByExpressionAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
+        Task<DataCollection<TEntity>> GetAllWithPaginationAsync(int page, int take, string sortBy, string sortDirection, string searchText=null, string searchBy=null, CancellationToken cancellationToken = default);
+        Task<DataCollection<TEntity>> GetAllWithPaginationByExpressionAsync(int page, int take, string sortBy, string sortDirection, string searchText, string searchBy, Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default);
         TEntity Add(TEntity data);
         Task<TEntity> AddAsync(TEntity data, CancellationToken cancellationToken = default);
         void AddList(List<TEntity> list);
