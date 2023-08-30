@@ -34,10 +34,9 @@ public partial class ApplicationDbContext:DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         var myDocumentsPath = System.Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var folderName = "Sinovad Media Server";
-        var path = myDocumentsPath + "/" + folderName;
-        System.IO.Directory.CreateDirectory(path);
-        var dataSource = Path.Combine(path, "SinovadMediaServer.db");
+        var rootPath = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Sinovad Media Server");
+        var dataBasePath = Path.Combine(rootPath, "Database");
+        var dataSource = Path.Combine(dataBasePath, "SinovadMediaServer.db");
         optionsBuilder.AddInterceptors(_auditableEntitySaveChangesInterceptor);
         optionsBuilder.UseSqlite($"Data Source={dataSource};", sqliteOptionsAction: op =>
         {

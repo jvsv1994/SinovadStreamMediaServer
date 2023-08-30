@@ -15,11 +15,9 @@ namespace SinovadMediaServer.Transversal.Logger
         public LoggerAdapter( ILoggerFactory loggerFactory)
         {
             _logger = loggerFactory.CreateLogger<T>();
-            var myDocumentsPath = System.Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            var folderName = "Sinovad Media Server";
-            var path = myDocumentsPath + "/" + folderName;
-            System.IO.Directory.CreateDirectory(path);
-            var pathLog = Path.Combine(path, "log.txt");
+            var rootPath = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Sinovad Media Server");
+            var logsPath = Path.Combine(rootPath, "Logs");
+            var pathLog = Path.Combine(logsPath, "log.txt");
             _pathLog = pathLog;
         }
 

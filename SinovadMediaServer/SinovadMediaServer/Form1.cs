@@ -60,6 +60,7 @@ namespace SinovadMediaServer
         }
         private void StartWebServer()
         {
+            CreateDefaultFolders();
             _hubConnection = new HubConnectionBuilder().WithUrl(_hubUrl).Build();
             _hubConnection.StartAsync();
             _hubConnection.InvokeAsync("AddConnectionToUserClientsGroup",_sharedData.UserData.Guid);
@@ -149,6 +150,8 @@ namespace SinovadMediaServer
                   var result=  transcoderSettingsService.GetAsync().Result;
                   if(result.Data == null)
                   {
+                      var rootPath = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Sinovad Media Server");
+                      var transcodePath = Path.Combine(rootPath, "Transcode");
                       var tsDto = new TranscoderSettingsDto();
                       tsDto.MediaServerId = _sharedData.MediaServerData.Id;
                       tsDto.ConstantRateFactor = 18;
@@ -156,7 +159,7 @@ namespace SinovadMediaServer
                       tsDto.PresetCatalogDetailId = (int)TranscoderPreset.Ultrafast;
                       tsDto.VideoTransmissionTypeCatalogId = (int)Catalog.VideoTransmissionType;
                       tsDto.VideoTransmissionTypeCatalogDetailId = (int)VideoTransmissionType.HLS;
-                      tsDto.TemporaryFolder = System.IO.Path.GetTempPath();
+                      tsDto.TemporaryFolder = transcodePath;
                       transcoderSettingsService.Save(tsDto);
                       _sharedData.TranscoderSettingsData = tsDto;
                   }else{
@@ -195,6 +198,20 @@ namespace SinovadMediaServer
             {
                 app.Run();
             });
+        }
+
+        private static void CreateDefaultFolders()
+        {
+            var rootPath = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Sinovad Media Server");
+            System.IO.Directory.CreateDirectory(rootPath);
+            var mediaPath = Path.Combine(rootPath, "Media");
+            System.IO.Directory.CreateDirectory(mediaPath);
+            var dataBasePath = Path.Combine(rootPath, "Database");
+            System.IO.Directory.CreateDirectory(dataBasePath);
+            var TranscodePath = Path.Combine(rootPath, "Transcode");
+            System.IO.Directory.CreateDirectory(TranscodePath);
+            var LogsPath = Path.Combine(rootPath, "Logs");
+            System.IO.Directory.CreateDirectory(LogsPath);
         }
 
         private static void SetMediaServerConfiguration()
