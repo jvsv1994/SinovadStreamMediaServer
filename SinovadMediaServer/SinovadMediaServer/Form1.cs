@@ -1,3 +1,4 @@
+using AutoMapper;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -186,6 +187,9 @@ namespace SinovadMediaServer
                   app.UseDefaultFiles();
                   app.UseStaticFiles();
                   var sharedData = app.ApplicationServices.GetService<SharedData>();
+                  var unitOfWork = app.ApplicationServices.GetService<IUnitOfWork>();
+                  var mapper = app.ApplicationServices.GetService<IMapper>();
+                  sharedData.ListMediaFiles = mapper.Map<List<MediaFileDto>>(unitOfWork.MediaFiles.GetAll());
                   sharedData.ApiToken=_sharedData.ApiToken;
                   sharedData.UserData = _sharedData.UserData;
                   sharedData.MediaServerData = _sharedData.MediaServerData;

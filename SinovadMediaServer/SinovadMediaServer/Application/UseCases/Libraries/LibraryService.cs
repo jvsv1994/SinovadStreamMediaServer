@@ -149,6 +149,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             try
             {
                 Expression<Func<MediaFile, bool>> expresionMediaFilesToDelete = x => x.LibraryId==id;
+                _sharedData.ListMediaFiles.RemoveAll(x => x.LibraryId == id);
                 DeleteMediaFilesByExpresion(expresionMediaFilesToDelete);
                 _unitOfWork.Libraries.Delete(id);
                 _unitOfWork.Save();
@@ -175,6 +176,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                     listIds = ids.Split(",").Select(x => Convert.ToInt32(x)).ToList();
                 }
                 Expression<Func<MediaFile, bool>> expresionMediaFilesToDelete = x => listIds.Contains((int)x.LibraryId);
+                _sharedData.ListMediaFiles.RemoveAll(x => listIds.Contains(x.Id));
                 DeleteMediaFilesByExpresion(expresionMediaFilesToDelete);
                 _unitOfWork.Libraries.DeleteByExpression(x=> listIds.Contains(x.Id));
                 _unitOfWork.Save();
@@ -210,15 +212,17 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                     if(exists)
                     {
                         listPaths = Directory.GetFiles(library.PhysicalPath, "*.*", SearchOption.AllDirectories).Where(s => s.EndsWith(".mkv") || s.EndsWith(".mp4") || s.EndsWith(".avi")).ToList();
+                        var listMediaFilesToAdd=GetListMediaFilesToAdd(library.Id, listPaths);
                         if (library.MediaTypeCatalogDetailId == (int)MediaType.Movie)
                         {
-                            RegisterMovieFiles(library.Id, listPaths);
+                            RegisterMovieFiles(listMediaFilesToAdd);
                         }
                         if (library.MediaTypeCatalogDetailId == (int)MediaType.TvSerie)
                         {
-                            RegisterTvSeriesFiles(library.Id, listPaths);
+                            RegisterTvSeriesFiles(listMediaFilesToAdd);
                         }
                     }else{
+                        _sharedData.ListMediaFiles.RemoveAll(x => x.LibraryId == library.Id);
                         Expression<Func<MediaFile, bool>> expresionMediaFilesToDelete = x => x.LibraryId == library.Id;
                         DeleteMediaFilesByExpresion(expresionMediaFilesToDelete);
                     }
@@ -248,20 +252,45 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             }
         }
 
-        private void RegisterTvSeriesFiles(int libraryId, List<string> paths)
+        private List<MediaFile> GetListMediaFilesToAdd(int libraryId, List<string> paths)
+        {
+            if (_sharedData.ListMediaFiles == null)
+            {
+                _sharedData.ListMediaFiles = new List<MediaFileDto>();
+            }
+            var listMediaFilesAdded = new List<MediaFile>();
+            foreach (var path in paths)
+            {
+                var mediaFileFinded = _sharedData.ListMediaFiles.Where(x => x.PhysicalPath == path).FirstOrDefault();
+                if (mediaFileFinded == null)
+                {
+                    var mediaFile = new MediaFile();
+                    mediaFile.LibraryId = libraryId;
+                    mediaFile.PhysicalPath = path;
+                    mediaFile = _unitOfWork.MediaFiles.Add(mediaFile);
+                    listMediaFilesAdded.Add(mediaFile);
+                    _sharedData.ListMediaFiles.Add(_mapper.Map<MediaFileDto>(mediaFile));
+                    _unitOfWork.Save();
+                    _alertService.Create("Guardando nuevo archivo localizado en " + mediaFile.PhysicalPath, AlertType.Plus);
+                }
+            }
+            DeleteVideosNotFoundInLibrary(libraryId, paths);
+            return listMediaFilesAdded;
+        }
+
+        private void RegisterTvSeriesFiles(List<MediaFile> listMediaFilesAdded)
         {
             var sinovadMediaDataBaseService = new SinovadMediaDatabaseService(_sinovadApiService);
             try
             {
-                var filesToAdd = GetFilesToAdd(libraryId, paths);
-                DeleteVideosNotFoundInLibrary(libraryId, paths);
-                if (filesToAdd != null && filesToAdd.Count > 0)
+                if (listMediaFilesAdded != null && listMediaFilesAdded.Count > 0)
                 {
-                    for (int i = 0; i < filesToAdd.Count; i++)
+                    for (int i = 0; i < listMediaFilesAdded.Count; i++)
                     {
                         try
                         {
-                            var path = filesToAdd[i];
+                            var mediaFile = listMediaFilesAdded[i];
+                            var path = mediaFile.PhysicalPath;
                             var splitted = path.Split("\\");
                             var fileName = splitted[splitted.Length - 1];
                             var physicalPath = path;
@@ -306,14 +335,11 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 {
                                     episode = GenerateMediaEpisode(tvSerieName,seasonNumber,episodeNumber,mediaItem);
                                 }
-                                var mediaFile = new MediaFile();
-                                mediaFile.LibraryId = libraryId;
-                                mediaFile.PhysicalPath = physicalPath;
                                 mediaFile.MediaItemId = mediaItem.Id;
                                 mediaFile.MediaEpisodeId = episode.Id;                
-                                _unitOfWork.MediaFiles.Add(mediaFile);
+                                _unitOfWork.MediaFiles.Update(mediaFile);
                                 _unitOfWork.Save();
-                                _alertService.Create("Guardando nuevo archivo para " + tvSerieName + " S"+seasonNumber+"E"+episodeNumber+" localizado en " + physicalPath, AlertType.Plus);
+                                _alertService.Create("Actualizando nuevo archivo para " + tvSerieName + " S"+seasonNumber+"E"+episodeNumber+" localizado en " + physicalPath, AlertType.Plus);
                                 if (IsMultipleOf(i,50))
                                 {
                                     _sharedData.HubConnection.InvokeAsync("UpdateItemsByMediaServer", _sharedData.MediaServerData.Guid);
@@ -459,14 +485,14 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 mediaItemDto.MetadataAgentsId = MetadataAgents.SinovadDb;
                 mediaItemDto.ListGenres = sinovadTvSerie.ListGenres.MapTo<List<MediaGenreDto>>();
                 mediaItemDto.SearchQuery = tvSerieName;
-                _alertService.Create("Metadatos encontrados en Sinovad Media Data Base para" + tvSerieName, AlertType.Tags);
+                _alertService.Create("Metadatos encontrados en Sinovad Media Data Base para " + tvSerieName, AlertType.Tags);
             }else
             {
                 mediaItemDto = _tmdbService.SearchTvShow(tvSerieName);
                 if (mediaItemDto != null)
                 {
                     mediaItemDto.SearchQuery = tvSerieName;
-                    _alertService.Create("Metadatos encontrados en TMDB Data Base para" + tvSerieName, AlertType.Tags);
+                    _alertService.Create("Metadatos encontrados en TMDB Data Base para " + tvSerieName, AlertType.Tags);
                 }
                 else
                 {
@@ -518,22 +544,20 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             return mediaItem;
         }
 
-        private void RegisterMovieFiles(int libraryId, List<string> paths)
+        private void RegisterMovieFiles(List<MediaFile> listMediaFilesAdded)
         {
             try
             {
-                var filesToAdd = GetFilesToAdd(libraryId, paths);
-                DeleteVideosNotFoundInLibrary(libraryId, paths);
-                if (filesToAdd != null && filesToAdd.Count > 0)
+                if (listMediaFilesAdded != null && listMediaFilesAdded.Count > 0)
                 {
-                    for (int i = 0; i < filesToAdd.Count; i++)
+                    for (int i = 0; i < listMediaFilesAdded.Count; i++)
                     {
                         try
                         {
-                            var path = filesToAdd[i];
-                            var splitted = path.Split("\\");
+                            var mediaFile = listMediaFilesAdded[i];
+                            var splitted = mediaFile.PhysicalPath.Split("\\");
                             var fileName = splitted[splitted.Length - 1];
-                            var physicalPath = path;
+                            var physicalPath = mediaFile.PhysicalPath;
                             var fileNameWithoutExtension = fileName;
                             if (fileName.ToLower().EndsWith(".mp4") || fileName.ToLower().EndsWith(".mkv") || fileName.ToLower().EndsWith(".avi"))
                             {
@@ -561,14 +585,16 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 movieName = fileNameWithoutExtension;
                                 mediaItem = GenerateMediaItemFromMovieWithoutYear(movieName);
                             }  
-                            var mediaFile = new MediaFile();
-                            mediaFile.LibraryId = libraryId;
-                            mediaFile.PhysicalPath = physicalPath;
                             mediaFile.MediaItemId = mediaItem.Id;
-                            _unitOfWork.MediaFiles.Add(mediaFile);
+                            _unitOfWork.MediaFiles.Update(mediaFile);
                             _unitOfWork.Save();
-                            _alertService.Create("Guardando nuevo archivo para " + movieName + " (" + year + ") localizado en "+ physicalPath, AlertType.Plus);
-                        }catch (Exception e)
+                            _alertService.Create("Actualizando nuevo archivo para " + movieName + " (" + year + ") localizado en "+ physicalPath, AlertType.Plus);
+                            if (IsMultipleOf(i, 50))
+                            {
+                                _sharedData.HubConnection.InvokeAsync("UpdateItemsByMediaServer", _sharedData.MediaServerData.Guid);
+                            }
+                        }
+                        catch (Exception e)
                         {
                             AddMessage(LogType.Error, e.Message);
                         }
@@ -637,6 +663,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             {
                 AddMessage(LogType.Information, "Check if there are videos to delete");
                 List<MediaFile> listVideosToDelete = new List<MediaFile>();
+                _sharedData.ListMediaFiles.RemoveAll(x => !paths.Contains(x.PhysicalPath) && x.LibraryId == libraryId);
                 Expression<Func<MediaFile, bool>> expresionMediaFilesToDelete = x => !paths.Contains(x.PhysicalPath) && x.LibraryId == libraryId;
                 DeleteMediaFilesByExpresion(expresionMediaFilesToDelete);
             }
