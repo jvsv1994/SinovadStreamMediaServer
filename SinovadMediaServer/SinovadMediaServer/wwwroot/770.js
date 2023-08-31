@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkapp=self.webpackChunkapp||[]).push([[770],{6770:(l,a,t)=>{t.r(a),t.d(a,{AccountSettingsModule:()=>c});var u=t(6814),n=t(95),_=t(7102),o=t(5879);let c=(()=>{class s{static#t=this.\u0275fac=function(E){return new(E||s)};static#s=this.\u0275mod=o.oAB({type:s});static#a=this.\u0275inj=o.cJS({imports:[u.ez,n.u5,_.m,n.UX]})}return s})()}}]);

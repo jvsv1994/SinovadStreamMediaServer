@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkapp=self.webpackChunkapp||[]).push([[41],{3041:(l,s,a)=>{a.r(s),a.d(s,{NotFoundPageModule:()=>E});var u=a(6814),o=a(95),_=a(7102),n=a(5879);let E=(()=>{class t{static#a=this.\u0275fac=function(d){return new(d||t)};static#t=this.\u0275mod=n.oAB({type:t});static#s=this.\u0275inj=n.cJS({imports:[u.ez,o.u5,_.m,o.UX]})}return t})()}}]);
