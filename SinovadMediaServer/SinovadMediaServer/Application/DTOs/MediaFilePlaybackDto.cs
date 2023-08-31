@@ -8,10 +8,6 @@
         public double CurrentTime { get; set; }
         public string? Title { get; set; }
         public string? Subtitle { get; set; }
-        public string? PosterPath { get; set; }
-        public int? EpisodeNumber { get; set; }
-        public int? SeasonNumber { get; set; }
-        public string? Overview { get; set; }
 
     }
 

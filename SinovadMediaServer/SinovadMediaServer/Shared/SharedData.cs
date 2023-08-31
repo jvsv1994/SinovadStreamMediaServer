@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.SignalR.Client;
+﻿using Microsoft.AspNetCore.SignalR.Client;
 using SinovadMediaServer.Application.DTOs;
 
 #nullable disable
@@ -16,5 +15,7 @@ namespace SinovadMediaServer.Shared
         public List<CatalogDetailDto> ListPresets { get; set; }
         public HubConnection HubConnection { get; set; }
         public List<MediaFileDto> ListMediaFiles { get; set; }
+        public List<MediaFilePlaybackRealTimeDto> ListMediaFilePlaybackRealTime { get; set; }
+
     }
 }

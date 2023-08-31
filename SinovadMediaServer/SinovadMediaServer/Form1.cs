@@ -28,6 +28,7 @@ using SinovadMediaServer.Persistence.Interceptors;
 using SinovadMediaServer.Persistence.Repositories;
 using SinovadMediaServer.SchedulerJob;
 using SinovadMediaServer.Shared;
+using SinovadMediaServer.Strategies;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Interface;
 using SinovadMediaServer.Transversal.Logger;
@@ -107,6 +108,7 @@ namespace SinovadMediaServer
                 services.AddAutoMapper(Assembly.GetExecutingAssembly());
                 services.AddScoped<SinovadApiService>();
                 services.AddScoped<SharedService>();
+                services.AddScoped<FfmpegStrategy>();
                 //Repositories
                 services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
                 services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -201,6 +203,7 @@ namespace SinovadMediaServer
                   var unitOfWork = app.ApplicationServices.GetService<IUnitOfWork>();
                   var mapper = app.ApplicationServices.GetService<IMapper>();
                   sharedData.ListMediaFiles = mapper.Map<List<MediaFileDto>>(unitOfWork.MediaFiles.GetAll());
+                  sharedData.ListMediaFilePlaybackRealTime = new List<MediaFilePlaybackRealTimeDto>();
                   sharedData.ApiToken=_sharedData.ApiToken;
                   sharedData.UserData = _sharedData.UserData;
                   sharedData.MediaServerData = _sharedData.MediaServerData;

@@ -36,7 +36,9 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
         private readonly IAlertService _alertService;
 
-        public LibraryService(IUnitOfWork unitOfWork, SharedData sharedData, SinovadApiService sinovadApiService, ITmdbService tmdbService, IImdbService imdbService, IMapper mapper, IAppLogger<LibraryService> logger, IAlertService alertService)
+        private readonly FfmpegStrategy _ffmpegStrategy;
+
+        public LibraryService(IUnitOfWork unitOfWork, SharedData sharedData, SinovadApiService sinovadApiService, ITmdbService tmdbService, IImdbService imdbService, IMapper mapper, IAppLogger<LibraryService> logger, IAlertService alertService, FfmpegStrategy ffmpegStrategy)
         {
             _unitOfWork = unitOfWork;
             _sharedData = sharedData;
@@ -46,6 +48,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             _mapper = mapper;
             _logger = logger;
             _alertService = alertService;
+            _ffmpegStrategy = ffmpegStrategy;
         }
 
         public async Task<Response<LibraryDto>> GetAsync(int id)
@@ -255,10 +258,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
         private List<MediaFile> GetListMediaFilesToAdd(int libraryId, List<string> paths)
         {
-            if (_sharedData.ListMediaFiles == null)
-            {
-                _sharedData.ListMediaFiles = new List<MediaFileDto>();
-            }
             var listMediaFilesAdded = new List<MediaFile>();
             foreach (var path in paths)
             {
@@ -281,7 +280,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
         private void RegisterTvSeriesFiles(List<MediaFile> listMediaFilesAdded)
         {
-            var ffmpegStrategy = new FfmpegStrategy();
             var sinovadMediaDataBaseService = new SinovadMediaDatabaseService(_sinovadApiService);
             try
             {
@@ -342,7 +340,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 _unitOfWork.MediaFiles.Update(mediaFile);
                                 _unitOfWork.Save();
                                 _alertService.Create("Actualizando nuevo archivo para " + tvSerieName + " S"+seasonNumber+"E"+episodeNumber+" localizado en " + physicalPath, AlertType.Plus);
-                                ffmpegStrategy.GenerateThumbnailByPhysicalPath(mediaFile.Guid.ToString(), mediaFile.PhysicalPath);
+                                _ffmpegStrategy.GenerateThumbnailByPhysicalPath(mediaFile.Guid.ToString(), mediaFile.PhysicalPath);
                                 if (IsMultipleOf(i,20))
                                 {
                                     _sharedData.HubConnection.InvokeAsync("UpdateItemsByMediaServer", _sharedData.MediaServerData.Guid);
@@ -549,7 +547,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
         private void RegisterMovieFiles(List<MediaFile> listMediaFilesAdded)
         {
-            var ffmpegStrategy = new FfmpegStrategy();
             try
             {
                 if (listMediaFilesAdded != null && listMediaFilesAdded.Count > 0)
@@ -593,7 +590,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                             _unitOfWork.MediaFiles.Update(mediaFile);
                             _unitOfWork.Save();
                             _alertService.Create("Actualizando nuevo archivo para " + movieName + " (" + year + ") localizado en "+ physicalPath, AlertType.Plus);
-                            ffmpegStrategy.GenerateThumbnailByPhysicalPath(mediaFile.Guid.ToString(), mediaFile.PhysicalPath);
+                            _ffmpegStrategy.GenerateThumbnailByPhysicalPath(mediaFile.Guid.ToString(), mediaFile.PhysicalPath);
                             if (IsMultipleOf(i, 20))
                             {
                                 _sharedData.HubConnection.InvokeAsync("UpdateItemsByMediaServer", _sharedData.MediaServerData.Guid);

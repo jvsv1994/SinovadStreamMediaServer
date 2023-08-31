@@ -218,8 +218,6 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       Created = mediaFilePlayback.LastModified != null ? (DateTime)mediaFilePlayback.LastModified : (DateTime)mediaFilePlayback.Created,
                                       MediaItemId = mediaItem.Id,
                                       MediaEpisodeId = mediaFile.MediaEpisodeId,
-                                      EpisodeNumber = mediaFilePlayback.EpisodeNumber,
-                                      SeasonNumber = mediaFilePlayback.SeasonNumber,
                                       MediaServerId = library.MediaServerId
                                   }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
 
@@ -291,8 +289,6 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       Created = mediaFilePlayback.LastModified!=null?(DateTime)mediaFilePlayback.LastModified: (DateTime)mediaFilePlayback.Created,
                                       MediaItemId = mediaItem.Id,
                                       MediaEpisodeId=mediaFile.MediaEpisodeId,
-                                      EpisodeNumber=mediaFilePlayback.EpisodeNumber,
-                                      SeasonNumber=mediaFilePlayback.SeasonNumber,
                                       MediaServerId = library.MediaServerId
                                   }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
 
@@ -365,8 +361,6 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       Created = mediaFilePlayback.LastModified != null ? (DateTime)mediaFilePlayback.LastModified : (DateTime)mediaFilePlayback.Created,
                                       MediaItemId = mediaItem.Id,
                                       MediaEpisodeId = mediaFile.MediaEpisodeId,
-                                      EpisodeNumber = mediaFilePlayback.EpisodeNumber,
-                                      SeasonNumber = mediaFilePlayback.SeasonNumber,
                                       MediaServerId = library.MediaServerId
                                   }).AsEnumerable().GroupBy(a => a.MediaItemId).Select(x => x.First()).ToList();
 
