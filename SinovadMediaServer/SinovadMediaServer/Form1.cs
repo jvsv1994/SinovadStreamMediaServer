@@ -182,6 +182,17 @@ namespace SinovadMediaServer
                           fileOptions.StaticFileOptions.ServeUnknownFileTypes = true;
                           app.UseFileServer(fileOptions);
                       }
+                      var rootPath = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Sinovad Media Server");
+                      var mediaPath = Path.Combine(rootPath, "Media");
+                      var fileMediaOptions = new FileServerOptions
+                      {
+                          FileProvider = new PhysicalFileProvider(mediaPath),
+                          RequestPath = new PathString("/media"),
+                          EnableDirectoryBrowsing = true,
+                          EnableDefaultFiles = false
+                      };
+                      fileMediaOptions.StaticFileOptions.ServeUnknownFileTypes = true;
+                      app.UseFileServer(fileMediaOptions);
                   });
                   app.UseStatusCodePagesWithReExecute("/");//to fix angular routing issues
                   app.UseDefaultFiles();

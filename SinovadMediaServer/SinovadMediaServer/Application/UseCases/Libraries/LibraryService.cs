@@ -10,6 +10,7 @@ using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Infrastructure;
 using SinovadMediaServer.Infrastructure.SinovadApi;
 using SinovadMediaServer.Shared;
+using SinovadMediaServer.Strategies;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Interface;
 using SinovadMediaServer.Transversal.Mapping;
@@ -280,6 +281,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
         private void RegisterTvSeriesFiles(List<MediaFile> listMediaFilesAdded)
         {
+            var ffmpegStrategy = new FfmpegStrategy();
             var sinovadMediaDataBaseService = new SinovadMediaDatabaseService(_sinovadApiService);
             try
             {
@@ -336,7 +338,8 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                     episode = GenerateMediaEpisode(tvSerieName,seasonNumber,episodeNumber,mediaItem);
                                 }
                                 mediaFile.MediaItemId = mediaItem.Id;
-                                mediaFile.MediaEpisodeId = episode.Id;                
+                                mediaFile.MediaEpisodeId = episode.Id;
+                                ffmpegStrategy.GenerateThumbnailByPhysicalPath(mediaFile.Guid.ToString(), mediaFile.PhysicalPath);
                                 _unitOfWork.MediaFiles.Update(mediaFile);
                                 _unitOfWork.Save();
                                 _alertService.Create("Actualizando nuevo archivo para " + tvSerieName + " S"+seasonNumber+"E"+episodeNumber+" localizado en " + physicalPath, AlertType.Plus);
@@ -546,6 +549,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
         private void RegisterMovieFiles(List<MediaFile> listMediaFilesAdded)
         {
+            var ffmpegStrategy = new FfmpegStrategy();
             try
             {
                 if (listMediaFilesAdded != null && listMediaFilesAdded.Count > 0)
@@ -586,6 +590,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 mediaItem = GenerateMediaItemFromMovieWithoutYear(movieName);
                             }  
                             mediaFile.MediaItemId = mediaItem.Id;
+                            ffmpegStrategy.GenerateThumbnailByPhysicalPath(mediaFile.Guid.ToString(), mediaFile.PhysicalPath);
                             _unitOfWork.MediaFiles.Update(mediaFile);
                             _unitOfWork.Save();
                             _alertService.Create("Actualizando nuevo archivo para " + movieName + " (" + year + ") localizado en "+ physicalPath, AlertType.Plus);
@@ -671,38 +676,6 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             {
                 AddMessage(LogType.Error, e.Message);
             }
-        }
-
-
-        private List<string> GetFilesToAdd(int libraryId, List<string> paths)
-        {
-            List<string> filesToAdd = new List<string>();
-            try
-            {
-                AddMessage(LogType.Information, "Prepare video paths");
-   
-                List<MediaFile> listVideosToAvoidAdd = new List<MediaFile>();
-                if (paths.Count > 0)
-                {
-                    AddMessage(LogType.Information, "Check if videos were already registered");
-                    Expression<Func<MediaFile, bool>> expressionVideosToAvoidAdd = x => paths.Contains(x.PhysicalPath) && x.LibraryId == libraryId;
-                    listVideosToAvoidAdd = _unitOfWork.MediaFiles.GetAllByExpressionAsync(expressionVideosToAvoidAdd).Result.ToList();
-                }
-                if (listVideosToAvoidAdd.Count > 0)
-                {
-                    List<string> listVideoPathsToAvoidAdd = listVideosToAvoidAdd.Select(o => o.PhysicalPath).ToList();
-                    filesToAdd = paths.FindAll(filePath => listVideoPathsToAvoidAdd.IndexOf(filePath) == -1).ToList();
-                }
-                else
-                {
-                    filesToAdd = paths;
-                }
-            }
-            catch (Exception e)
-            {
-                AddMessage(LogType.Error, e.Message);
-            }
-            return filesToAdd;
         }
 
         private void AddMessage(LogType logType, string message)

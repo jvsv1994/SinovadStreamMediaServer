@@ -31,6 +31,7 @@ namespace SinovadMediaServer.Application.DTOs
         public MetadataAgents? MetadataAgentsId { get; set; }
         public string SearchQuery { get; set; }
         public int FileId { get; set; }
+        public Guid MediaFileGuid { get; set; }
         public int MediaItemId { get; set; }
         public int? MediaEpisodeId { get; set; }
 

@@ -5,6 +5,7 @@ namespace SinovadMediaServer.Application.DTOs
     public class MediaFileDto
     {
         public int Id { get; set; }
+        public Guid Guid { get; set; }
         public int? MediaItemId { get; set; }
         public int? MediaEpisodeId { get; set; }
         public int? LibraryId { get; set; }
