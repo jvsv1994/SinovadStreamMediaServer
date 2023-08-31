@@ -339,11 +339,11 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 }
                                 mediaFile.MediaItemId = mediaItem.Id;
                                 mediaFile.MediaEpisodeId = episode.Id;
-                                ffmpegStrategy.GenerateThumbnailByPhysicalPath(mediaFile.Guid.ToString(), mediaFile.PhysicalPath);
                                 _unitOfWork.MediaFiles.Update(mediaFile);
                                 _unitOfWork.Save();
                                 _alertService.Create("Actualizando nuevo archivo para " + tvSerieName + " S"+seasonNumber+"E"+episodeNumber+" localizado en " + physicalPath, AlertType.Plus);
-                                if (IsMultipleOf(i,50))
+                                ffmpegStrategy.GenerateThumbnailByPhysicalPath(mediaFile.Guid.ToString(), mediaFile.PhysicalPath);
+                                if (IsMultipleOf(i,20))
                                 {
                                     _sharedData.HubConnection.InvokeAsync("UpdateItemsByMediaServer", _sharedData.MediaServerData.Guid);
                                 }
@@ -590,16 +590,15 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                                 mediaItem = GenerateMediaItemFromMovieWithoutYear(movieName);
                             }  
                             mediaFile.MediaItemId = mediaItem.Id;
-                            ffmpegStrategy.GenerateThumbnailByPhysicalPath(mediaFile.Guid.ToString(), mediaFile.PhysicalPath);
                             _unitOfWork.MediaFiles.Update(mediaFile);
                             _unitOfWork.Save();
                             _alertService.Create("Actualizando nuevo archivo para " + movieName + " (" + year + ") localizado en "+ physicalPath, AlertType.Plus);
-                            if (IsMultipleOf(i, 50))
+                            ffmpegStrategy.GenerateThumbnailByPhysicalPath(mediaFile.Guid.ToString(), mediaFile.PhysicalPath);
+                            if (IsMultipleOf(i, 20))
                             {
                                 _sharedData.HubConnection.InvokeAsync("UpdateItemsByMediaServer", _sharedData.MediaServerData.Guid);
                             }
-                        }
-                        catch (Exception e)
+                        }catch (Exception e)
                         {
                             AddMessage(LogType.Error, e.Message);
                         }
