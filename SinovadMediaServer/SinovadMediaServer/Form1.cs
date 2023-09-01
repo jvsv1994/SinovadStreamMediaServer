@@ -80,17 +80,13 @@ namespace SinovadMediaServer
                 services.AddQuartz(q =>
                 {
                     q.UseMicrosoftDependencyInjectionScopedJobFactory();
-                    // Just use the name of your job that you created in the Jobs folder.
-                    var jobKey = new JobKey("CheckFilesToDelete");
+                    var jobKey = new JobKey("CheckMediaFilesToDelete");
                     q.AddJob<BackgroundJob>(opts => opts.WithIdentity(jobKey));
 
                     q.AddTrigger(opts => opts
                         .ForJob(jobKey)
-                        .WithIdentity("CheckFilesToDelete-trigger")
-                        //This Cron interval can be described as "run every minute" (when second is zero)
-                        //.WithCronSchedule("0 /8 * ? * *")
-                        //At minute o past every 3rd hour.
-                        .WithCronSchedule("0 * /3 ? * *")
+                        .WithIdentity("CheckMediaFilesToDelete")
+                        .WithCronSchedule("0 0 0/3 * * ?")
                     );
                 });
                 services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
