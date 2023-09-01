@@ -241,7 +241,10 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
                             listMediaFileGuidsForDelete.Add(mediaFilePlaybackRealTime.Guid);
                         }
                     }
-                    _sharedData.HubConnection.SendAsync("RemoveMediaFilePlayBackRealTime", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, mediaFilePlaybackRealTime.Guid);
+                }
+                foreach (var guid in listMediaFileGuidsForDelete)
+                {
+                    _sharedData.HubConnection.SendAsync("RemoveMediaFilePlayBackRealTime", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid,guid);
                 }
                 _sharedData.ListMediaFilePlaybackRealTime.RemoveAll(x=> listMediaFileGuidsForDelete.Contains(x.Guid));
                 response.Data = true;
