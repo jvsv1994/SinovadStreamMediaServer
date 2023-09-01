@@ -6,16 +6,16 @@ namespace SinovadMediaServer.SchedulerJob
     public class BackgroundJob : IJob
     {
 
-        private readonly ITranscodingProcessService _transcodingProcessService;
+        private readonly IMediaFilePlaybackService _mediaFilePlaybackService;
 
-        public BackgroundJob(ITranscodingProcessService transcodingProcessService)
+        public BackgroundJob(IMediaFilePlaybackService mediaFilePlaybackService)
         {
-            _transcodingProcessService = transcodingProcessService;
+            _mediaFilePlaybackService = mediaFilePlaybackService;
         }
 
         public async Task Execute(IJobExecutionContext context)
         {
-            await _transcodingProcessService.DeleteOldTranscodeVideoProcess();
+            _mediaFilePlaybackService.DeleteOldTranscodedMediaFiles();
         }
     }
 }

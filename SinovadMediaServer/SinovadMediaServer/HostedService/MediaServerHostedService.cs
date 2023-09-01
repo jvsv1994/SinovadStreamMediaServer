@@ -17,15 +17,15 @@ namespace SinovadMediaServer.HostedService
 
         private readonly IAppLogger<MediaServerHostedService> _logger;
 
-        private readonly ITranscodingProcessService _transcodingProcessService;
+        private readonly IMediaFilePlaybackService _mediaFilePlaybackService;
 
         private readonly IAlertService _alertService;
 
-        public MediaServerHostedService(SharedData sharedData, IAppLogger<MediaServerHostedService> logger, ITranscodingProcessService transcodingProcessService, IAlertService alertService)
+        public MediaServerHostedService(SharedData sharedData, IAppLogger<MediaServerHostedService> logger, IMediaFilePlaybackService mediaFilePlaybackService, IAlertService alertService)
         {
             _sharedData = sharedData;
             _logger = logger;
-            _transcodingProcessService = transcodingProcessService;
+            _mediaFilePlaybackService = mediaFilePlaybackService;
             _alertService = alertService;
         }
 
@@ -57,7 +57,7 @@ namespace SinovadMediaServer.HostedService
                 try
                 {
                     _logger.LogInformation("Delete All Transcode Video Process");
-                    await _transcodingProcessService.DeleteAllTranscodeVideoProcess();
+                    _mediaFilePlaybackService.DeleteAllTranscodedMediaFiles();
                     _logger.LogInformation("Hub Connection Closed");
                     await RetryHubConnection(cancellationToken);
                 }
@@ -89,7 +89,7 @@ namespace SinovadMediaServer.HostedService
         {
             _alertService.Create("Se detuvo la conexión en " + (_sharedData.MediaServerData.FamilyName != null ? _sharedData.MediaServerData.FamilyName : _sharedData.MediaServerData.DeviceName), AlertType.Bullhorn);
             _logger.LogInformation("Hosted Service Stop");
-            _transcodingProcessService.DeleteAllTranscodeVideoProcess();
+            _mediaFilePlaybackService.DeleteAllTranscodedMediaFiles();
             _timer?.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
         }

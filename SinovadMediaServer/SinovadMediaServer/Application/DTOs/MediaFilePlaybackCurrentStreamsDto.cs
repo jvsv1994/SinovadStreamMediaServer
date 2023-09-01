@@ -1,11 +1,10 @@
 ﻿#nullable disable
+using System.Security.Policy;
+
 namespace SinovadMediaServer.Application.DTOs
 {
     public class MediaFilePlaybackCurrentStreamsDto
     {
-        public int? TranscodeAudioVideoProcessId { get; set; }
-        public int? TranscodeSubtitlesProcessId { get; set; }
-        public string? TranscodeFolderName { get; set; }
         public string? OutputTranscodedFileName { get; set; }
         public bool? IsTranscodedAudio { get; set; }
         public string? CurrentAudioCodeFormatSource { get; set; }
@@ -17,6 +16,9 @@ namespace SinovadMediaServer.Application.DTOs
         public string? CommandGenerateSubtitleStreams { get; set; }
         public List<StreamDto>? ListAudioStreams { get; set; }
         public List<StreamDto>? ListSubtitleStreams { get; set; }
+        public int VideoTransmissionTypeId { get; set; }
+        public double Duration { get; set; }
+        public List<MediaFilePlaybackTranscodingProcess> ListMediaFilePlaybackTranscodingProcess { get; set; }
 
     }
 }

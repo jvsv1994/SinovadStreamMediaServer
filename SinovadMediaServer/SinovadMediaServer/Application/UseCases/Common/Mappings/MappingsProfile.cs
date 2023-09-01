@@ -9,7 +9,6 @@ namespace SinovadMediaServer.Application.UseCases.Common.Mappings
         {
             CreateMap<Library, LibraryDto>().ReverseMap();
             CreateMap<TranscoderSettings, TranscoderSettingsDto>().ReverseMap();
-            CreateMap<TranscodingProcess, TranscodingProcessDto>().ReverseMap();
             CreateMap<MediaItem, MediaItemDto>().ReverseMap();
             CreateMap<MediaSeason, MediaSeasonDto>().ReverseMap();
             CreateMap<MediaEpisode, MediaEpisodeDto>().ReverseMap();

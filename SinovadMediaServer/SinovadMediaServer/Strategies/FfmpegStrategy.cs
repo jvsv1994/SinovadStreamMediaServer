@@ -239,6 +239,8 @@ namespace SinovadMediaServer.Strategies
                 }
 
                 var mediaFilePlaybackCurrentStreams = new MediaFilePlaybackCurrentStreamsDto();
+                mediaFilePlaybackCurrentStreams.Duration = mediaAnalysis.Duration.TotalSeconds;
+                mediaFilePlaybackCurrentStreams.VideoTransmissionTypeId = transcoderSettings.VideoTransmissionTypeCatalogDetailId;
                 mediaFilePlaybackCurrentStreams.ListAudioStreams = listAudioStreams;
                 mediaFilePlaybackCurrentStreams.ListSubtitleStreams = listSubtitlesStreams;
                 mediaFilePlaybackCurrentStreams.OutputTranscodedFileName = "video.m3u8";
@@ -249,8 +251,9 @@ namespace SinovadMediaServer.Strategies
             return null;
         }
 
-        public MediaFilePlaybackCurrentStreamsDto ExecuteTranscodeAudioVideoAndSubtitleProcess(MediaFilePlaybackCurrentStreamsDto mediaFilePlaybackCurrentStreams,string timeSpan)
+        public MediaFilePlaybackTranscodingProcess ExecuteTranscodeAudioVideoAndSubtitleProcess(MediaFilePlaybackCurrentStreamsDto mediaFilePlaybackCurrentStreams,string timeSpan)
         {           
+            var mediaFilePlaybackTranscodingProcess= new MediaFilePlaybackTranscodingProcess();
             string time = "0";
             if(timeSpan != null)
             {
@@ -263,20 +266,21 @@ namespace SinovadMediaServer.Strategies
             }
 
             var transcodeFolderName=Guid.NewGuid().ToString();
-            mediaFilePlaybackCurrentStreams.TranscodeFolderName = transcodeFolderName;
+            mediaFilePlaybackTranscodingProcess.TranscodeFolderName = transcodeFolderName;
             var workingDirectory = _sharedData.TranscoderSettingsData.TemporaryFolder + "\\" + transcodeFolderName;
             System.IO.Directory.CreateDirectory(workingDirectory);
+            mediaFilePlaybackTranscodingProcess.TranscodeFolderPath = workingDirectory;
 
             // Generate Audio Video Transcode Process
             var finalArgumentsAudioVideoStreams = seekTimeSpanSection + " " + mediaFilePlaybackCurrentStreams.CommandGenerateAudioVideoStreams;
             var processAudioVideoId = ExecuteFfmpegProcess(workingDirectory, finalArgumentsAudioVideoStreams);
-            mediaFilePlaybackCurrentStreams.TranscodeAudioVideoProcessId = processAudioVideoId;
+            mediaFilePlaybackTranscodingProcess.TranscodeAudioVideoProcessId = processAudioVideoId;
             //Generate Subtitles Transcode Process
             if (mediaFilePlaybackCurrentStreams.CommandGenerateSubtitleStreams != null)
             {
                 var finalArgumentsSubtitlesStreams = seekTimeSpanSection + " " + mediaFilePlaybackCurrentStreams.CommandGenerateSubtitleStreams;
                 var processSubtitlesId = ExecuteFfmpegProcess(workingDirectory, finalArgumentsSubtitlesStreams);
-                mediaFilePlaybackCurrentStreams.TranscodeSubtitlesProcessId = processSubtitlesId;
+                mediaFilePlaybackTranscodingProcess.TranscodeSubtitlesProcessId = processSubtitlesId;
             }
             var outputFilePath = workingDirectory + "\\" + mediaFilePlaybackCurrentStreams.OutputTranscodedFileName;
             var exist = checkIfExistFile(outputFilePath).Result;
@@ -301,7 +305,8 @@ namespace SinovadMediaServer.Strategies
 
                 }
             }
-            return mediaFilePlaybackCurrentStreams;
+            mediaFilePlaybackTranscodingProcess.Created = DateTime.Now;
+            return mediaFilePlaybackTranscodingProcess;
         }
 
         private async Task<bool> checkIfExistFile(string outputFilePhysicalPathFinal)

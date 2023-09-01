@@ -21,7 +21,6 @@ public partial class ApplicationDbContext:DbContext
 
     public virtual DbSet<TranscoderSettings> TranscoderSettings { get; set; }
     public virtual DbSet<Library> Libraries { get; set; }
-    public virtual DbSet<TranscodingProcess> TranscodingProcesses { get; set; }
     public virtual DbSet<MediaItem> MediaItems { get; set; }
     public virtual DbSet<MediaGenre> MediaGenres { get; set; }
     public virtual DbSet<MediaItemGenre> MediaItemGenres { get; set; }
@@ -76,13 +75,6 @@ public partial class ApplicationDbContext:DbContext
                 .HasMaxLength(1000)
                 .IsUnicode(false);
 
-        });
-
-        modelBuilder.Entity<TranscodingProcess>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Transcod__3214EC27DF052101");
-
-            entity.ToTable("TranscodingProcess");
         });
 
         modelBuilder.Entity<MediaItem>(entity =>

@@ -10,7 +10,6 @@ namespace SinovadMediaServer.Persistence.Repositories
       
         private IGenericRepository<Library> _accountLibraries;
         private IGenericRepository<TranscoderSettings> _transcoderSettings;
-        private IGenericRepository<TranscodingProcess> _transcodingProcesses;
         private IMediaItemRepository _mediaItems;
         private IGenericRepository<MediaGenre> _mediaGenres;
         private IGenericRepository<MediaItemGenre> _mediaItemGenres;
@@ -42,16 +41,6 @@ namespace SinovadMediaServer.Persistence.Repositories
                 return _transcoderSettings == null ?
                 _transcoderSettings = new GenericRepository<TranscoderSettings>(_context) :
                 _transcoderSettings;
-            }
-        }
-
-        public IGenericRepository<TranscodingProcess> TranscodingProcesses
-        {
-            get
-            {
-                return _transcodingProcesses == null ?
-                _transcodingProcesses = new GenericRepository<TranscodingProcess>(_context) :
-                _transcodingProcesses;
             }
         }
 
