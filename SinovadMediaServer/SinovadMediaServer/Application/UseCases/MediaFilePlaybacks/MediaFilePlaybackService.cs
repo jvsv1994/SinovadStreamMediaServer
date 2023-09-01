@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR.Client;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Persistence;
@@ -64,7 +63,7 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
                 var mediaFilePlaybackTranscodingProcess=_ffmpegStrategy.ExecuteTranscodeAudioVideoAndSubtitleProcess(mediaFilePlaybackRealTime.StreamsData, timeSpan);
                 mediaFilePlaybackRealTime.StreamsData.ListMediaFilePlaybackTranscodingProcess = new List<MediaFilePlaybackTranscodingProcess>() { mediaFilePlaybackTranscodingProcess };
                _sharedData.ListMediaFilePlaybackRealTime.Add(mediaFilePlaybackRealTime);
-                _sharedData.HubConnection.InvokeAsync("RefreshListMediaFilePlaybackRealTimeInMediaServer", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid);
+                _sharedData.HubConnection.InvokeAsync("AddMediaFilePlayBackRealTime", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid,mediaFilePlaybackRealTime.Guid);
                 mediaFilePlaybackRealTime.ItemData.Duration = mediaFilePlaybackRealTime.StreamsData.Duration;
                 mediaFilePlaybackRealTime.ClientData.Duration = mediaFilePlaybackRealTime.StreamsData.Duration;
                 var videoUrl = _sharedData.WebUrl + "/transcoded/" + mediaFilePlaybackTranscodingProcess.TranscodeFolderName + "/" + mediaFilePlaybackRealTime.StreamsData.OutputTranscodedFileName;
@@ -135,7 +134,6 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
                     mediaFilePlaybackRealTime.ClientData.CurrentTime = updateMediaFilePlaybackData.CurrentTime;
                     mediaFilePlaybackRealTime.ClientData.IsPlaying = updateMediaFilePlaybackData.IsPlaying;
                 }
-                _sharedData.HubConnection.InvokeAsync("RefreshListMediaFilePlaybackRealTimeInMediaServer", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid);
                 response.Data = true;
                 response.IsSuccess = true;
                 response.Message = "Successful";
@@ -162,7 +160,7 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
                     }
                 }
                 _sharedData.ListMediaFilePlaybackRealTime.RemoveAll(x => x.Guid == guid);
-                _sharedData.HubConnection.InvokeAsync("RefreshListMediaFilePlaybackRealTimeInMediaServer",_sharedData.UserData.Guid,_sharedData.MediaServerData.Guid);
+                _sharedData.HubConnection.SendAsync("RemoveMediaFilePlayBackRealTime", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, guid);
                 response.Data = true;
                 response.IsSuccess = true;
                 response.Message = "Successful";
@@ -213,9 +211,9 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
                     {
                         KillProcessAndRemoveDirectory(mediaFilePlaybackTranscodingProcess);
                     }
+                    _sharedData.HubConnection.SendAsync("RemoveMediaFilePlayBackRealTime", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, mediaFilePlaybackRealTime.Guid);
                 }
                 _sharedData.ListMediaFilePlaybackRealTime.Clear();
-                _sharedData.HubConnection.InvokeAsync("RefreshListMediaFilePlaybackRealTimeInMediaServer", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid);
                 response.Data = true;
                 response.IsSuccess = true;
                 response.Message = "Successful";
@@ -243,9 +241,9 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
                             listMediaFileGuidsForDelete.Add(mediaFilePlaybackRealTime.Guid);
                         }
                     }
+                    _sharedData.HubConnection.SendAsync("RemoveMediaFilePlayBackRealTime", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, mediaFilePlaybackRealTime.Guid);
                 }
                 _sharedData.ListMediaFilePlaybackRealTime.RemoveAll(x=> listMediaFileGuidsForDelete.Contains(x.Guid));
-                _sharedData.HubConnection.InvokeAsync("RefreshListMediaFilePlaybackRealTimeInMediaServer", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid);
                 response.Data = true;
                 response.IsSuccess = true;
                 response.Message = "Successful";
