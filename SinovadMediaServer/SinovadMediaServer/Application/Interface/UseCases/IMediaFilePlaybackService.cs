@@ -5,6 +5,7 @@ namespace SinovadMediaServer.Application.Interface.UseCases
 {
     public interface IMediaFilePlaybackService
     {
+        Response<List<MediaFilePlaybackRealTimeDto>> GetListMediaFilePlaybackRealTime();
         Response<TranscodedMediaFileResponseDto> CreateTranscodedMediaFile(MediaFilePlaybackRealTimeDto mediaFilePlaybackRealTime,string clientIpAddress);
         Response<string> RetranscodeMediaFile(RetranscodeMediaFileRequestDto retranscodeVideoRequest);
         Response<bool> UpdateMediaFilePlayback(UpdateMediaFilePlaybackRequestDto updateMediaFilePlaybackData);

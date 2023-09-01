@@ -15,6 +15,24 @@ namespace SinovadMediaServer.Controllers
             _mediaFilePlaybackService = mediaFilePlaybackService;
         }
 
+        [HttpGet("GetListMediaFilePlaybackRealTime")]
+        public async Task<ActionResult> GetListMediaFilePlaybackRealTime()
+        {
+            try
+            {
+                var response = _mediaFilePlaybackService.GetListMediaFilePlaybackRealTime();
+                if (response.IsSuccess)
+                {
+                    return Ok(response);
+                }
+                return BadRequest(response.Message);
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
+        }
+
         [HttpPost("CreateTranscodedMediaFile")]
         public async Task<ActionResult> CreateTranscodedMediaFile([FromBody] MediaFilePlaybackRealTimeDto mediaFilePlaybackRealTime)
         {
