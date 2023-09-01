@@ -927,32 +927,5 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             return response;
         }
 
-        public Response<object> UpdateMediaFilePlayback(MediaFilePlaybackDto mediaFilePlaybackDto)
-        {
-            var response = new Response<object>();
-            try
-            {
-                MediaFilePlayback mediaFilePlayback = _unitOfWork.MediaFilePlaybacks.GetByExpression(a => a.MediaFileId == mediaFilePlaybackDto.MediaFileId && a.ProfileId == mediaFilePlaybackDto.ProfileId);
-                if (mediaFilePlayback != null)
-                {
-                    mediaFilePlayback.CurrentTime = mediaFilePlaybackDto.CurrentTime;
-                    mediaFilePlayback.DurationTime = mediaFilePlaybackDto.DurationTime;
-                    _unitOfWork.MediaFilePlaybacks.Update(mediaFilePlayback);
-                }else
-                {
-                    mediaFilePlayback = _mapper.Map<MediaFilePlayback>(mediaFilePlaybackDto);
-                    _unitOfWork.MediaFilePlaybacks.Add(mediaFilePlayback);
-                }
-                _unitOfWork.Save();
-                response.IsSuccess = true;
-                response.Message = "Successful";
-            }catch (Exception ex)
-            {
-                response.Message = ex.Message;
-                _logger.LogError(ex.StackTrace);
-            }
-            return response;
-        }
-
     }
 }

@@ -159,16 +159,5 @@ namespace SinovadMediaServer.Controllers
             return BadRequest(response.Message);
         }
 
-        [HttpPut("UpdateMediaFilePlayback")]
-        public ActionResult UpdateMediaFilePlayback([FromBody] MediaFilePlaybackDto mediaFilePlayback)
-        {
-            var response = _libraryService.UpdateMediaFilePlayback(mediaFilePlayback);
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
-            return BadRequest(response.Message);
-        }
-
     }
 }
