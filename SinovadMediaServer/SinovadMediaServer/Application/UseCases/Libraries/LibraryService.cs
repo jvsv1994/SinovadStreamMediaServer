@@ -249,16 +249,15 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             {
                 _alertService.Create("Eliminando archivos en las rutas " + string.Join(",", listMediaFilesToDelete.Select(x => x.PhysicalPath)), AlertType.Bin);
                 List<string> listIdsVideosDelete = listMediaFilesToDelete.Select(o => o.Id.ToString()).ToList();
+                List<MediaFilePlaybackDto> listMediaFilePlaybackForDelete = _sharedData.ListMediaFilePlayback.Where(x => listIdsVideosDelete.Contains(x.ItemData.MediaFileId.ToString())).ToList();
+                foreach (var mediaFilePlayback in listMediaFilePlaybackForDelete)
+                {
+                    _sharedData.HubConnection.InvokeAsync("RemoveMediaFilePlayback", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, mediaFilePlayback.Guid);
+                }
                 Expression<Func<MediaFileProfile, bool>> expressionVideoProfilesToDelete = x => listIdsVideosDelete.Contains(x.MediaFileId.ToString());
                 _unitOfWork.MediaFileProfiles.DeleteByExpression(expressionVideoProfilesToDelete);
                 _unitOfWork.MediaFiles.DeleteList(listMediaFilesToDelete);
                 _unitOfWork.Save();
-
-                List<MediaFilePlaybackDto> listMediaFilePlaybackForDelete = _sharedData.ListMediaFilePlayback.Where(x=> listIdsVideosDelete.Contains(x.ItemData.MediaFileId.ToString())).ToList();
-                foreach (var mediaFilePlayback in listMediaFilePlaybackForDelete)
-                {                 
-                   _sharedData.HubConnection.InvokeAsync("RemoveMediaFilePlayback", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, mediaFilePlayback.Guid);
-                }
             }
         }
 
