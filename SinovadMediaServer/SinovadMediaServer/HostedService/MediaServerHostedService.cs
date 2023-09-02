@@ -83,7 +83,7 @@ namespace SinovadMediaServer.HostedService
                     }
                 }
             });
-            _sharedData.HubConnection.On("RemoveMediaFilePlayback", (string mediaServerGuid, string mediaFilePlaybackGuid) =>
+            _sharedData.HubConnection.On("RemoveMediaFilePlayBack", (string mediaServerGuid, string mediaFilePlaybackGuid) =>
             {
                 if(_sharedData.MediaServerData.Guid.ToString()==mediaServerGuid)
                 {
@@ -92,7 +92,7 @@ namespace SinovadMediaServer.HostedService
                     {
                         _sharedService.KillProcessAndRemoveDirectory(mediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);
                         _sharedData.ListMediaFilePlayback.Remove(mediaFilePlayback);
-                        _sharedData.HubConnection.SendAsync("RemovedMediaFilePlayback", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, mediaFilePlayback.Guid);
+                        _sharedData.HubConnection.SendAsync("RemovedMediaFilePlayBack", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, mediaFilePlayback.Guid);
                     }
                 }
             });
