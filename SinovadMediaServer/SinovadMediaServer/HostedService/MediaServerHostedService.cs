@@ -5,6 +5,7 @@ using SinovadMediaServer.Application.Interface.UseCases;
 using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Interface;
+using System;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using Timer = System.Threading.Timer;
 
@@ -58,7 +59,7 @@ namespace SinovadMediaServer.HostedService
                 try
                 {
                     _logger.LogInformation("Delete All Transcode Video Process");
-                    _mediaFilePlaybackService.DeleteAllTranscodedMediaFiles();
+                    DeleteAllTranscodedMediaFiles();
                     _logger.LogInformation("Hub Connection Closed");
                     await RetryHubConnection(cancellationToken);
                 }
@@ -78,6 +79,29 @@ namespace SinovadMediaServer.HostedService
                     }
                 }
             });
+            _sharedData.HubConnection.On("RemoveMediaFilePlayBackRealTime", (string mediaServerGuid, string mediaFilePlaybackRealTimeGuid) =>
+            {
+                if(_sharedData.MediaServerData.Guid.ToString()==mediaServerGuid)
+                {
+                    var mediaFilePlaybackRealTime = _sharedData.ListMediaFilePlaybackRealTime.Where(x => x.Guid == mediaFilePlaybackRealTimeGuid).FirstOrDefault();
+                    if (mediaFilePlaybackRealTime != null)
+                    {
+                        _mediaFilePlaybackService.KillProcessAndRemoveDirectory(mediaFilePlaybackRealTime.StreamsData.MediaFilePlaybackTranscodingProcess);
+                        _sharedData.ListMediaFilePlaybackRealTime.Remove(mediaFilePlaybackRealTime);
+                    }
+                }
+            });
+            _sharedData.HubConnection.On("RemoveLastTranscodedMediaFileProcess", (string mediaServerGuid, string mediaFilePlaybackRealTimeGuid) =>
+            {
+                if (_sharedData.MediaServerData.Guid.ToString() == mediaServerGuid)
+                {
+                    var mediaFilePlaybackRealTime = _sharedData.ListMediaFilePlaybackRealTime.Where(x => x.Guid == mediaFilePlaybackRealTimeGuid).FirstOrDefault();
+                    if (mediaFilePlaybackRealTime != null)
+                    {
+                        _mediaFilePlaybackService.KillProcessAndRemoveDirectory(mediaFilePlaybackRealTime.StreamsData.MediaFilePlaybackTranscodingProcess);
+                    }
+                }
+            });
             _sharedData.HubConnection.Reconnected += async (res) =>
             {
                _logger.LogInformation("Hub Connection Reconnected");    
@@ -88,6 +112,22 @@ namespace SinovadMediaServer.HostedService
             };
             _timer = new Timer(UpdateMediaServerConnection,null,TimeSpan.Zero,TimeSpan.FromSeconds(1));
             return Task.CompletedTask;
+        }
+
+        public void DeleteAllTranscodedMediaFiles()
+        {
+            try
+            {
+                foreach (var mediaFilePlaybackRealTime in _sharedData.ListMediaFilePlaybackRealTime)
+                {
+                    _mediaFilePlaybackService.KillProcessAndRemoveDirectory(mediaFilePlaybackRealTime.StreamsData.MediaFilePlaybackTranscodingProcess);
+                    _sharedData.ListMediaFilePlaybackRealTime.Remove(mediaFilePlaybackRealTime);
+                }
+                _sharedData.ListMediaFilePlaybackRealTime.Clear();
+            }catch (Exception ex)
+            {
+                _logger.LogError(ex.StackTrace);
+            }
         }
 
         private void UpdateMediaServerConnection(object state) {
@@ -101,7 +141,7 @@ namespace SinovadMediaServer.HostedService
         {
             _alertService.Create("Se detuvo la conexión en " + (_sharedData.MediaServerData.FamilyName != null ? _sharedData.MediaServerData.FamilyName : _sharedData.MediaServerData.DeviceName), AlertType.Bullhorn);
             _logger.LogInformation("Hosted Service Stop");
-            _mediaFilePlaybackService.DeleteAllTranscodedMediaFiles();
+            DeleteAllTranscodedMediaFiles();
             _timer?.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
         }

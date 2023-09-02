@@ -69,42 +69,5 @@ namespace SinovadMediaServer.Controllers
             }
         }
 
-        [HttpDelete("DeleteTranscodedMediaFileByGuid/{guid}")]
-        public async Task<ActionResult> DeleteTranscodedMediaFileByGuid([FromRoute] string guid)
-        {
-            try
-            {
-                var response = _mediaFilePlaybackService.DeleteTranscodedMediaFileByGuid(guid);
-                if (response.IsSuccess)
-                {
-                    return Ok(response);
-                }
-                return BadRequest(response.Message);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, e.Message);
-            }
-        }
-
-        [HttpDelete("DeleteLastTranscodedMediaFileProcessByGuid/{guid}")]
-        public async Task<ActionResult> DeleteLastTranscodedMediaFileProcessByGuid([FromRoute] string guid)
-        {
-            try
-            {
-                var response = _mediaFilePlaybackService.DeleteLastTranscodedMediaFileProcessByGuid(guid);
-                if (response.IsSuccess)
-                {
-                    return Ok(response);
-                }
-                return BadRequest(response.Message);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, e.Message);
-            }
-        }
-
-
     }
 }

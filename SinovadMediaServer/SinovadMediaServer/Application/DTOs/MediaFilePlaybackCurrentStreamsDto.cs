@@ -18,7 +18,7 @@ namespace SinovadMediaServer.Application.DTOs
         public List<StreamDto>? ListSubtitleStreams { get; set; }
         public int VideoTransmissionTypeId { get; set; }
         public double Duration { get; set; }
-        public List<MediaFilePlaybackTranscodingProcess> ListMediaFilePlaybackTranscodingProcess { get; set; }
+        public MediaFilePlaybackTranscodingProcess MediaFilePlaybackTranscodingProcess { get; set; }
 
     }
 }
