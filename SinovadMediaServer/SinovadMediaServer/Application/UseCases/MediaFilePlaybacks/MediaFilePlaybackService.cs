@@ -146,6 +146,32 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
             return response;
         }
 
+        public Response<bool> UpdateAllMediaFileProfile()
+        {
+            var response = new Response<bool>();
+            try
+            {
+                var  mediaFilePlaybacks= _sharedData.ListMediaFilePlaybackRealTime;
+                foreach (var mediaFilePlayback in mediaFilePlaybacks)
+                {
+                    var mediaFileProfile = _unitOfWork.MediaFilePlaybacks.GetByExpression(x=>x.MediaFileId== mediaFilePlayback.ItemData.MediaFileId && x.ProfileId==mediaFilePlayback.ProfileData.ProfileId);
+                    if(mediaFileProfile != null && mediaFilePlayback.ClientData.IsPlaying && mediaFilePlayback.ClientData.Duration!= mediaFileProfile.DurationTime) {
+                       mediaFileProfile.DurationTime = mediaFilePlayback.ClientData.Duration;
+                       _unitOfWork.MediaFilePlaybacks.Update(mediaFileProfile);
+                       _unitOfWork.Save();
+                    }
+                } 
+                response.Data = true;
+                response.IsSuccess = true;
+                response.Message = "Successful";
+            }catch (Exception ex)
+            {
+                response.Message = ex.Message;
+                _logger.LogError(ex.StackTrace);
+            }
+            return response;
+        }
+
         public Response<bool> DeleteTranscodedMediaFileByGuid(string guid)
         {
             var response = new Response<bool>();

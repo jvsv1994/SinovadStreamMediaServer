@@ -80,13 +80,23 @@ namespace SinovadMediaServer
                 services.AddQuartz(q =>
                 {
                     q.UseMicrosoftDependencyInjectionScopedJobFactory();
-                    var jobKey = new JobKey("CheckMediaFilesToDelete");
-                    q.AddJob<BackgroundJob>(opts => opts.WithIdentity(jobKey));
-
+                    
+                    //Add Job to delete old media file playbacks
+                    var jobKeyDeleteOldMediaFilesPlaybacks = new JobKey("DeleteOldMediaFilePlaybacks");
+                    q.AddJob<DeleteOldMediaFilePlaybacksJob>(opts => opts.WithIdentity(jobKeyDeleteOldMediaFilesPlaybacks));
                     q.AddTrigger(opts => opts
-                        .ForJob(jobKey)
-                        .WithIdentity("CheckMediaFilesToDelete")
+                        .ForJob(jobKeyDeleteOldMediaFilesPlaybacks)
+                        .WithIdentity("DeleteOldMediaFilePlaybacks")
                         .WithCronSchedule("0 0 0/3 * * ?")
+                    );
+
+                    //Update Media File Profile
+                    var jobKeyUpdateMediaFileProfile = new JobKey("UpdateMediaFileProfile");
+                    q.AddJob<UpdateMediaFileProfileJob>(opts => opts.WithIdentity(jobKeyUpdateMediaFileProfile));
+                    q.AddTrigger(opts => opts
+                        .ForJob(jobKeyUpdateMediaFileProfile)
+                        .WithIdentity("UpdateMediaFileProfile")
+                        .WithCronSchedule("0/10 * * * * ?")
                     );
                 });
                 services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);

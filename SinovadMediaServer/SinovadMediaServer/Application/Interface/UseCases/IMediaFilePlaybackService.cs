@@ -13,6 +13,7 @@ namespace SinovadMediaServer.Application.Interface.UseCases
         Response<bool> DeleteTranscodedMediaFileByGuid(string guid);
         Response<bool> DeleteAllTranscodedMediaFiles();
         Response<bool> DeleteOldTranscodedMediaFiles();
+        Response<bool> UpdateAllMediaFileProfile();
 
     }
 }
