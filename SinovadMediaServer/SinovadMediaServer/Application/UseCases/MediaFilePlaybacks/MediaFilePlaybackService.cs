@@ -8,7 +8,6 @@ using SinovadMediaServer.Shared;
 using SinovadMediaServer.Strategies;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Interface;
-using SinovadMediaServer.Transversal.Mapping;
 using System.Diagnostics;
 
 namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
@@ -109,43 +108,6 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
             }        
             return response;
         }
-
-        public Response<bool> UpdateMediaFilePlayback(UpdateMediaFilePlaybackRequestDto updateMediaFilePlaybackData)
-        {
-            var response = new Response<bool>();
-            try
-            {
-                MediaFilePlayback mediaFilePlayback = _unitOfWork.MediaFilePlaybacks.GetByExpression(a => a.MediaFileId == updateMediaFilePlaybackData.MediaFileId && a.ProfileId == updateMediaFilePlaybackData.ProfileId);
-                if (mediaFilePlayback != null)
-                {
-                    mediaFilePlayback.CurrentTime = updateMediaFilePlaybackData.CurrentTime;
-                    mediaFilePlayback.DurationTime = updateMediaFilePlaybackData.DurationTime;
-                    _unitOfWork.MediaFilePlaybacks.Update(mediaFilePlayback);
-                }else
-                {
-                    mediaFilePlayback = updateMediaFilePlaybackData.MapTo<MediaFilePlayback>();  
-                    _unitOfWork.MediaFilePlaybacks.Add(mediaFilePlayback);
-                }
-                _unitOfWork.Save();
-                var mediaFilePlaybackRealTime = _sharedData.ListMediaFilePlaybackRealTime.Where(x => x.Guid == updateMediaFilePlaybackData.Guid).FirstOrDefault();
-                if(mediaFilePlaybackRealTime!=null)
-                {
-                    mediaFilePlaybackRealTime.ClientData.Duration= updateMediaFilePlaybackData.DurationTime;
-                    mediaFilePlaybackRealTime.ClientData.CurrentTime = updateMediaFilePlaybackData.CurrentTime;
-                    mediaFilePlaybackRealTime.ClientData.IsPlaying = updateMediaFilePlaybackData.IsPlaying;
-                }
-                response.Data = true;
-                response.IsSuccess = true;
-                response.Message = "Successful";
-            }
-            catch (Exception ex)
-            {
-                response.Message = ex.Message;
-                _logger.LogError(ex.StackTrace);
-            }
-            return response;
-        }
-
         public Response<bool> UpdateAllMediaFileProfile()
         {
             var response = new Response<bool>();
@@ -157,9 +119,9 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
                     var mediaFileProfile = _unitOfWork.MediaFilePlaybacks.GetByExpression(x=>x.MediaFileId== mediaFilePlayback.ItemData.MediaFileId && x.ProfileId==mediaFilePlayback.ProfileData.ProfileId);
                     if (mediaFileProfile != null)
                     {
-                        if(mediaFilePlayback.ClientData.IsPlaying && mediaFilePlayback.ClientData.Duration != mediaFileProfile.DurationTime)
+                        if(mediaFilePlayback.ClientData.IsPlaying && mediaFilePlayback.ClientData.CurrentTime != mediaFileProfile.CurrentTime)
                         {
-                            mediaFileProfile.DurationTime = mediaFilePlayback.ClientData.Duration;
+                            mediaFileProfile.CurrentTime = mediaFilePlayback.ClientData.CurrentTime;
                             _unitOfWork.MediaFilePlaybacks.Update(mediaFileProfile);
                             _unitOfWork.Save();
                         }
@@ -167,7 +129,7 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
                     {
                         mediaFileProfile = new MediaFilePlayback();
                         mediaFileProfile.DurationTime=mediaFilePlayback.ClientData.Duration;
-                        mediaFileProfile.CurrentTime = 0;
+                        mediaFileProfile.CurrentTime = mediaFilePlayback.ClientData.CurrentTime;
                         mediaFileProfile.Title = mediaFilePlayback.ItemData.Title;
                         mediaFileProfile.Subtitle = mediaFilePlayback.ItemData.Subtitle;
                         mediaFileProfile.MediaFileId = mediaFilePlayback.ItemData.MediaFileId;

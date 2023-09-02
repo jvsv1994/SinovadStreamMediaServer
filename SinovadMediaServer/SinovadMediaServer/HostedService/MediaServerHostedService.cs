@@ -5,6 +5,7 @@ using SinovadMediaServer.Application.Interface.UseCases;
 using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Interface;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 using Timer = System.Threading.Timer;
 
 namespace SinovadMediaServer.HostedService
@@ -66,6 +67,17 @@ namespace SinovadMediaServer.HostedService
                     _logger.LogError(exception.Message);
                 }
             };
+            _sharedData.HubConnection.On("UpdateCurrentTimeMediaFilePlayBackRealTime", (string mediaServerGuid, string mediaFilePlaybackRealTimeGuid,double currentTime,bool isPlaying) =>
+            {
+                if(mediaServerGuid==_sharedData.MediaServerData.Guid.ToString())
+                {
+                    var mediaFilePlayback=_sharedData.ListMediaFilePlaybackRealTime.Where(x => x.Guid == mediaFilePlaybackRealTimeGuid).FirstOrDefault();
+                    if(mediaFilePlayback!=null) {
+                       mediaFilePlayback.ClientData.CurrentTime= currentTime;
+                       mediaFilePlayback.ClientData.IsPlaying=isPlaying;
+                    }
+                }
+            });
             _sharedData.HubConnection.Reconnected += async (res) =>
             {
                _logger.LogInformation("Hub Connection Reconnected");    

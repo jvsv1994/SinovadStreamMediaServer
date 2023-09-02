@@ -69,24 +69,6 @@ namespace SinovadMediaServer.Controllers
             }
         }
 
-        [HttpPut("UpdateMediaFilePlayback")]
-        public async Task<ActionResult> UpdateMediaFilePlayback([FromBody] UpdateMediaFilePlaybackRequestDto updateMediaFilePlaybackData)
-        {
-            try
-            {
-                var response = _mediaFilePlaybackService.UpdateMediaFilePlayback(updateMediaFilePlaybackData);
-                if (response.IsSuccess)
-                {
-                    return Ok(response);
-                }
-                return BadRequest(response.Message);
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, e.Message);
-            }
-        }
-
         [HttpDelete("DeleteTranscodedMediaFileByGuid/{guid}")]
         public async Task<ActionResult> DeleteTranscodedMediaFileByGuid([FromRoute] string guid)
         {
