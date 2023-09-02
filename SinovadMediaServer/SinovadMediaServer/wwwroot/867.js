@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkapp=self.webpackChunkapp||[]).push([[867],{8867:(E,t,a)=>{a.r(t),a.d(t,{VideoPageModule:()=>d});var _=a(6814),n=a(95),u=a(7102),o=a(5879);let d=(()=>{class s{static#a=this.\u0275fac=function(l){return new(l||s)};static#s=this.\u0275mod=o.oAB({type:s});static#t=this.\u0275inj=o.cJS({imports:[_.ez,n.u5,u.m]})}return s})()}}]);
