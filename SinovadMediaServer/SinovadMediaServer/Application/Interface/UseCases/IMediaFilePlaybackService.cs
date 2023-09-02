@@ -8,9 +8,7 @@ namespace SinovadMediaServer.Application.Interface.UseCases
         Response<List<MediaFilePlaybackDto>> GetListMediaFilePlayback();
         Response<TranscodedMediaFileResponseDto> CreateTranscodedMediaFile(MediaFilePlaybackDto MediaFilePlayback,string clientIpAddress);
         Response<string> RetranscodeMediaFile(RetranscodeMediaFileRequestDto retranscodeVideoRequest);
-        void DeleteOldTranscodedMediaFiles();
         void UpdateAllMediaFileProfile();
-        bool KillProcessAndRemoveDirectory(MediaFilePlaybackTranscodingProcess mediaFilePlaybackTranscodingProcess);
 
     }
 }

@@ -8,7 +8,6 @@ using SinovadMediaServer.Shared;
 using SinovadMediaServer.Strategies;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Interface;
-using System.Diagnostics;
 
 namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
 {
@@ -62,7 +61,7 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
                 var mediaFilePlaybackTranscodingProcess = _ffmpegStrategy.ExecuteTranscodeAudioVideoAndSubtitleProcess(MediaFilePlayback.StreamsData, timeSpan);
                 MediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess = mediaFilePlaybackTranscodingProcess;
                 _sharedData.ListMediaFilePlayback.Add(MediaFilePlayback);
-                _sharedData.HubConnection.InvokeAsync("AddMediaFilePlayback", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, MediaFilePlayback.Guid);
+                _sharedData.HubConnection.InvokeAsync("AddedMediaFilePlayback", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, MediaFilePlayback.Guid);
                 MediaFilePlayback.ItemData.Duration = MediaFilePlayback.StreamsData.Duration;
                 MediaFilePlayback.ClientData.Duration = MediaFilePlayback.StreamsData.Duration;
                 var videoUrl = _sharedData.WebUrl + "/transcoded/" + mediaFilePlaybackTranscodingProcess.TranscodeFolderName + "/" + MediaFilePlayback.StreamsData.OutputTranscodedFileName;
@@ -142,87 +141,6 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
             }
         }
 
-        public void DeleteOldTranscodedMediaFiles()
-        {
-            try
-            {
-                List<MediaFilePlaybackDto> listMediaFilePlaybackForDelete = new List<MediaFilePlaybackDto>();
-                foreach (var MediaFilePlayback in _sharedData.ListMediaFilePlayback)
-                {
-                    bool forceDelete = CheckIfDeleteTranscodedFile(MediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);                 
-                    if (forceDelete)
-                    {
-                        _sharedData.HubConnection.InvokeAsync("RemoveMediaFilePlayback", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, MediaFilePlayback.Guid);
-                    }
-                }
-            }catch (Exception ex){
-                _logger.LogError(ex.StackTrace);
-            }
-        }
-
-        private bool CheckIfDeleteTranscodedFile(MediaFilePlaybackTranscodingProcess mediaFilePlaybackTranscodingProcess)
-        {
-            var forceDelete = false;
-            var currentMilisecond = DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond;
-            var tvpMilisecond = mediaFilePlaybackTranscodingProcess.Created.Ticks / TimeSpan.TicksPerMillisecond;
-            if (currentMilisecond - tvpMilisecond > 86400000)
-            {
-                forceDelete = true;
-            }      
-            return forceDelete;
-        }
-
-        public bool KillProcessAndRemoveDirectory(MediaFilePlaybackTranscodingProcess mediaFilePlaybackTranscodingProcess)
-        {
-            var killAndRemoveCompleted = false;
-            try
-            {
-                if (mediaFilePlaybackTranscodingProcess.TranscodeAudioVideoProcessId != null)
-                {
-                    KillProcess((int)mediaFilePlaybackTranscodingProcess.TranscodeAudioVideoProcessId);
-                    System.Threading.Thread.Sleep(1000);
-                }
-                if (mediaFilePlaybackTranscodingProcess.TranscodeSubtitlesProcessId != null)
-                {
-                    KillProcess((int)mediaFilePlaybackTranscodingProcess.TranscodeSubtitlesProcessId);
-                    System.Threading.Thread.Sleep(1000);
-                }
-                if (System.IO.Directory.Exists(mediaFilePlaybackTranscodingProcess.TranscodeFolderPath))
-                {
-                    System.IO.Directory.Delete(mediaFilePlaybackTranscodingProcess.TranscodeFolderPath, true);
-                }
-                killAndRemoveCompleted = true;
-            }catch (Exception ex){
-               _logger.LogError(ex.StackTrace);
-            }
-            return killAndRemoveCompleted;
-        }
-
-
-        private void KillProcess(int processId)
-        {
-            try
-            {
-                var proc = Process.GetProcessById(processId);
-                try
-                {
-                    if (proc != null)
-                    {
-                        if (!proc.HasExited)
-                        {
-                            proc.Kill();
-                            proc.Close();
-                        }
-                    }
-                }catch (Exception ex){
-                    _logger.LogError(ex.StackTrace);
-
-                }
-            }catch (Exception ex)
-            {
-                _logger.LogError(ex.StackTrace);
-            }
-        }
 
     }
 }

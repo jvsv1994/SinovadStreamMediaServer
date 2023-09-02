@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Hosting;
 using SinovadMediaServer.Application.Interface.UseCases;
+using SinovadMediaServer.Application.Shared;
 using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Interface;
@@ -17,15 +18,18 @@ namespace SinovadMediaServer.HostedService
 
         private readonly SharedData _sharedData;
 
+        private readonly SharedService _sharedService;
+
         private readonly IAppLogger<MediaServerHostedService> _logger;
 
         private readonly IMediaFilePlaybackService _mediaFilePlaybackService;
 
         private readonly IAlertService _alertService;
 
-        public MediaServerHostedService(SharedData sharedData, IAppLogger<MediaServerHostedService> logger, IMediaFilePlaybackService mediaFilePlaybackService, IAlertService alertService)
+        public MediaServerHostedService(SharedData sharedData, SharedService sharedService, IAppLogger<MediaServerHostedService> logger, IMediaFilePlaybackService mediaFilePlaybackService, IAlertService alertService)
         {
             _sharedData = sharedData;
+            _sharedService = sharedService;
             _logger = logger;
             _mediaFilePlaybackService = mediaFilePlaybackService;
             _alertService = alertService;
@@ -68,37 +72,38 @@ namespace SinovadMediaServer.HostedService
                     _logger.LogError(exception.Message);
                 }
             };
-            _sharedData.HubConnection.On("UpdateCurrentTimeMediaFilePlayback", (string mediaServerGuid, string MediaFilePlaybackGuid,double currentTime,bool isPlaying) =>
+            _sharedData.HubConnection.On("UpdateCurrentTimeMediaFilePlayback", (string mediaServerGuid, string mediaFilePlaybackGuid, double currentTime,bool isPlaying) =>
             {
                 if(mediaServerGuid==_sharedData.MediaServerData.Guid.ToString())
                 {
-                    var mediaFilePlayback=_sharedData.ListMediaFilePlayback.Where(x => x.Guid == MediaFilePlaybackGuid).FirstOrDefault();
+                    var mediaFilePlayback=_sharedData.ListMediaFilePlayback.Where(x => x.Guid == mediaFilePlaybackGuid).FirstOrDefault();
                     if(mediaFilePlayback!=null) {
                        mediaFilePlayback.ClientData.CurrentTime= currentTime;
                        mediaFilePlayback.ClientData.IsPlaying=isPlaying;
                     }
                 }
             });
-            _sharedData.HubConnection.On("RemoveMediaFilePlayback", (string mediaServerGuid, string MediaFilePlaybackGuid) =>
+            _sharedData.HubConnection.On("RemoveMediaFilePlayback", (string mediaServerGuid, string mediaFilePlaybackGuid) =>
             {
                 if(_sharedData.MediaServerData.Guid.ToString()==mediaServerGuid)
                 {
-                    var MediaFilePlayback = _sharedData.ListMediaFilePlayback.Where(x => x.Guid == MediaFilePlaybackGuid).FirstOrDefault();
-                    if (MediaFilePlayback != null)
+                    var mediaFilePlayback = _sharedData.ListMediaFilePlayback.Where(x => x.Guid == mediaFilePlaybackGuid).FirstOrDefault();
+                    if (mediaFilePlayback != null)
                     {
-                        _mediaFilePlaybackService.KillProcessAndRemoveDirectory(MediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);
-                        _sharedData.ListMediaFilePlayback.Remove(MediaFilePlayback);
+                        _sharedService.KillProcessAndRemoveDirectory(mediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);
+                        _sharedData.ListMediaFilePlayback.Remove(mediaFilePlayback);
+                        _sharedData.HubConnection.SendAsync("RemovedMediaFilePlayback", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, mediaFilePlayback.Guid);
                     }
                 }
             });
-            _sharedData.HubConnection.On("RemoveLastTranscodedMediaFileProcess", (string mediaServerGuid, string MediaFilePlaybackGuid) =>
+            _sharedData.HubConnection.On("RemoveLastTranscodedMediaFileProcess", (string mediaServerGuid, string mediaFilePlaybackGuid) =>
             {
                 if (_sharedData.MediaServerData.Guid.ToString() == mediaServerGuid)
                 {
-                    var MediaFilePlayback = _sharedData.ListMediaFilePlayback.Where(x => x.Guid == MediaFilePlaybackGuid).FirstOrDefault();
+                    var MediaFilePlayback = _sharedData.ListMediaFilePlayback.Where(x => x.Guid == mediaFilePlaybackGuid).FirstOrDefault();
                     if (MediaFilePlayback != null)
                     {
-                        _mediaFilePlaybackService.KillProcessAndRemoveDirectory(MediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);
+                        _sharedService.KillProcessAndRemoveDirectory(MediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);
                     }
                 }
             });
@@ -118,13 +123,14 @@ namespace SinovadMediaServer.HostedService
         {
             try
             {
-                foreach (var MediaFilePlayback in _sharedData.ListMediaFilePlayback)
+                foreach (var mediaFilePlayback in _sharedData.ListMediaFilePlayback)
                 {
-                    _mediaFilePlaybackService.KillProcessAndRemoveDirectory(MediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);
-                    _sharedData.ListMediaFilePlayback.Remove(MediaFilePlayback);
+                    _sharedService.KillProcessAndRemoveDirectory(mediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);
+                    _sharedData.ListMediaFilePlayback.Remove(mediaFilePlayback);
+                    _sharedData.HubConnection.SendAsync("RemovedMediaFilePlayback", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, mediaFilePlayback.Guid);
                 }
-                _sharedData.ListMediaFilePlayback.Clear();
-            }catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex.StackTrace);
             }

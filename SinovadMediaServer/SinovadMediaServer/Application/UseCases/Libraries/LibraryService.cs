@@ -5,6 +5,8 @@ using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Infrastructure;
 using SinovadMediaServer.Application.Interface.Persistence;
 using SinovadMediaServer.Application.Interface.UseCases;
+using SinovadMediaServer.Application.Shared;
+using SinovadMediaServer.Application.UseCases.MediaFilePlaybacks;
 using SinovadMediaServer.Domain.Entities;
 using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Infrastructure;
@@ -38,7 +40,9 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
 
         private readonly FfmpegStrategy _ffmpegStrategy;
 
-        public LibraryService(IUnitOfWork unitOfWork, SharedData sharedData, SinovadApiService sinovadApiService, ITmdbService tmdbService, IImdbService imdbService, IMapper mapper, IAppLogger<LibraryService> logger, IAlertService alertService, FfmpegStrategy ffmpegStrategy)
+        private readonly SharedService _sharedService;
+
+        public LibraryService(IUnitOfWork unitOfWork, SharedData sharedData, SinovadApiService sinovadApiService, ITmdbService tmdbService, IImdbService imdbService, IMapper mapper, IAppLogger<LibraryService> logger, IAlertService alertService, FfmpegStrategy ffmpegStrategy, SharedService sharedService)
         {
             _unitOfWork = unitOfWork;
             _sharedData = sharedData;
@@ -49,6 +53,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             _logger = logger;
             _alertService = alertService;
             _ffmpegStrategy = ffmpegStrategy;
+            _sharedService = sharedService;
         }
 
         public async Task<Response<LibraryDto>> GetAsync(int id)
@@ -252,7 +257,9 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 List<MediaFilePlaybackDto> listMediaFilePlaybackForDelete = _sharedData.ListMediaFilePlayback.Where(x => listIdsVideosDelete.Contains(x.ItemData.MediaFileId.ToString())).ToList();
                 foreach (var mediaFilePlayback in listMediaFilePlaybackForDelete)
                 {
-                    _sharedData.HubConnection.InvokeAsync("RemoveMediaFilePlayback", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, mediaFilePlayback.Guid);
+                    _sharedService.KillProcessAndRemoveDirectory(mediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);
+                    _sharedData.ListMediaFilePlayback.Remove(mediaFilePlayback);
+                    _sharedData.HubConnection.SendAsync("RemovedMediaFilePlayback", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, mediaFilePlayback.Guid);
                 }
                 Expression<Func<MediaFileProfile, bool>> expressionVideoProfilesToDelete = x => listIdsVideosDelete.Contains(x.MediaFileId.ToString());
                 _unitOfWork.MediaFileProfiles.DeleteByExpression(expressionVideoProfilesToDelete);
