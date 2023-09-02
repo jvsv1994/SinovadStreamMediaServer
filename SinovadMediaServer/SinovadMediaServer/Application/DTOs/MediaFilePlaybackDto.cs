@@ -1,7 +1,7 @@
 ﻿#nullable disable
 namespace SinovadMediaServer.Application.DTOs
 {
-    public class MediaFilePlaybackRealTimeDto
+    public class MediaFilePlaybackDto
     {
         public string Guid { get; set; }
         public MediaFilePlaybackClientDto ClientData { get; set; }

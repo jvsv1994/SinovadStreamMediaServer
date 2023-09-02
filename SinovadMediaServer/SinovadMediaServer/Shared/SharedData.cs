@@ -15,7 +15,7 @@ namespace SinovadMediaServer.Shared
         public List<CatalogDetailDto> ListPresets { get; set; }
         public HubConnection HubConnection { get; set; }
         public List<MediaFileDto> ListMediaFiles { get; set; }
-        public List<MediaFilePlaybackRealTimeDto> ListMediaFilePlaybackRealTime { get; set; }
+        public List<MediaFilePlaybackDto> ListMediaFilePlayback { get; set; }
 
     }
 }

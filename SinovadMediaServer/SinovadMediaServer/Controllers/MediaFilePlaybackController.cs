@@ -15,12 +15,12 @@ namespace SinovadMediaServer.Controllers
             _mediaFilePlaybackService = mediaFilePlaybackService;
         }
 
-        [HttpGet("GetListMediaFilePlaybackRealTime")]
-        public async Task<ActionResult> GetListMediaFilePlaybackRealTime()
+        [HttpGet("GetListMediaFilePlayback")]
+        public async Task<ActionResult> GetListMediaFilePlayback()
         {
             try
             {
-                var response = _mediaFilePlaybackService.GetListMediaFilePlaybackRealTime();
+                var response = _mediaFilePlaybackService.GetListMediaFilePlayback();
                 if (response.IsSuccess)
                 {
                     return Ok(response);
@@ -34,12 +34,12 @@ namespace SinovadMediaServer.Controllers
         }
 
         [HttpPost("CreateTranscodedMediaFile")]
-        public async Task<ActionResult> CreateTranscodedMediaFile([FromBody] MediaFilePlaybackRealTimeDto mediaFilePlaybackRealTime)
+        public async Task<ActionResult> CreateTranscodedMediaFile([FromBody] MediaFilePlaybackDto MediaFilePlayback)
         {
             try
             {
                 var clientIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                var response = _mediaFilePlaybackService.CreateTranscodedMediaFile(mediaFilePlaybackRealTime, clientIpAddress);
+                var response = _mediaFilePlaybackService.CreateTranscodedMediaFile(MediaFilePlayback, clientIpAddress);
                 if (response.IsSuccess)
                 {
                     return Ok(response);

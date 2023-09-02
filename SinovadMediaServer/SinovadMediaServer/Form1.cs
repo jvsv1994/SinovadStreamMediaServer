@@ -209,7 +209,7 @@ namespace SinovadMediaServer
                   var unitOfWork = app.ApplicationServices.GetService<IUnitOfWork>();
                   var mapper = app.ApplicationServices.GetService<IMapper>();
                   sharedData.ListMediaFiles = mapper.Map<List<MediaFileDto>>(unitOfWork.MediaFiles.GetAll());
-                  sharedData.ListMediaFilePlaybackRealTime = new List<MediaFilePlaybackRealTimeDto>();
+                  sharedData.ListMediaFilePlayback = new List<MediaFilePlaybackDto>();
                   sharedData.ApiToken=_sharedData.ApiToken;
                   sharedData.UserData = _sharedData.UserData;
                   sharedData.MediaServerData = _sharedData.MediaServerData;

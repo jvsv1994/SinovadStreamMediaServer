@@ -68,37 +68,37 @@ namespace SinovadMediaServer.HostedService
                     _logger.LogError(exception.Message);
                 }
             };
-            _sharedData.HubConnection.On("UpdateCurrentTimeMediaFilePlayBackRealTime", (string mediaServerGuid, string mediaFilePlaybackRealTimeGuid,double currentTime,bool isPlaying) =>
+            _sharedData.HubConnection.On("UpdateCurrentTimeMediaFilePlayback", (string mediaServerGuid, string MediaFilePlaybackGuid,double currentTime,bool isPlaying) =>
             {
                 if(mediaServerGuid==_sharedData.MediaServerData.Guid.ToString())
                 {
-                    var mediaFilePlayback=_sharedData.ListMediaFilePlaybackRealTime.Where(x => x.Guid == mediaFilePlaybackRealTimeGuid).FirstOrDefault();
+                    var mediaFilePlayback=_sharedData.ListMediaFilePlayback.Where(x => x.Guid == MediaFilePlaybackGuid).FirstOrDefault();
                     if(mediaFilePlayback!=null) {
                        mediaFilePlayback.ClientData.CurrentTime= currentTime;
                        mediaFilePlayback.ClientData.IsPlaying=isPlaying;
                     }
                 }
             });
-            _sharedData.HubConnection.On("RemoveMediaFilePlayBackRealTime", (string mediaServerGuid, string mediaFilePlaybackRealTimeGuid) =>
+            _sharedData.HubConnection.On("RemoveMediaFilePlayback", (string mediaServerGuid, string MediaFilePlaybackGuid) =>
             {
                 if(_sharedData.MediaServerData.Guid.ToString()==mediaServerGuid)
                 {
-                    var mediaFilePlaybackRealTime = _sharedData.ListMediaFilePlaybackRealTime.Where(x => x.Guid == mediaFilePlaybackRealTimeGuid).FirstOrDefault();
-                    if (mediaFilePlaybackRealTime != null)
+                    var MediaFilePlayback = _sharedData.ListMediaFilePlayback.Where(x => x.Guid == MediaFilePlaybackGuid).FirstOrDefault();
+                    if (MediaFilePlayback != null)
                     {
-                        _mediaFilePlaybackService.KillProcessAndRemoveDirectory(mediaFilePlaybackRealTime.StreamsData.MediaFilePlaybackTranscodingProcess);
-                        _sharedData.ListMediaFilePlaybackRealTime.Remove(mediaFilePlaybackRealTime);
+                        _mediaFilePlaybackService.KillProcessAndRemoveDirectory(MediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);
+                        _sharedData.ListMediaFilePlayback.Remove(MediaFilePlayback);
                     }
                 }
             });
-            _sharedData.HubConnection.On("RemoveLastTranscodedMediaFileProcess", (string mediaServerGuid, string mediaFilePlaybackRealTimeGuid) =>
+            _sharedData.HubConnection.On("RemoveLastTranscodedMediaFileProcess", (string mediaServerGuid, string MediaFilePlaybackGuid) =>
             {
                 if (_sharedData.MediaServerData.Guid.ToString() == mediaServerGuid)
                 {
-                    var mediaFilePlaybackRealTime = _sharedData.ListMediaFilePlaybackRealTime.Where(x => x.Guid == mediaFilePlaybackRealTimeGuid).FirstOrDefault();
-                    if (mediaFilePlaybackRealTime != null)
+                    var MediaFilePlayback = _sharedData.ListMediaFilePlayback.Where(x => x.Guid == MediaFilePlaybackGuid).FirstOrDefault();
+                    if (MediaFilePlayback != null)
                     {
-                        _mediaFilePlaybackService.KillProcessAndRemoveDirectory(mediaFilePlaybackRealTime.StreamsData.MediaFilePlaybackTranscodingProcess);
+                        _mediaFilePlaybackService.KillProcessAndRemoveDirectory(MediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);
                     }
                 }
             });
@@ -118,12 +118,12 @@ namespace SinovadMediaServer.HostedService
         {
             try
             {
-                foreach (var mediaFilePlaybackRealTime in _sharedData.ListMediaFilePlaybackRealTime)
+                foreach (var MediaFilePlayback in _sharedData.ListMediaFilePlayback)
                 {
-                    _mediaFilePlaybackService.KillProcessAndRemoveDirectory(mediaFilePlaybackRealTime.StreamsData.MediaFilePlaybackTranscodingProcess);
-                    _sharedData.ListMediaFilePlaybackRealTime.Remove(mediaFilePlaybackRealTime);
+                    _mediaFilePlaybackService.KillProcessAndRemoveDirectory(MediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);
+                    _sharedData.ListMediaFilePlayback.Remove(MediaFilePlayback);
                 }
-                _sharedData.ListMediaFilePlaybackRealTime.Clear();
+                _sharedData.ListMediaFilePlayback.Clear();
             }catch (Exception ex)
             {
                 _logger.LogError(ex.StackTrace);
