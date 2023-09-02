@@ -27,7 +27,7 @@ public partial class ApplicationDbContext:DbContext
     public virtual DbSet<MediaSeason> MediaSeasons { get; set; }
     public virtual DbSet<MediaEpisode> MediaEpisodes { get; set; }
     public virtual DbSet<MediaFile> MediaFiles { get; set; }
-    public virtual DbSet<MediaFilePlayback> MediaFilePlaybacks { get; set; }
+    public virtual DbSet<MediaFileProfile> MediaFilePlaybacks { get; set; }
     public virtual DbSet<Alert> Alerts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -134,16 +134,16 @@ public partial class ApplicationDbContext:DbContext
             entity.ToTable("MediaFile");
         });
 
-        modelBuilder.Entity<MediaFilePlayback>(entity =>
+        modelBuilder.Entity<MediaFileProfile>(entity =>
         {
             entity.HasKey(e => new { e.MediaFileId, e.ProfileId });
 
-            entity.ToTable("MediaFilePlayback");
+            entity.ToTable("MediaFileProfile");
 
             entity.HasOne(d => d.MediaFile).WithMany(p => p.MediaFilePlaybacks)
                 .HasForeignKey(d => d.MediaFileId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_VideoProfileVideo");
+                .HasConstraintName("FK_MediaFileProfile");
         });
 
         OnModelCreatingPartial(modelBuilder);

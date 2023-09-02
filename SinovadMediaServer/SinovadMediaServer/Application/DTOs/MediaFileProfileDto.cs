@@ -1,6 +1,6 @@
 ﻿namespace SinovadMediaServer.Application.DTOs
 {
-    public partial class MediaFilePlaybackDto
+    public partial class MediaFileProfileDto
     {
         public int MediaFileId { get; set; }
         public int ProfileId { get; set; }

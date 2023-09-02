@@ -13,7 +13,7 @@ namespace SinovadMediaServer.Application.Interface.Persistence
         public IGenericRepository<MediaSeason> MediaSeasons { get; }
         public IGenericRepository<MediaEpisode> MediaEpisodes { get; }
         public IGenericRepository<MediaFile> MediaFiles { get; }
-        public IGenericRepository<MediaFilePlayback> MediaFilePlaybacks { get; }
+        public IGenericRepository<MediaFileProfile> MediaFileProfiles { get; }
         public IGenericRepository<Alert> Alerts { get; }
         public void Save();
         public Task SaveAsync();

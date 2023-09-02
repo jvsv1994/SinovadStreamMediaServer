@@ -249,8 +249,8 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             {
                 _alertService.Create("Eliminando archivos en las rutas " + string.Join(",", listMediaFilesToDelete.Select(x => x.PhysicalPath)), AlertType.Bin);
                 List<string> listIdsVideosDelete = listMediaFilesToDelete.Select(o => o.Id.ToString()).ToList();
-                Expression<Func<MediaFilePlayback, bool>> expressionVideoProfilesToDelete = x => listIdsVideosDelete.Contains(x.MediaFileId.ToString());
-                _unitOfWork.MediaFilePlaybacks.DeleteByExpression(expressionVideoProfilesToDelete);
+                Expression<Func<MediaFileProfile, bool>> expressionVideoProfilesToDelete = x => listIdsVideosDelete.Contains(x.MediaFileId.ToString());
+                _unitOfWork.MediaFileProfiles.DeleteByExpression(expressionVideoProfilesToDelete);
                 _unitOfWork.MediaFiles.DeleteList(listMediaFilesToDelete);
                 _unitOfWork.Save();
             }
@@ -874,11 +874,10 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                         itemDetail.MediaItem = _mapper.Map<MediaItemDto>(mediaItem);
                         var mediaFiles = _unitOfWork.MediaFiles.GetAllByExpression(x => x.MediaItemId == mediaItemId);
                         itemDetail.ListMediaFiles = _mapper.Map<List<MediaFileDto>>(mediaFiles);
-                        var mediaFilePlayback= _unitOfWork.MediaFilePlaybacks.GetByExpression(x=>x.MediaFileId==mediaFileId && x.ProfileId==profileId);
-                        if (mediaFilePlayback!=null)
+                        var mediaFileProfile= _unitOfWork.MediaFileProfiles.GetByExpression(x=>x.MediaFileId==mediaFileId && x.ProfileId==profileId);
+                        if (mediaFileProfile != null)
                         {
-                            mediaFilePlayback.MediaFile = null;
-                            itemDetail.LastMediaFilePlayback = _mapper.Map<MediaFilePlaybackDto>(mediaFilePlayback);
+                            itemDetail.MediaFileProfile = _mapper.Map<MediaFileProfileDto>(mediaFileProfile);
                         }
                         if (mediaItem.MediaTypeId == MediaType.TvSerie)
                         {

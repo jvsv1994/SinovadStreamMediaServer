@@ -16,7 +16,7 @@ namespace SinovadMediaServer.Persistence.Repositories
         private IGenericRepository<MediaSeason> _mediaSeasons;
         private IGenericRepository<MediaEpisode> _mediaEpisodes;
         private IGenericRepository<MediaFile> _mediaFiles;
-        private IGenericRepository<MediaFilePlayback> _mediaFileProfiles;
+        private IGenericRepository<MediaFileProfile> _mediaFileProfiles;
         private IGenericRepository<Alert> _alerts;
 
         public UnitOfWork(ApplicationDbContext context)
@@ -102,12 +102,12 @@ namespace SinovadMediaServer.Persistence.Repositories
             }
         }
 
-        public IGenericRepository<MediaFilePlayback> MediaFilePlaybacks
+        public IGenericRepository<MediaFileProfile> MediaFileProfiles
         {
             get
             {
                 return _mediaFileProfiles == null ?
-                _mediaFileProfiles = new GenericRepository<MediaFilePlayback>(_context) :
+                _mediaFileProfiles = new GenericRepository<MediaFileProfile>(_context) :
                 _mediaFileProfiles;
             }
         }

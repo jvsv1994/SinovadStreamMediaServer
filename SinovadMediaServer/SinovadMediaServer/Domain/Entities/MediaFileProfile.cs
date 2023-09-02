@@ -1,6 +1,6 @@
 ﻿namespace SinovadMediaServer.Domain.Entities;
 
-public partial class MediaFilePlayback : BaseAuditableEntity
+public partial class MediaFileProfile : BaseAuditableEntity
 {
     public int MediaFileId { get; set; }
     public int ProfileId { get; set; }

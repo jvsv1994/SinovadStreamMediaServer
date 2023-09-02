@@ -10,7 +10,7 @@ namespace SinovadMediaServer.Application.DTOs
         public MediaItemDto MediaItem { get; set; }
         public MediaSeasonDto CurrentSeason { get; set; }
         public MediaEpisodeDto CurrentEpisode { get; set; }
-        public MediaFilePlaybackDto LastMediaFilePlayback { get; set; }
+        public MediaFileProfileDto MediaFileProfile { get; set; }
 
     }
 }
