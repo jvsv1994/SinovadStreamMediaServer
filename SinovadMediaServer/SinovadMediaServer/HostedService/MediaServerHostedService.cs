@@ -72,7 +72,7 @@ namespace SinovadMediaServer.HostedService
                     _logger.LogError(exception.Message);
                 }
             };
-            _sharedData.HubConnection.On("UpdateCurrentTimeMediaFilePlayback", (string mediaServerGuid, string mediaFilePlaybackGuid, double currentTime,bool isPlaying) =>
+            _sharedData.HubConnection.On("UpdateCurrentTimeMediaFilePlayBack", (string mediaServerGuid, string mediaFilePlaybackGuid, double currentTime,bool isPlaying) =>
             {
                 if(mediaServerGuid==_sharedData.MediaServerData.Guid.ToString())
                 {
