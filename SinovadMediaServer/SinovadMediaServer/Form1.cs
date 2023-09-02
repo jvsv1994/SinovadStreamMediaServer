@@ -96,7 +96,7 @@ namespace SinovadMediaServer
                     q.AddTrigger(opts => opts
                         .ForJob(jobKeyUpdateMediaFileProfile)
                         .WithIdentity("UpdateMediaFileProfile")
-                        .WithCronSchedule("0/10 * * * * ?")
+                        .WithCronSchedule("0/5 * * * * ?")
                     );
                 });
                 services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);

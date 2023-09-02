@@ -62,7 +62,7 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
                 mediaFilePlaybackRealTime.StreamsData = _ffmpegStrategy.GenerateMediaFilePlaybackStreamsData(physicalPath);
                 var mediaFilePlaybackTranscodingProcess=_ffmpegStrategy.ExecuteTranscodeAudioVideoAndSubtitleProcess(mediaFilePlaybackRealTime.StreamsData, timeSpan);
                 mediaFilePlaybackRealTime.StreamsData.ListMediaFilePlaybackTranscodingProcess = new List<MediaFilePlaybackTranscodingProcess>() { mediaFilePlaybackTranscodingProcess };
-               _sharedData.ListMediaFilePlaybackRealTime.Add(mediaFilePlaybackRealTime);
+                _sharedData.ListMediaFilePlaybackRealTime.Add(mediaFilePlaybackRealTime);
                 _sharedData.HubConnection.InvokeAsync("AddMediaFilePlayBackRealTime", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid,mediaFilePlaybackRealTime.Guid);
                 mediaFilePlaybackRealTime.ItemData.Duration = mediaFilePlaybackRealTime.StreamsData.Duration;
                 mediaFilePlaybackRealTime.ClientData.Duration = mediaFilePlaybackRealTime.StreamsData.Duration;
@@ -155,10 +155,25 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
                 foreach (var mediaFilePlayback in mediaFilePlaybacks)
                 {
                     var mediaFileProfile = _unitOfWork.MediaFilePlaybacks.GetByExpression(x=>x.MediaFileId== mediaFilePlayback.ItemData.MediaFileId && x.ProfileId==mediaFilePlayback.ProfileData.ProfileId);
-                    if(mediaFileProfile != null && mediaFilePlayback.ClientData.IsPlaying && mediaFilePlayback.ClientData.Duration!= mediaFileProfile.DurationTime) {
-                       mediaFileProfile.DurationTime = mediaFilePlayback.ClientData.Duration;
-                       _unitOfWork.MediaFilePlaybacks.Update(mediaFileProfile);
-                       _unitOfWork.Save();
+                    if (mediaFileProfile != null)
+                    {
+                        if(mediaFilePlayback.ClientData.IsPlaying && mediaFilePlayback.ClientData.Duration != mediaFileProfile.DurationTime)
+                        {
+                            mediaFileProfile.DurationTime = mediaFilePlayback.ClientData.Duration;
+                            _unitOfWork.MediaFilePlaybacks.Update(mediaFileProfile);
+                            _unitOfWork.Save();
+                        }
+                    }else
+                    {
+                        mediaFileProfile = new MediaFilePlayback();
+                        mediaFileProfile.DurationTime=mediaFilePlayback.ClientData.Duration;
+                        mediaFileProfile.CurrentTime = 0;
+                        mediaFileProfile.Title = mediaFilePlayback.ItemData.Title;
+                        mediaFileProfile.Subtitle = mediaFilePlayback.ItemData.Subtitle;
+                        mediaFileProfile.MediaFileId = mediaFilePlayback.ItemData.MediaFileId;
+                        mediaFileProfile.ProfileId = mediaFilePlayback.ProfileData.ProfileId;
+                        _unitOfWork.MediaFilePlaybacks.Add(mediaFileProfile);
+                        _unitOfWork.Save();
                     }
                 } 
                 response.Data = true;
