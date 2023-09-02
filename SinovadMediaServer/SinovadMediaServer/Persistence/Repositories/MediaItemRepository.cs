@@ -191,18 +191,18 @@ namespace SinovadMediaServer.Persistence.Repositories
         {
             var listMediaItems = (from mediaItem in _context.MediaItems
                                   join mediaFile in _context.MediaFiles on mediaItem.Id equals mediaFile.MediaItemId
-                                  join mediaFilePlayback in _context.MediaFilePlaybacks on mediaFile.Id equals mediaFilePlayback.MediaFileId
+                                  join mediaFileProfile in _context.MediaFileProfiles on mediaFile.Id equals mediaFileProfile.MediaFileId
                                   join mediaGenreItem in _context.MediaItemGenres on mediaItem.Id equals mediaGenreItem.MediaItemId
                                   join mediaGenre in _context.MediaGenres on mediaGenreItem.MediaGenreId equals mediaGenre.Id
                                   join library in _context.Libraries on mediaFile.LibraryId equals library.Id
-                                  where mediaFilePlayback.ProfileId == profileId && (int)mediaItem.MediaTypeId == (int)mediaTypeId
-                                  orderby mediaFilePlayback.LastModified descending
+                                  where mediaFileProfile.ProfileId == profileId && (int)mediaItem.MediaTypeId == (int)mediaTypeId
+                                  orderby mediaFileProfile.LastModified descending
                                   select new ItemDto
                                   {
-                                      Title = mediaFilePlayback.Title,
-                                      Subtitle=mediaFilePlayback.Subtitle,
-                                      CurrentTime=mediaFilePlayback.CurrentTime,
-                                      DurationTime=mediaFilePlayback.DurationTime,
+                                      Title = mediaFileProfile.Title,
+                                      Subtitle=mediaFileProfile.Subtitle,
+                                      CurrentTime=mediaFileProfile.CurrentTime,
+                                      DurationTime=mediaFileProfile.DurationTime,
                                       Overview = mediaItem.Overview,
                                       SearchQuery = mediaItem.SearchQuery,
                                       SourceId = mediaItem.SourceId,
@@ -215,7 +215,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       MediaFileGuid = mediaFile.Guid,
                                       LibraryId = library.Id,
                                       PhysicalPath = mediaFile.PhysicalPath,
-                                      Created = mediaFilePlayback.LastModified != null ? (DateTime)mediaFilePlayback.LastModified : (DateTime)mediaFilePlayback.Created,
+                                      Created = mediaFileProfile.LastModified != null ? (DateTime)mediaFileProfile.LastModified : (DateTime)mediaFileProfile.Created,
                                       MediaItemId = mediaItem.Id,
                                       MediaEpisodeId = mediaFile.MediaEpisodeId,
                                       MediaServerId = library.MediaServerId,
@@ -263,16 +263,16 @@ namespace SinovadMediaServer.Persistence.Repositories
         {
             var listMediaItems = (from mediaItem in _context.MediaItems
                                   join mediaFile in _context.MediaFiles on mediaItem.Id equals mediaFile.MediaItemId
-                                  join mediaFilePlayback in _context.MediaFilePlaybacks on mediaFile.Id equals mediaFilePlayback.MediaFileId
+                                  join mediaFileProfile in _context.MediaFileProfiles on mediaFile.Id equals mediaFileProfile.MediaFileId
                                   join mediaGenreItem in _context.MediaItemGenres on mediaItem.Id equals mediaGenreItem.MediaItemId
                                   join mediaGenre in _context.MediaGenres on mediaGenreItem.MediaGenreId equals mediaGenre.Id
                                   join library in _context.Libraries on mediaFile.LibraryId equals library.Id
-                                  where mediaFilePlayback.ProfileId == profileId
-                                  orderby mediaFilePlayback.LastModified descending
+                                  where mediaFileProfile.ProfileId == profileId
+                                  orderby mediaFileProfile.LastModified descending
                                   select new ItemDto
                                   {
-                                      Title = mediaFilePlayback.Title,
-                                      Subtitle=mediaFilePlayback.Subtitle,
+                                      Title = mediaFileProfile.Title,
+                                      Subtitle=mediaFileProfile.Subtitle,
                                       Overview = mediaItem.Overview,
                                       SearchQuery = mediaItem.SearchQuery,
                                       SourceId = mediaItem.SourceId,
@@ -281,13 +281,13 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       PosterPath = mediaItem.PosterPath,
                                       GenreId = mediaGenre.Id,
                                       GenreName = mediaGenre.Name,
-                                      CurrentTime = mediaFilePlayback.CurrentTime,
-                                      DurationTime=mediaFilePlayback.DurationTime,
+                                      CurrentTime = mediaFileProfile.CurrentTime,
+                                      DurationTime=mediaFileProfile.DurationTime,
                                       FileId = mediaFile.Id,
                                       MediaFileGuid = mediaFile.Guid,
                                       LibraryId = library.Id,
                                       PhysicalPath = mediaFile.PhysicalPath,
-                                      Created = mediaFilePlayback.LastModified!=null?(DateTime)mediaFilePlayback.LastModified: (DateTime)mediaFilePlayback.Created,
+                                      Created = mediaFileProfile.LastModified!=null?(DateTime)mediaFileProfile.LastModified: (DateTime)mediaFileProfile.Created,
                                       MediaItemId = mediaItem.Id,
                                       MediaEpisodeId=mediaFile.MediaEpisodeId,
                                       MediaServerId = library.MediaServerId,
@@ -336,18 +336,18 @@ namespace SinovadMediaServer.Persistence.Repositories
         {
             var listMediaItems = (from mediaItem in _context.MediaItems
                                   join mediaFile in _context.MediaFiles on mediaItem.Id equals mediaFile.MediaItemId
-                                  join mediaFilePlayback in _context.MediaFilePlaybacks on mediaFile.Id equals mediaFilePlayback.MediaFileId
+                                  join mediaFileProfile in _context.MediaFileProfiles on mediaFile.Id equals mediaFileProfile.MediaFileId
                                   join mediaGenreItem in _context.MediaItemGenres on mediaItem.Id equals mediaGenreItem.MediaItemId
                                   join mediaGenre in _context.MediaGenres on mediaGenreItem.MediaGenreId equals mediaGenre.Id
                                   join library in _context.Libraries on mediaFile.LibraryId equals library.Id
-                                  where mediaFile.LibraryId == libraryId && mediaFilePlayback.ProfileId == profileId
-                                  orderby mediaFilePlayback.LastModified descending
+                                  where mediaFile.LibraryId == libraryId && mediaFileProfile.ProfileId == profileId
+                                  orderby mediaFileProfile.LastModified descending
                                   select new ItemDto
                                   {
-                                      Title = mediaFilePlayback.Title,
-                                      Subtitle = mediaFilePlayback.Subtitle,
-                                      CurrentTime = mediaFilePlayback.CurrentTime,
-                                      DurationTime = mediaFilePlayback.DurationTime,
+                                      Title = mediaFileProfile.Title,
+                                      Subtitle = mediaFileProfile.Subtitle,
+                                      CurrentTime = mediaFileProfile.CurrentTime,
+                                      DurationTime = mediaFileProfile.DurationTime,
                                       Overview = mediaItem.Overview,
                                       SearchQuery = mediaItem.SearchQuery,
                                       SourceId = mediaItem.SourceId,
@@ -360,7 +360,7 @@ namespace SinovadMediaServer.Persistence.Repositories
                                       MediaFileGuid = mediaFile.Guid,
                                       LibraryId = libraryId,
                                       PhysicalPath = mediaFile.PhysicalPath,
-                                      Created = mediaFilePlayback.LastModified != null ? (DateTime)mediaFilePlayback.LastModified : (DateTime)mediaFilePlayback.Created,
+                                      Created = mediaFileProfile.LastModified != null ? (DateTime)mediaFileProfile.LastModified : (DateTime)mediaFileProfile.Created,
                                       MediaItemId = mediaItem.Id,
                                       MediaEpisodeId = mediaFile.MediaEpisodeId,
                                       MediaServerId = library.MediaServerId,

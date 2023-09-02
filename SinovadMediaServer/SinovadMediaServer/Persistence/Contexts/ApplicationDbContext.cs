@@ -27,7 +27,7 @@ public partial class ApplicationDbContext:DbContext
     public virtual DbSet<MediaSeason> MediaSeasons { get; set; }
     public virtual DbSet<MediaEpisode> MediaEpisodes { get; set; }
     public virtual DbSet<MediaFile> MediaFiles { get; set; }
-    public virtual DbSet<MediaFileProfile> MediaFilePlaybacks { get; set; }
+    public virtual DbSet<MediaFileProfile> MediaFileProfiles { get; set; }
     public virtual DbSet<Alert> Alerts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
