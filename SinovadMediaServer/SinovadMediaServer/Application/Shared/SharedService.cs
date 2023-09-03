@@ -48,12 +48,10 @@ namespace SinovadMediaServer.Application.Shared
                 if (mediaFilePlaybackTranscodingProcess.TranscodeAudioVideoProcessId != null)
                 {
                     KillProcess((int)mediaFilePlaybackTranscodingProcess.TranscodeAudioVideoProcessId);
-                    System.Threading.Thread.Sleep(1000);
                 }
                 if (mediaFilePlaybackTranscodingProcess.TranscodeSubtitlesProcessId != null)
                 {
                     KillProcess((int)mediaFilePlaybackTranscodingProcess.TranscodeSubtitlesProcessId);
-                    System.Threading.Thread.Sleep(1000);
                 }
                 if (System.IO.Directory.Exists(mediaFilePlaybackTranscodingProcess.TranscodeFolderPath))
                 {
@@ -73,27 +71,30 @@ namespace SinovadMediaServer.Application.Shared
         {
             try
             {
-                var proc = Process.GetProcessById(processId);
-                try
+                var proc = GetProcess(processId);
+                if (proc != null)
                 {
-                    if (proc != null)
+                    try 
                     {
-                        if (!proc.HasExited)
-                        {
-                            proc.Kill();
-                            proc.Close();
-                        }
-                    }
+                        proc.Kill();
+                    }catch (Exception e){}
+                    try{
+                        proc.Close();
+                    }catch (Exception e){}
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex.StackTrace);
-
-                }
-            }
-            catch (Exception ex)
-            {
+            }catch (Exception ex){
                 _logger.LogError(ex.StackTrace);
+            }
+        }
+
+        private Process GetProcess(int processId)
+        {
+            try
+            {
+                var process = Process.GetProcessById(processId);
+                return process;
+            }catch (Exception ex){
+                return null;
             }
         }
 

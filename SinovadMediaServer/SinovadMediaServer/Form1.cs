@@ -98,6 +98,15 @@ namespace SinovadMediaServer
                         .WithIdentity("UpdateMediaFileProfile")
                         .WithCronSchedule("0/5 * * * * ?")
                     );
+
+                    //Ping clients job
+                    var pingClientsJob = new JobKey("PingClientsJob");
+                    q.AddJob<PingClientsJob>(opts => opts.WithIdentity(pingClientsJob));
+                    q.AddTrigger(opts => opts
+                        .ForJob(pingClientsJob)
+                        .WithIdentity("PingClientsJob")
+                        .WithCronSchedule("0/2 * * * * ?")
+                    );
                 });
                 services.AddQuartzHostedService(q => q.WaitForJobsToComplete = true);
                 services.AddControllers().AddJsonOptions(options =>
