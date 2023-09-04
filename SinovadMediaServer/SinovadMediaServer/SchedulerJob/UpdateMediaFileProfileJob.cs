@@ -17,10 +17,6 @@ namespace SinovadMediaServer.SchedulerJob
 
         public async Task Execute(IJobExecutionContext context)
         {
-            using var ping = new Ping();
-            string url = "example.com";
-            PingReply res = ping.Send(url);
-            Console.WriteLine(res.Status);
             _mediaFilePlaybackService.UpdateAllMediaFileProfile();
         }
     }
