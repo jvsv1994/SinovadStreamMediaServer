@@ -6,8 +6,6 @@ using SinovadMediaServer.Application.Shared;
 using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Interface;
-using System;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using Timer = System.Threading.Timer;
 
 namespace SinovadMediaServer.HostedService
@@ -22,16 +20,13 @@ namespace SinovadMediaServer.HostedService
 
         private readonly IAppLogger<MediaServerHostedService> _logger;
 
-        private readonly IMediaFilePlaybackService _mediaFilePlaybackService;
-
         private readonly IAlertService _alertService;
 
-        public MediaServerHostedService(SharedData sharedData, SharedService sharedService, IAppLogger<MediaServerHostedService> logger, IMediaFilePlaybackService mediaFilePlaybackService, IAlertService alertService)
+        public MediaServerHostedService(SharedData sharedData, SharedService sharedService, IAppLogger<MediaServerHostedService> logger, IAlertService alertService)
         {
             _sharedData = sharedData;
             _sharedService = sharedService;
             _logger = logger;
-            _mediaFilePlaybackService = mediaFilePlaybackService;
             _alertService = alertService;
         }
 
@@ -42,7 +37,7 @@ namespace SinovadMediaServer.HostedService
                 System.Threading.Thread.Sleep(5000);
                 await _alertService.Create("Reintentando la conexión en " + (_sharedData.MediaServerData.FamilyName != null ? _sharedData.MediaServerData.FamilyName : _sharedData.MediaServerData.DeviceName), AlertType.Bullhorn);
                 _logger.LogInformation("Hub Connection Before Start Again");
-                await _sharedData.HubConnection.StartAsync(cancellationToken);
+                await TryStartHubConnection(cancellationToken);
                 _logger.LogInformation("Hub Connection After Start Again");
                 await _alertService.Create("Conexión reestablecida en " + (_sharedData.MediaServerData.FamilyName != null ? _sharedData.MediaServerData.FamilyName : _sharedData.MediaServerData.DeviceName), AlertType.Bullhorn);
             }
@@ -53,10 +48,21 @@ namespace SinovadMediaServer.HostedService
             }
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public Task RemoveHubHandlerMethods(CancellationToken cancellationToken)
         {
-             _alertService.Create("Conexión establecida en " + (_sharedData.MediaServerData.FamilyName!=null?_sharedData.MediaServerData.FamilyName : _sharedData.MediaServerData.DeviceName),AlertType.Bullhorn);
-            _logger.LogInformation("Hosted Service Start");
+            _sharedData.HubConnection.Remove("UpdateCurrentTimeMediaFilePlayBack");
+            _sharedData.HubConnection.Remove("RemoveMediaFilePlayBack");
+            _sharedData.HubConnection.Remove("RemoveLastTranscodedMediaFileProcess");
+            _sharedData.HubConnection.Remove("UpdateCurrentTimeMediaFilePlayBack");
+            _logger.LogInformation("Remove Hub Handler Methods");
+            return Task.CompletedTask;
+        }
+
+
+        public Task TryStartHubConnection(CancellationToken cancellationToken)
+        {
+            _sharedData.HubConnection.StartAsync();
+            _sharedData.HubConnection.InvokeAsync("AddConnectionToUserClientsGroup", _sharedData.UserData.Guid);
             _sharedData.HubConnection.Closed += async (error) =>
             {
                 await _alertService.Create("Se cerró la conexión en " + (_sharedData.MediaServerData.FamilyName != null ? _sharedData.MediaServerData.FamilyName : _sharedData.MediaServerData.DeviceName), AlertType.Bullhorn);
@@ -64,28 +70,28 @@ namespace SinovadMediaServer.HostedService
                 {
                     _logger.LogInformation("Delete All Transcode Video Process");
                     DeleteAllTranscodedMediaFiles();
-                    _logger.LogInformation("Hub Connection Closed");
+                    System.Threading.Thread.Sleep(1000);
+                    await RemoveHubHandlerMethods(cancellationToken);
                     await RetryHubConnection(cancellationToken);
-                }
-                catch(Exception exception)
-                {
+                }catch (Exception exception){
                     _logger.LogError(exception.Message);
                 }
             };
-            _sharedData.HubConnection.On("UpdateCurrentTimeMediaFilePlayBack", (string mediaServerGuid, string mediaFilePlaybackGuid, double currentTime,bool isPlaying) =>
+            _sharedData.HubConnection.On("UpdateCurrentTimeMediaFilePlayBack", (string mediaServerGuid, string mediaFilePlaybackGuid, double currentTime, bool isPlaying) =>
             {
-                if(mediaServerGuid==_sharedData.MediaServerData.Guid.ToString())
+                if (mediaServerGuid == _sharedData.MediaServerData.Guid.ToString())
                 {
-                    var mediaFilePlayback=_sharedData.ListMediaFilePlayback.Where(x => x.Guid == mediaFilePlaybackGuid).FirstOrDefault();
-                    if(mediaFilePlayback!=null) {
-                       mediaFilePlayback.ClientData.CurrentTime= currentTime;
-                       mediaFilePlayback.ClientData.IsPlaying=isPlaying;
+                    var mediaFilePlayback = _sharedData.ListMediaFilePlayback.Where(x => x.Guid == mediaFilePlaybackGuid).FirstOrDefault();
+                    if (mediaFilePlayback != null)
+                    {
+                        mediaFilePlayback.ClientData.CurrentTime = currentTime;
+                        mediaFilePlayback.ClientData.IsPlaying = isPlaying;
                     }
                 }
             });
             _sharedData.HubConnection.On("RemoveMediaFilePlayBack", (string mediaServerGuid, string mediaFilePlaybackGuid) =>
             {
-                if(_sharedData.MediaServerData.Guid.ToString()==mediaServerGuid)
+                if (_sharedData.MediaServerData.Guid.ToString() == mediaServerGuid)
                 {
                     var mediaFilePlayback = _sharedData.ListMediaFilePlayback.Where(x => x.Guid == mediaFilePlaybackGuid).FirstOrDefault();
                     if (mediaFilePlayback != null)
@@ -109,12 +115,20 @@ namespace SinovadMediaServer.HostedService
             });
             _sharedData.HubConnection.Reconnected += async (res) =>
             {
-               _logger.LogInformation("Hub Connection Reconnected");    
+                _logger.LogInformation("Hub Connection Reconnected");
             };
             _sharedData.HubConnection.Reconnecting += async (res) =>
             {
                 _logger.LogInformation("Hub Connection Reconnecting");
             };
+            return Task.CompletedTask;
+        }
+
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            _logger.LogInformation("Hosted Service Start");
+            _alertService.Create("Conexión establecida en " + (_sharedData.MediaServerData.FamilyName != null ? _sharedData.MediaServerData.FamilyName : _sharedData.MediaServerData.DeviceName), AlertType.Bullhorn);
+            TryStartHubConnection(cancellationToken);
             _timer = new Timer(UpdateMediaServerConnection,null,TimeSpan.Zero,TimeSpan.FromSeconds(1));
             return Task.CompletedTask;
         }

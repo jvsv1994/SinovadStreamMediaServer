@@ -64,8 +64,6 @@ namespace SinovadMediaServer
         {
             CreateDefaultFolders();
             _hubConnection = new HubConnectionBuilder().WithUrl(_hubUrl).Build();
-            _hubConnection.StartAsync();
-            _hubConnection.InvokeAsync("AddConnectionToUserClientsGroup",_sharedData.UserData.Guid);
             _sharedData.HubConnection = _hubConnection;
             var builder = WebHost.CreateDefaultBuilder();
             var app = builder

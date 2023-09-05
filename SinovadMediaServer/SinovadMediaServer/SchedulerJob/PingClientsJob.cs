@@ -31,7 +31,7 @@ namespace SinovadMediaServer.SchedulerJob
                     using var ping = new Ping();
                     string url = mediaFilePlayback.ClientData.LocalIpAddress;
                     PingReply res = ping.Send(url);
-                    if(res.Status!=IPStatus.Success)
+                    if(res.Status==IPStatus.TimedOut)
                     {
                         _sharedService.KillProcessAndRemoveDirectory(mediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);
                         _sharedData.ListMediaFilePlayback.RemoveAll(x=>x.Guid==mediaFilePlayback.Guid);
