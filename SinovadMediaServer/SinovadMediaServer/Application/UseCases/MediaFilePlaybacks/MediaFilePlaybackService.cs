@@ -114,26 +114,30 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
                 var mediaFilePlaybacks = _sharedData.ListMediaFilePlayback;
                 foreach (var mediaFilePlayback in mediaFilePlaybacks)
                 {
-                    var mediaFileProfile = _unitOfWork.MediaFileProfiles.GetByExpression(x => x.MediaFileId == mediaFilePlayback.ItemData.MediaFileId && x.ProfileId == mediaFilePlayback.ProfileData.ProfileId);
-                    if (mediaFileProfile != null)
+                    if (mediaFilePlayback.ClientData.IsPlaying)
                     {
-                        if (mediaFilePlayback.ClientData.IsPlaying && mediaFilePlayback.ClientData.CurrentTime != mediaFileProfile.CurrentTime)
+                        var mediaFileProfile = _unitOfWork.MediaFileProfiles.GetByExpression(x => x.MediaFileId == mediaFilePlayback.ItemData.MediaFileId && x.ProfileId == mediaFilePlayback.ProfileData.ProfileId);
+                        if (mediaFileProfile != null)
                         {
+                            if (mediaFilePlayback.ClientData.CurrentTime != mediaFileProfile.CurrentTime)
+                            {
+                                mediaFileProfile.CurrentTime = mediaFilePlayback.ClientData.CurrentTime;
+                                _unitOfWork.MediaFileProfiles.Update(mediaFileProfile);
+                                _unitOfWork.Save();
+                            }
+                        }
+                        else
+                        {
+                            mediaFileProfile = new MediaFileProfile();
+                            mediaFileProfile.DurationTime = mediaFilePlayback.ClientData.Duration;
                             mediaFileProfile.CurrentTime = mediaFilePlayback.ClientData.CurrentTime;
-                            _unitOfWork.MediaFileProfiles.Update(mediaFileProfile);
+                            mediaFileProfile.Title = mediaFilePlayback.ItemData.Title;
+                            mediaFileProfile.Subtitle = mediaFilePlayback.ItemData.Subtitle;
+                            mediaFileProfile.MediaFileId = mediaFilePlayback.ItemData.MediaFileId;
+                            mediaFileProfile.ProfileId = mediaFilePlayback.ProfileData.ProfileId;
+                            _unitOfWork.MediaFileProfiles.Add(mediaFileProfile);
                             _unitOfWork.Save();
                         }
-                    }else
-                    {
-                        mediaFileProfile = new MediaFileProfile();
-                        mediaFileProfile.DurationTime = mediaFilePlayback.ClientData.Duration;
-                        mediaFileProfile.CurrentTime = mediaFilePlayback.ClientData.CurrentTime;
-                        mediaFileProfile.Title = mediaFilePlayback.ItemData.Title;
-                        mediaFileProfile.Subtitle = mediaFilePlayback.ItemData.Subtitle;
-                        mediaFileProfile.MediaFileId = mediaFilePlayback.ItemData.MediaFileId;
-                        mediaFileProfile.ProfileId = mediaFilePlayback.ProfileData.ProfileId;
-                        _unitOfWork.MediaFileProfiles.Add(mediaFileProfile);
-                        _unitOfWork.Save();
                     }
                 }
             }catch (Exception ex){
