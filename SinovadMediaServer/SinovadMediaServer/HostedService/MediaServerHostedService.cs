@@ -30,53 +30,61 @@ namespace SinovadMediaServer.HostedService
             _alertService = alertService;
         }
 
-        public async Task RetryHubConnection(CancellationToken cancellationToken)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
-            try
+            _alertService.Create("Inicio del servicio alojado", AlertType.Bullhorn);
+            _sharedData.HubConnection.Closed += async (error) =>
             {
-                System.Threading.Thread.Sleep(5000);
-                await _alertService.Create("Reintentando la conexión en " + (_sharedData.MediaServerData.FamilyName != null ? _sharedData.MediaServerData.FamilyName : _sharedData.MediaServerData.DeviceName), AlertType.Bullhorn);
-                _logger.LogInformation("Hub Connection Before Start Again");
-                await TryStartHubConnection(cancellationToken);
-                _logger.LogInformation("Hub Connection After Start Again");
-                await _alertService.Create("Conexión reestablecida en " + (_sharedData.MediaServerData.FamilyName != null ? _sharedData.MediaServerData.FamilyName : _sharedData.MediaServerData.DeviceName), AlertType.Bullhorn);
-            }
-            catch (Exception exception)
-            {
-                _logger.LogError("Error - "+ exception.Message);
-                await RetryHubConnection(cancellationToken);
-            }
+                await _alertService.Create("Se cerró la conexión a Signal IR - " + (error!=null?error.Message:""), AlertType.Bullhorn);
+                try
+                {
+                    await DeleteAllTranscodedMediaFiles();
+                    System.Threading.Thread.Sleep(1000);
+                    await TryStartHubConnection(cancellationToken);
+                }
+                catch (Exception exception)
+                {
+                    _logger.LogError(exception.Message);
+                }
+            };
+            TryStartHubConnection(cancellationToken);
+            _timer = new Timer(UpdateMediaServerConnection, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
+            return Task.CompletedTask;
         }
 
         public Task RemoveHubHandlerMethods(CancellationToken cancellationToken)
         {
+            _alertService.Create("Eliminando controladores para los métodos del Hub ", AlertType.Bullhorn);
             _sharedData.HubConnection.Remove("UpdateCurrentTimeMediaFilePlayBack");
             _sharedData.HubConnection.Remove("RemoveMediaFilePlayBack");
             _sharedData.HubConnection.Remove("RemoveLastTranscodedMediaFileProcess");
             _sharedData.HubConnection.Remove("UpdateCurrentTimeMediaFilePlayBack");
-            _logger.LogInformation("Remove Hub Handler Methods");
             return Task.CompletedTask;
         }
 
 
         public Task TryStartHubConnection(CancellationToken cancellationToken)
         {
-            _sharedData.HubConnection.StartAsync();
-            _sharedData.HubConnection.InvokeAsync("AddConnectionToUserClientsGroup", _sharedData.UserData.Guid);
-            _sharedData.HubConnection.Closed += async (error) =>
+            try
             {
-                await _alertService.Create("Se cerró la conexión en " + (_sharedData.MediaServerData.FamilyName != null ? _sharedData.MediaServerData.FamilyName : _sharedData.MediaServerData.DeviceName), AlertType.Bullhorn);
-                try
-                {
-                    _logger.LogInformation("Delete All Transcode Video Process");
-                    DeleteAllTranscodedMediaFiles();
-                    System.Threading.Thread.Sleep(1000);
-                    await RemoveHubHandlerMethods(cancellationToken);
-                    await RetryHubConnection(cancellationToken);
-                }catch (Exception exception){
-                    _logger.LogError(exception.Message);
-                }
-            };
+                _alertService.Create("Intentando conectarse a Signal IR ", AlertType.Bullhorn);
+                _sharedData.HubConnection.StartAsync();
+                System.Threading.Thread.Sleep(1000);
+                RemoveHubHandlerMethods(cancellationToken);
+                System.Threading.Thread.Sleep(1000);
+                _sharedData.HubConnection.InvokeAsync("AddConnectionToUserClientsGroup", _sharedData.UserData.Guid);
+                AddHubHandlerMethods(cancellationToken);
+            }catch (Exception e){
+                _alertService.Create("Error al intentar conectarse a Signal IR - "+e.Message, AlertType.Bullhorn);
+                System.Threading.Thread.Sleep(1000);
+                TryStartHubConnection(cancellationToken);
+            }
+            return Task.CompletedTask;
+        }
+
+        public Task AddHubHandlerMethods(CancellationToken cancellationToken)
+        {
+            _alertService.Create("Agregando controladores para los métodos del Hub ", AlertType.Bullhorn);
             _sharedData.HubConnection.On("UpdateCurrentTimeMediaFilePlayBack", (string mediaServerGuid, string mediaFilePlaybackGuid, double currentTime, bool isPlaying) =>
             {
                 if (mediaServerGuid == _sharedData.MediaServerData.Guid.ToString())
@@ -113,30 +121,14 @@ namespace SinovadMediaServer.HostedService
                     }
                 }
             });
-            _sharedData.HubConnection.Reconnected += async (res) =>
-            {
-                _logger.LogInformation("Hub Connection Reconnected");
-            };
-            _sharedData.HubConnection.Reconnecting += async (res) =>
-            {
-                _logger.LogInformation("Hub Connection Reconnecting");
-            };
             return Task.CompletedTask;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
-        {
-            _logger.LogInformation("Hosted Service Start");
-            _alertService.Create("Conexión establecida en " + (_sharedData.MediaServerData.FamilyName != null ? _sharedData.MediaServerData.FamilyName : _sharedData.MediaServerData.DeviceName), AlertType.Bullhorn);
-            TryStartHubConnection(cancellationToken);
-            _timer = new Timer(UpdateMediaServerConnection,null,TimeSpan.Zero,TimeSpan.FromSeconds(1));
-            return Task.CompletedTask;
-        }
-
-        public void DeleteAllTranscodedMediaFiles()
+        public Task DeleteAllTranscodedMediaFiles()
         {
             try
             {
+                _alertService.Create("Eliminando todos los archivos transcodificados ", AlertType.Bullhorn);
                 foreach (var mediaFilePlayback in _sharedData.ListMediaFilePlayback)
                 {
                     _sharedService.KillProcessAndRemoveDirectory(mediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);
@@ -148,6 +140,7 @@ namespace SinovadMediaServer.HostedService
             {
                 _logger.LogError(ex.StackTrace);
             }
+            return Task.CompletedTask;
         }
 
         private void UpdateMediaServerConnection(object state) {
@@ -159,8 +152,7 @@ namespace SinovadMediaServer.HostedService
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _alertService.Create("Se detuvo la conexión en " + (_sharedData.MediaServerData.FamilyName != null ? _sharedData.MediaServerData.FamilyName : _sharedData.MediaServerData.DeviceName), AlertType.Bullhorn);
-            _logger.LogInformation("Hosted Service Stop");
+            _alertService.Create("Se detuvo el servicio alojado", AlertType.Bullhorn);
             DeleteAllTranscodedMediaFiles();
             _timer?.Change(Timeout.Infinite, 0);
             return Task.CompletedTask;
