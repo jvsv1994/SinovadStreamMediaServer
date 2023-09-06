@@ -3,7 +3,6 @@ using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Quartz;
@@ -40,8 +39,6 @@ namespace SinovadMediaServer
 {
     public partial class Form1 : Form
     {
-        private string _hubUrl = "https://streamapi.sinovad.com/mediaServerHub";
-
         private static SharedData _sharedData;
 
         private static SinovadApiService _sinovadApiService;
@@ -49,8 +46,6 @@ namespace SinovadMediaServer
         private static MediaServerConfig _mediaServerConfig;
 
         private static List<String> _listUrls;
-
-        HubConnection _hubConnection;
 
         public Form1(string[] args)
         {            
@@ -63,8 +58,6 @@ namespace SinovadMediaServer
         private void StartWebServer()
         {
             CreateDefaultFolders();
-            _hubConnection = new HubConnectionBuilder().WithUrl(_hubUrl).Build();
-            _sharedData.HubConnection = _hubConnection;
             var builder = WebHost.CreateDefaultBuilder();
             var app = builder
             .UseKestrel()
@@ -223,7 +216,6 @@ namespace SinovadMediaServer
                   sharedData.TranscoderSettingsData = _sharedData.TranscoderSettingsData;
                   sharedData.ListPresets=_sharedData.ListPresets;
                   sharedData.WebUrl=_sharedData.WebUrl;
-                  sharedData.HubConnection = _sharedData.HubConnection;
               }).Build();
             Task.Run(() =>
             {

@@ -6,6 +6,7 @@ using SinovadMediaServer.Application.Shared;
 using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Interface;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using Timer = System.Threading.Timer;
 
 namespace SinovadMediaServer.HostedService
@@ -22,6 +23,8 @@ namespace SinovadMediaServer.HostedService
 
         private readonly IAlertService _alertService;
 
+        private string _hubUrl = "https://streamapi.sinovad.com/mediaServerHub";
+
         public MediaServerHostedService(SharedData sharedData, SharedService sharedService, IAppLogger<MediaServerHostedService> logger, IAlertService alertService)
         {
             _sharedData = sharedData;
@@ -30,59 +33,68 @@ namespace SinovadMediaServer.HostedService
             _alertService = alertService;
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            _alertService.Create("Inicio del servicio alojado", AlertType.Bullhorn);
+            await _alertService.Create("Inicio del servicio alojado", AlertType.Bullhorn);
+            _sharedData.HubConnection = new HubConnectionBuilder().WithUrl(_hubUrl).WithAutomaticReconnect().Build();
             _sharedData.HubConnection.Closed += async (error) =>
             {
                 await _alertService.Create("Se cerró la conexión a Signal IR - " + (error!=null?error.Message:""), AlertType.Bullhorn);
+            };
+            _sharedData.HubConnection.Reconnecting += async (error) =>
+            {
+                await _alertService.Create("Reconectando a Signal IR", AlertType.Bullhorn);
+            };
+            _sharedData.HubConnection.Reconnected += async (connectionId) =>
+            {
+                await _alertService.Create($"Reconexión satisfactoria a Signal IR. El Id de la conexión es: {connectionId}", AlertType.Bullhorn);
                 try
                 {
                     await DeleteAllTranscodedMediaFiles();
                     System.Threading.Thread.Sleep(1000);
-                    await TryStartHubConnection(cancellationToken);
-                }
-                catch (Exception exception)
+                    RemoveHubHandlerMethods();
+                    System.Threading.Thread.Sleep(1000);
+                    await _sharedData.HubConnection.InvokeAsync("AddConnectionToUserClientsGroup", _sharedData.UserData.Guid);
+                    AddHubHandlerMethods();
+                }catch (Exception exception)
                 {
                     _logger.LogError(exception.Message);
                 }
             };
-            TryStartHubConnection(cancellationToken);
+            await TryStartHubConnection(cancellationToken);
             _timer = new Timer(UpdateMediaServerConnection, null, TimeSpan.Zero, TimeSpan.FromSeconds(1));
-            return Task.CompletedTask;
         }
 
-        public Task RemoveHubHandlerMethods(CancellationToken cancellationToken)
+        private void RemoveHubHandlerMethods()
         {
             _alertService.Create("Eliminando controladores para los métodos del Hub ", AlertType.Bullhorn);
             _sharedData.HubConnection.Remove("UpdateCurrentTimeMediaFilePlayBack");
             _sharedData.HubConnection.Remove("RemoveMediaFilePlayBack");
             _sharedData.HubConnection.Remove("RemoveLastTranscodedMediaFileProcess");
             _sharedData.HubConnection.Remove("UpdateCurrentTimeMediaFilePlayBack");
-            return Task.CompletedTask;
         }
 
 
-        public Task TryStartHubConnection(CancellationToken cancellationToken)
+        public async Task TryStartHubConnection(CancellationToken cancellationToken)
         {
             try
             {
-                _alertService.Create("Intentando conectarse a Signal IR ", AlertType.Bullhorn);
-                _sharedData.HubConnection.StartAsync();
+                await _alertService.Create("Intentando conectarse a Signal IR ", AlertType.Bullhorn);
+                await _sharedData.HubConnection.StartAsync(cancellationToken);
+                await _alertService.Create($"Conexión satisfactoria a Signal IR. El Id de la conexión es: {_sharedData.HubConnection.ConnectionId}", AlertType.Bullhorn);
                 System.Threading.Thread.Sleep(1000);
-                RemoveHubHandlerMethods(cancellationToken);
+                RemoveHubHandlerMethods();
                 System.Threading.Thread.Sleep(1000);
-                _sharedData.HubConnection.InvokeAsync("AddConnectionToUserClientsGroup", _sharedData.UserData.Guid);
-                AddHubHandlerMethods(cancellationToken);
+                await _sharedData.HubConnection.InvokeAsync("AddConnectionToUserClientsGroup", _sharedData.UserData.Guid);
+                AddHubHandlerMethods();
             }catch (Exception e){
-                _alertService.Create("Error al intentar conectarse a Signal IR - "+e.Message, AlertType.Bullhorn);
+                await _alertService.Create("Error al intentar conectarse a Signal IR - "+e.Message, AlertType.Bullhorn);
                 System.Threading.Thread.Sleep(1000);
-                TryStartHubConnection(cancellationToken);
+                await TryStartHubConnection(cancellationToken);
             }
-            return Task.CompletedTask;
         }
 
-        public Task AddHubHandlerMethods(CancellationToken cancellationToken)
+        public void AddHubHandlerMethods()
         {
             _alertService.Create("Agregando controladores para los métodos del Hub ", AlertType.Bullhorn);
             _sharedData.HubConnection.On("UpdateCurrentTimeMediaFilePlayBack", (string mediaServerGuid, string mediaFilePlaybackGuid, double currentTime, bool isPlaying) =>
@@ -121,7 +133,6 @@ namespace SinovadMediaServer.HostedService
                     }
                 }
             });
-            return Task.CompletedTask;
         }
 
         public Task DeleteAllTranscodedMediaFiles()
@@ -146,7 +157,7 @@ namespace SinovadMediaServer.HostedService
         private void UpdateMediaServerConnection(object state) {
             if (_sharedData.UserData!=null && _sharedData.MediaServerData!=null)
             {
-                _sharedData.HubConnection.InvokeAsync("UpdateMediaServerLastConnection", _sharedData.UserData.Guid.ToString(), _sharedData.MediaServerData.Guid.ToString());
+               _sharedData.HubConnection.InvokeAsync("UpdateMediaServerLastConnection", _sharedData.UserData.Guid.ToString(), _sharedData.MediaServerData.Guid.ToString());
             }
         }
 
