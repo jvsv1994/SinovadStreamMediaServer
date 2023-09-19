@@ -4,10 +4,13 @@ using SinovadMediaServer.Transversal.Common;
 namespace SinovadMediaServer.Infrastructure.SinovadApi
 {
 
-    public class SinovadDbGenre
+
+
+    public class SinovadDbTvSerieGenre
     {
-        public int Id { get; set; }
-        public string Name { get; set; }
+        public int TvSerieId { get; set; }
+        public int GenreId { get; set; }
+        public string GenreName { get; set; }
 
     }
 
@@ -36,7 +39,7 @@ namespace SinovadMediaServer.Infrastructure.SinovadApi
         public string? Directors { get; set; }
 
         public string? Actors { get; set; }
-        public List<SinovadDbGenre> ListGenres { get; set; }
+        public List<SinovadDbTvSerieGenre> TvSerieGenres { get; set; }
 
     }
 
@@ -81,7 +84,7 @@ namespace SinovadMediaServer.Infrastructure.SinovadApi
             var response = new Response<SinovadDbTvSerie>();
             try
             {
-                var result = await _sinovadApiService.ExecuteHttpMethodAsync<SinovadDbTvSerie>(HttpMethodType.GET, "/tvseries/SearchAsync/" + query);
+                var result = await _sinovadApiService.ExecuteHttpMethodAsync<SinovadDbTvSerie>(HttpMethodType.GET, "/mediadb/SearchTvSerieAsync/" + query);
                 response.Data = result.Data;
                 response.IsSuccess = true;
                 response.Message = "Successful";
@@ -93,12 +96,12 @@ namespace SinovadMediaServer.Infrastructure.SinovadApi
             return response;
         }
 
-        public async Task<Response<SinovadDbSeason>> GetTvSeasonAsync(int tvSerieId, int seasonNumber)
+        public async Task<Response<SinovadDbSeason>> SearchSeasonAsync(int tvSerieId, int seasonNumber)
         {
             var response = new Response<SinovadDbSeason>();
             try
             {
-                var path = "/seasons/GetTvSeasonAsync?tvSerieId=" + tvSerieId + "&seasonNumber=" + seasonNumber;
+                var path = "/mediadb/SearchSeasonAsync?tvSerieId=" + tvSerieId + "&seasonNumber=" + seasonNumber;
                 var result = await _sinovadApiService.ExecuteHttpMethodAsync<SinovadDbSeason>(HttpMethodType.GET, path);
                 response.Data = result.Data;
                 response.IsSuccess = true;
@@ -111,12 +114,12 @@ namespace SinovadMediaServer.Infrastructure.SinovadApi
             return response;
         }
 
-        public async Task<Response<SinovadDbEpisode>> GetTvEpisodeAsync(int tvSerieId, int seasonNumber, int episodeNumber)
+        public async Task<Response<SinovadDbEpisode>> SearchEpisodeAsync(int tvSerieId, int seasonNumber, int episodeNumber)
         {
             var response = new Response<SinovadDbEpisode>();
             try
             {
-                var path = "/episodes/GetTvEpisodeAsync?tvSerieId=" + tvSerieId + "&seasonNumber=" + seasonNumber + "&episodeNumber=" + episodeNumber;
+                var path = "/mediadb/SearchEpisodeAsync?tvSerieId=" + tvSerieId + "&seasonNumber=" + seasonNumber + "&episodeNumber=" + episodeNumber;
                 var result = await _sinovadApiService.ExecuteHttpMethodAsync<SinovadDbEpisode>(HttpMethodType.GET, path);
                 response.Data = result.Data;
                 response.IsSuccess = true;

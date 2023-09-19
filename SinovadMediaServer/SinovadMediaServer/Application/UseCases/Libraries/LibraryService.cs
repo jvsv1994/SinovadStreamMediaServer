@@ -395,7 +395,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             }
             if (mediaItem.MetadataAgentsId == MetadataAgents.SinovadDb)
             {
-                var res = sinovadMediaDataBaseService.GetTvEpisodeAsync(int.Parse(mediaItem.SourceId), seasonNumber, episodeNumber).Result;
+                var res = sinovadMediaDataBaseService.SearchEpisodeAsync(int.Parse(mediaItem.SourceId), seasonNumber, episodeNumber).Result;
                 if (res.Data != null)
                 {
                     var sinovadEpisode = res.Data;
@@ -442,7 +442,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             }
             if (mediaItem.MetadataAgentsId == MetadataAgents.SinovadDb)
             {
-                var res = sinovadMediaDataBaseService.GetTvSeasonAsync(int.Parse(mediaItem.SourceId), seasonNumber).Result;
+                var res = sinovadMediaDataBaseService.SearchSeasonAsync(int.Parse(mediaItem.SourceId), seasonNumber).Result;
                 if (res.Data != null)
                 {
                     var sinovadSeason = res.Data;
@@ -487,16 +487,16 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 mediaItemDto.Overview = sinovadTvSerie.Overview;
                 mediaItemDto.Actors = sinovadTvSerie.Actors;
                 mediaItemDto.Directors = sinovadTvSerie.Directors;
-                if (sinovadTvSerie.ListGenres != null)
+                if (sinovadTvSerie.TvSerieGenres != null)
                 {
-                    mediaItemDto.Genres = string.Join(", ", sinovadTvSerie.ListGenres.Select(x => x.Name));
+                    mediaItemDto.Genres = string.Join(", ", sinovadTvSerie.TvSerieGenres.Select(x => x.GenreName));
                 }
                 mediaItemDto.PosterPath = sinovadTvSerie.PosterPath;
                 mediaItemDto.Title = sinovadTvSerie.Name;
                 mediaItemDto.ExtendedTitle = sinovadTvSerie.Name + (sinovadTvSerie.LastAirDate.Value.Year > sinovadTvSerie.FirstAirDate.Value.Year ? " (" + sinovadTvSerie.FirstAirDate.Value.Year + "-" + sinovadTvSerie.LastAirDate.Value.Year + ")" : " (" + sinovadTvSerie.FirstAirDate.Value.Year + ")");
                 mediaItemDto.MediaTypeId = MediaType.TvSerie;
                 mediaItemDto.MetadataAgentsId = MetadataAgents.SinovadDb;
-                mediaItemDto.ListGenres = sinovadTvSerie.ListGenres.MapTo<List<MediaGenreDto>>();
+                mediaItemDto.ListGenres = sinovadTvSerie.TvSerieGenres.Select(x => new MediaGenreDto() { Id = x.GenreId,Name=x.GenreName}).ToList();
                 mediaItemDto.SearchQuery = tvSerieName;
                 _alertService.Create("Metadatos encontrados en Sinovad Media Data Base para " + tvSerieName, AlertType.Tags);
             }else
