@@ -39,7 +39,7 @@ namespace SinovadMediaServer.Controllers
         }
 
         [HttpPost("CreateAsync")]
-        public async Task<ActionResult> CreateAsync([FromBody] LibraryCreationDto libraryCreationDto)
+        public async Task<ActionResult<LibraryDto>> CreateAsync([FromBody] LibraryCreationDto libraryCreationDto)
         {
             var response = await _libraryService.CreateAsync(libraryCreationDto);
             if (!response.IsSuccess)

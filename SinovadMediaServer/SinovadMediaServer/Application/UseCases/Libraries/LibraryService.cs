@@ -86,8 +86,9 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             {
                var library = _mapper.Map<Library>(libraryCreationDto);
                library.MediaTypeCatalogId = (int)Catalog.MediaType;
-               await _unitOfWork.Libraries.AddAsync(library);
+               library=await _unitOfWork.Libraries.AddAsync(library);
                await _unitOfWork.SaveAsync();
+               response.Data = _mapper.Map<LibraryDto>(library);
                response.IsSuccess = true;
                response.Message = "Successful";
                await _sharedData.HubConnection.InvokeAsync("UpdateLibrariesByMediaServer", _sharedData.MediaServerData.Guid);
