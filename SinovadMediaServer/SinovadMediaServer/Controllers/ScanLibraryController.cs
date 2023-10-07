@@ -5,7 +5,7 @@ using SinovadMediaServer.Application.Interface.UseCases;
 namespace SinovadMediaServer.Controllers
 {
     [ApiController]
-    [Route("api/scanLibrary")]
+    [Route("api/scanLibraries")]
     public class ScanLibraryController : Controller
     {
         private readonly IScanLibraryService _scanLibraryService;
