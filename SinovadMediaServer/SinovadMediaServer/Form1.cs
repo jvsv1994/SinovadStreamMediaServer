@@ -127,6 +127,7 @@ namespace SinovadMediaServer
                 services.AddScoped<ILibraryService, LibraryService>();
                 services.AddScoped<IAlertService, AlertService>();
                 services.AddScoped<IMediaFilePlaybackService, MediaFilePlaybackService>();
+                services.AddScoped<IScanLibraryService, ScanLibraryService>();
 
                 services.AddMemoryCache();
                 services.AddCors(options => options.AddPolicy("AllowAnyOrigin",

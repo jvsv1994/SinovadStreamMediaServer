@@ -1,14 +1,9 @@
-﻿using System.Collections.Generic;
-using SinovadMediaServer.Application.DTOs.Library;
-
-#nullable disable
+﻿using SinovadMediaServer.Application.DTOs.Library;
 
 namespace SinovadMediaServer.Application.DTOs
 {
     public class SearchFilesDto
     {
         public List<LibraryDto> ListLibraries { get; set; }
-        public string LogIdentifier { get; set; }
-
     }
 }
