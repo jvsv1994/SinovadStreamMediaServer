@@ -23,9 +23,9 @@ namespace SinovadMediaServer.HostedService
 
         private readonly IAlertService _alertService;
 
-        private string _hubUrl = "http://localhost:53363/mediaServerHub";
+        //private string _hubUrl = "http://localhost:53363/mediaServerHub";
 
-        //private string _hubUrl = "https://streamapi.sinovad.com/mediaServerHub";
+        private string _hubUrl = "https://streamapi.sinovad.com/mediaServerHub";
 
         public MediaServerHostedService(SharedData sharedData, SharedService sharedService, IAppLogger<MediaServerHostedService> logger, IAlertService alertService)
         {
