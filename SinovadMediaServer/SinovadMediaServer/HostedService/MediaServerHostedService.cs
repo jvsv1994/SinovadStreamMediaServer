@@ -50,7 +50,7 @@ namespace SinovadMediaServer.HostedService
                 await _alertService.Create($"Reconexión satisfactoria a Signal IR. El Id de la conexión es: {connectionId}", AlertType.Bullhorn);
                 try
                 {
-                    await DeleteAllTranscodedMediaFiles();
+                    //await DeleteAllTranscodedMediaFiles();
                     System.Threading.Thread.Sleep(1000);
                     RemoveHubHandlerMethods();
                     System.Threading.Thread.Sleep(1000);

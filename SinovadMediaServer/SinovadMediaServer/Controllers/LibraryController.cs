@@ -1,8 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.DTOs.Library;
 using SinovadMediaServer.Application.Interface.UseCases;
-using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Transversal.Common;
 
 namespace SinovadMediaServer.Controllers
