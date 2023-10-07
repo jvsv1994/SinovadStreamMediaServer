@@ -13,13 +13,6 @@ namespace SinovadMediaServer.Application.Interface.UseCases
         Task<Response<object>> UpdateAsync(int id,LibraryCreationDto libraryDto);
         Task<Response<object>> DeleteAsync(int id);
 
-        Response<List<ItemsGroupDto>> GetMediaItemsByLibrary(int libraryId, int profileId);
-        Response<List<ItemsGroupDto>> GetMediaItemsByMediaType(MediaType mediaTypeId, int profileId);
-        Response<List<ItemsGroupDto>> GetAllMediaItems(int profileId);
-        Response<List<ItemDto>> GetAllMediaItemsBySearchQuery(string searchQuery);
-        Response<ItemDetailDto> GetMediaItemDetail(int mediaItemId);
-        Response<ItemDetailDto> GetMediaItemDetailByMediaFileAndProfile(int mediaFileId, int profileId);
-
     }
 
 }

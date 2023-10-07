@@ -6,16 +6,16 @@ namespace SinovadMediaServer.Application.Interface.Persistence
 {
     public interface IMediaItemRepository : IGenericRepository<MediaItem>
     {
-        List<ItemDto> GetAllItemsBySearchQuery(string searchQuery);
-        List<ItemDto> GetAllItemsByMediaType(MediaType mediaTypeId);
-        List<ItemDto> GetAllItemsRecentlyAddedByMediaType(MediaType mediaTypeId);
-        List<ItemDto> GetAllItemsByMediaTypeAndProfile(MediaType mediaTypeId, int profileId);
-        List<ItemDto> GetAllItems();
-        List<ItemDto> GetAllItemsRecentlyAdded();
-        List<ItemDto> GetAllItemsByProfile(int profileId);
-        List<ItemDto> GetItemsByLibrary(int libraryId);
-        List<ItemDto> GetItemsRecentlyAddedByLibrary(int libraryId);
-        List<ItemDto> GetItemsByLibraryAndProfile(int libraryId, int profileId);
+        Task<List<ItemDto>> GetAllItemsBySearchQuery(string searchQuery);
+        Task<List<ItemDto>> GetAllItemsByMediaType(MediaType mediaTypeId);
+        Task<List<ItemDto>> GetAllItemsRecentlyAddedByMediaType(MediaType mediaTypeId);
+        Task<List<ItemDto>> GetAllItemsByMediaTypeAndProfile(MediaType mediaTypeId, int profileId);
+        Task<List<ItemDto>> GetAllItems();
+        Task<List<ItemDto>> GetAllItemsRecentlyAdded();
+        Task<List<ItemDto>> GetAllItemsByProfile(int profileId);
+        Task<List<ItemDto>> GetItemsByLibrary(int libraryId);
+        Task<List<ItemDto>> GetItemsRecentlyAddedByLibrary(int libraryId);
+        Task<List<ItemDto>> GetItemsByLibraryAndProfile(int libraryId, int profileId);
 
     }
 }

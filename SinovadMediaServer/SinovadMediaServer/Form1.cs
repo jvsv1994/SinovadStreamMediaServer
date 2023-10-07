@@ -15,6 +15,7 @@ using SinovadMediaServer.Application.Shared;
 using SinovadMediaServer.Application.UseCases.Alerts;
 using SinovadMediaServer.Application.UseCases.Libraries;
 using SinovadMediaServer.Application.UseCases.MediaFilePlaybacks;
+using SinovadMediaServer.Application.UseCases.MediaItems;
 using SinovadMediaServer.Application.UseCases.TranscoderSetting;
 using SinovadMediaServer.Configuration;
 using SinovadMediaServer.Domain.Enums;
@@ -128,6 +129,7 @@ namespace SinovadMediaServer
                 services.AddScoped<IAlertService, AlertService>();
                 services.AddScoped<IMediaFilePlaybackService, MediaFilePlaybackService>();
                 services.AddScoped<IScanLibraryService, ScanLibraryService>();
+                services.AddScoped<IMediaItemService, MediaItemService>();
 
                 services.AddMemoryCache();
                 services.AddCors(options => options.AddPolicy("AllowAnyOrigin",

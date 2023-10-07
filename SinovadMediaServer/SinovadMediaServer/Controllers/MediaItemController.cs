@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.UseCases;
 using SinovadMediaServer.Domain.Enums;
+using SinovadMediaServer.Transversal.Common;
 
 namespace SinovadMediaServer.Controllers
 {
@@ -8,77 +10,77 @@ namespace SinovadMediaServer.Controllers
     [Route("api/mediaItems")]
     public class MediaItemController : Controller
     {
-        private readonly ILibraryService _libraryService;
+        private readonly IMediaItemService _mediaItemService;
 
-        public MediaItemController(ILibraryService libraryService)
+        public MediaItemController(IMediaItemService mediaItemService)
         {
-            _libraryService = libraryService;
+            _mediaItemService = mediaItemService;
         }
 
         [HttpGet("GetMediaItemsByLibrary")]
-        public ActionResult GetMediaItemsByLibrary([FromQuery] int libraryId, [FromQuery] int profileId)
+        public async Task<ActionResult<Response<List<ItemsGroupDto>>>> GetMediaItemsByLibrary([FromQuery] int libraryId, [FromQuery] int profileId)
         {
-            var response = _libraryService.GetMediaItemsByLibrary(libraryId, profileId);
-            if (response.IsSuccess)
+            var response = await _mediaItemService.GetMediaItemsByLibrary(libraryId, profileId);
+            if (!response.IsSuccess)
             {
-                return Ok(response);
+                return BadRequest(response.Message);
             }
-            return BadRequest(response.Message);
+            return response;
         }
 
         [HttpGet("GetAllMediaItems")]
-        public ActionResult GetAllMediaItems([FromQuery] int profileId)
+        public async Task<ActionResult<Response<List<ItemsGroupDto>>>> GetAllMediaItems([FromQuery] int profileId)
         {
-            var response = _libraryService.GetAllMediaItems(profileId);
-            if (response.IsSuccess)
+            var response = await _mediaItemService.GetAllMediaItems(profileId);
+            if (!response.IsSuccess)
             {
-                return Ok(response);
+                return BadRequest(response.Message);
             }
-            return BadRequest(response.Message);
+            return response;
         }
 
         [HttpGet("GetMediaItemsByMediaType")]
-        public ActionResult GetMediaItemsByMediaType([FromQuery] int mediaTypeId, [FromQuery] int profileId)
+        public async Task<ActionResult<Response<List<ItemsGroupDto>>>> GetMediaItemsByMediaType([FromQuery] int mediaTypeId, [FromQuery] int profileId)
         {
-            var response = _libraryService.GetMediaItemsByMediaType((MediaType)mediaTypeId, profileId);
-            if (response.IsSuccess)
+            var response = await _mediaItemService.GetMediaItemsByMediaType((MediaType)mediaTypeId, profileId);
+            if (!response.IsSuccess)
             {
-                return Ok(response);
+                return BadRequest(response.Message);
             }
-            return BadRequest(response.Message);
+            return response;
         }
 
         [HttpGet("GetMediaItemDetail/{mediaItemId}")]
-        public ActionResult GetMediaItemDetail([FromRoute] int mediaItemId)
+        public async Task<ActionResult<Response<ItemDetailDto>>> GetMediaItemDetail([FromRoute] int mediaItemId)
         {
-            var response = _libraryService.GetMediaItemDetail(mediaItemId);
-            if (response.IsSuccess)
+            var response = await _mediaItemService.GetMediaItemDetail(mediaItemId);
+            if (!response.IsSuccess)
             {
-                return Ok(response);
+                return BadRequest(response.Message);
             }
-            return BadRequest(response.Message);
+            return response;
         }
 
         [HttpGet("GetMediaItemDetailByMediaFileAndProfile")]
-        public ActionResult GetMediaItemDetailByMediaFileAndProfile([FromQuery] int mediaFileId, [FromQuery] int profileId)
+        public async Task<ActionResult<Response<ItemDetailDto>>> GetMediaItemDetailByMediaFileAndProfile([FromQuery] int mediaFileId, [FromQuery] int profileId)
         {
-            var response = _libraryService.GetMediaItemDetailByMediaFileAndProfile(mediaFileId, profileId);
-            if (response.IsSuccess)
+            var response = await _mediaItemService.GetMediaItemDetailByMediaFileAndProfile(mediaFileId, profileId);
+            if (!response.IsSuccess)
             {
-                return Ok(response);
+                return BadRequest(response.Message);
             }
-            return BadRequest(response.Message);
+            return response;
         }
 
         [HttpGet("GetAllMediaItemsBySearchQuery")]
-        public ActionResult GetAllMediaItemsBySearchQuery([FromQuery] string searchQuery)
+        public async Task<ActionResult<Response<List<ItemDto>>>> GetAllMediaItemsBySearchQuery([FromQuery] string searchQuery)
         {
-            var response = _libraryService.GetAllMediaItemsBySearchQuery(searchQuery);
-            if (response.IsSuccess)
+            var response = await _mediaItemService.GetAllMediaItemsBySearchQuery(searchQuery);
+            if (!response.IsSuccess)
             {
-                return Ok(response);
+                return BadRequest(response.Message);
             }
-            return BadRequest(response.Message);
+            return response;
         }
 
     }
