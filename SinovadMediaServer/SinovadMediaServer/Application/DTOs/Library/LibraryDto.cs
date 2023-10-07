@@ -2,7 +2,7 @@
 
 using SinovadMediaServer;
 
-namespace SinovadMediaServer.Application.DTOs
+namespace SinovadMediaServer.Application.DTOs.Library
 {
     public class LibraryDto
     {

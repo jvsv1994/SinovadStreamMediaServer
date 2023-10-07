@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using SinovadMediaServer.Application.DTOs;
+using SinovadMediaServer.Application.DTOs.MediaServer;
 
 #nullable disable
 

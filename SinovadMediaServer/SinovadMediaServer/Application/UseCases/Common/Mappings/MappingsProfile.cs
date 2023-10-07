@@ -1,4 +1,5 @@
 ﻿using SinovadMediaServer.Application.DTOs;
+using SinovadMediaServer.Application.DTOs.Library;
 using SinovadMediaServer.Domain.Entities;
 
 namespace SinovadMediaServer.Application.UseCases.Common.Mappings
@@ -8,6 +9,8 @@ namespace SinovadMediaServer.Application.UseCases.Common.Mappings
         public MappingsProfile()
         {
             CreateMap<Library, LibraryDto>().ReverseMap();
+            CreateMap<LibraryCreationDto, Library>();
+
             CreateMap<TranscoderSettings, TranscoderSettingsDto>().ReverseMap();
             CreateMap<MediaItem, MediaItemDto>().ReverseMap();
             CreateMap<MediaSeason, MediaSeasonDto>().ReverseMap();

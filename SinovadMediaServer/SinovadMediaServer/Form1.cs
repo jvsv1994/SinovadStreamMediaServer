@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Quartz;
 using SinovadMediaServer.Application.DTOs;
+using SinovadMediaServer.Application.DTOs.MediaServer;
 using SinovadMediaServer.Application.Interface.Infrastructure;
 using SinovadMediaServer.Application.Interface.Persistence;
 using SinovadMediaServer.Application.Interface.UseCases;
@@ -317,11 +318,7 @@ namespace SinovadMediaServer
 
         public async Task<MediaServerDto> SaveMediaServer()
         {
-            var mediaServerDto = new MediaServerDto();
-            if (_sharedData.MediaServerData != null)
-            {
-                mediaServerDto = _sharedData.MediaServerData;
-            }
+            var mediaServerDto = new MediaServerCreationDto();
             if (_sharedData.UserData != null)
             {
                 mediaServerDto.UserId = _sharedData.UserData.Id;
@@ -332,22 +329,31 @@ namespace SinovadMediaServer
             mediaServerDto.IpAddress = _mediaServerConfig.IpAddress;
             mediaServerDto.Port = int.Parse(_mediaServerConfig.PortNumber);
             mediaServerDto.PublicIpAddress = _mediaServerConfig.PublicIpAddress;
-            var response = await _sinovadApiService.ExecuteHttpMethodAsync<MediaServerDto>(HttpMethodType.PUT, "/mediaServers/Save", mediaServerDto);
-            if (response.IsSuccess)
+            var response = await _sinovadApiService.ExecuteHttpMethodAsync<MediaServerDto>(HttpMethodType.GET, "/mediaServers/GetBySecurityIdentifierAsync/"+ _mediaServerConfig.SecurityIdentifier);
+            if(response.IsSuccess && response.Data!=null)
             {
-                return response.Data;
+                var res=await _sinovadApiService.ExecuteHttpMethodAsync<MediaServerDto>(HttpMethodType.PUT, "/mediaServers/UpdateAsync/"+ response.Data.Id, mediaServerDto);
+                if(res.IsSuccess)
+                {
+                    return res.Data;
+                }
+            }else{           
+                var res = await _sinovadApiService.ExecuteHttpMethodAsync<MediaServerDto>(HttpMethodType.POST, "/mediaServers/CreateAsync", mediaServerDto);
+                if (res.IsSuccess)
+                {
+                    return res.Data;
+                }
             }
             return null;
         }
 
         public async Task<List<CatalogDetailDto>> GetPresets()
         {
-            var response = await _sinovadApiService.ExecuteHttpMethodAsync<List<CatalogDetailDto>>(HttpMethodType.GET, "/catalogs/GetDetailsByCatalogAsync/" + (int)Catalog.TranscoderPreset);
+            var response = await _sinovadApiService.ExecuteHttpMethodAsync<List<CatalogDetailDto>>(HttpMethodType.GET, "/catalogs/" + (int)Catalog.TranscoderPreset+"/details/GetAllAsync");
             if (response.IsSuccess && response.Data != null)
             {
                 return response.Data;
-            }
-            else
+            }else
             {
                 return null;
             }

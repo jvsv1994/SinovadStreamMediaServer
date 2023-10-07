@@ -1,4 +1,6 @@
-﻿namespace SinovadMediaServer.Application.DTOs
+﻿using SinovadMediaServer.Application.DTOs.MediaServer;
+
+namespace SinovadMediaServer.Application.DTOs
 {
     public class AuthenticateMediaServerResponseDto
     {

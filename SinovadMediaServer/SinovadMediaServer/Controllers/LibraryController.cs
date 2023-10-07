@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SinovadMediaServer.Application.DTOs;
+using SinovadMediaServer.Application.DTOs.Library;
 using SinovadMediaServer.Application.Interface.UseCases;
 using SinovadMediaServer.Domain.Enums;
+using SinovadMediaServer.Transversal.Common;
 
 namespace SinovadMediaServer.Controllers
 {
@@ -16,70 +18,59 @@ namespace SinovadMediaServer.Controllers
             _libraryService = libraryService;
         }
 
-        [HttpGet("GetAllLibraries")]
-        public async Task<ActionResult> GetAllLibraries()
+        [HttpGet("GetAsync/{id:int}",Name ="GetLibrary")]
+        public async Task<ActionResult<Response<LibraryDto>>> GetAsync([FromRoute] int id)
         {
-            var response = await _libraryService.GetAllLibraries();
-            if (response.IsSuccess)
+            var response = await _libraryService.GetAsync(id);
+            if (!response.IsSuccess)
             {
-                return Ok(response);
+                return BadRequest(response.Message);
             }
-            return BadRequest(response.Message);
+            return response;
         }
 
-        [HttpPost("Create")]
-        public ActionResult Create([FromBody] LibraryDto libraryDto)
+        [HttpGet("GetAllAsync")]
+        public async Task<ActionResult<Response<List<LibraryDto>>>> GetAllAsync()
         {
-            var response = _libraryService.Create(libraryDto);
-            if (response.IsSuccess)
+            var response = await _libraryService.GetAllAsync();
+            if (!response.IsSuccess)
             {
-                return Ok(response);
+                return BadRequest(response.Message);
             }
-            return BadRequest(response.Message);
+            return response;
         }
 
-        [HttpPost("CreateList")]
-        public ActionResult CreateList([FromBody] List<LibraryDto> list)
+        [HttpPost("CreateAsync")]
+        public async Task<ActionResult> CreateAsync([FromBody] LibraryCreationDto libraryCreationDto)
         {
-            var response = _libraryService.CreateList(list);
-            if (response.IsSuccess)
+            var response = await _libraryService.CreateAsync(libraryCreationDto);
+            if (!response.IsSuccess)
             {
-                return Ok(response);
+                return BadRequest(response.Message);
             }
-            return BadRequest(response.Message);
+            return CreatedAtRoute("GetLibrary", new {id= response.Data.Id },response.Data);
         }
 
-        [HttpPut("Update")]
-        public ActionResult Update([FromBody] LibraryDto seasonDto)
+        [HttpPut("UpdateAsync/{id:int}")]
+        public async Task<ActionResult> UpdateAsync([FromRoute] int id,[FromBody] LibraryCreationDto libraryCreationDto)
         {
-            var response = _libraryService.Update(seasonDto);
-            if (response.IsSuccess)
+            var response = await _libraryService.UpdateAsync(id, libraryCreationDto);
+            if(!response.IsSuccess)
             {
-                return Ok(response);
+                return BadRequest(response.Message);
             }
-            return BadRequest(response.Message);
+            return NoContent();
         }
 
-        [HttpDelete("Delete/{libraryId}")]
-        public ActionResult Delete(int libraryId)
+        [HttpDelete("DeleteAsync/{id:int}")]
+        public async Task<ActionResult> DeleteAsync(int id)
         {
-            var response = _libraryService.Delete(libraryId);
-            if (response.IsSuccess)
+            var response = await _libraryService.DeleteAsync(id);
+            if (!response.IsSuccess)
             {
-                return Ok(response);
+                return BadRequest(response.Message);
             }
-            return BadRequest(response.Message);
-        }
-
-        [HttpDelete("DeleteList/{listIds}")]
-        public ActionResult DeleteList(string listIds)
-        {
-            var response = _libraryService.DeleteList(listIds);
-            if (response.IsSuccess)
-            {
-                return Ok(response);
-            }
-            return BadRequest(response.Message);
+            return NoContent();
         }
 
         [HttpPost("SearchFiles")]

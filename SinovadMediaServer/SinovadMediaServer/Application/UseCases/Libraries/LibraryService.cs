@@ -2,11 +2,11 @@
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.SignalR.Client;
 using SinovadMediaServer.Application.DTOs;
+using SinovadMediaServer.Application.DTOs.Library;
 using SinovadMediaServer.Application.Interface.Infrastructure;
 using SinovadMediaServer.Application.Interface.Persistence;
 using SinovadMediaServer.Application.Interface.UseCases;
 using SinovadMediaServer.Application.Shared;
-using SinovadMediaServer.Application.UseCases.MediaFilePlaybacks;
 using SinovadMediaServer.Domain.Entities;
 using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Infrastructure;
@@ -15,7 +15,6 @@ using SinovadMediaServer.Shared;
 using SinovadMediaServer.Strategies;
 using SinovadMediaServer.Transversal.Common;
 using SinovadMediaServer.Transversal.Interface;
-using SinovadMediaServer.Transversal.Mapping;
 using System.Linq.Expressions;
 
 namespace SinovadMediaServer.Application.UseCases.Libraries
@@ -74,7 +73,7 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             return response;
         }
 
-        public async Task<Response<List<LibraryDto>>> GetAllLibraries()
+        public async Task<Response<List<LibraryDto>>> GetAllAsync()
         {
             var response = new Response<List<LibraryDto>>();
             try
@@ -92,67 +91,45 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
             return response;
         }
 
-        public Response<object> Create(LibraryDto libraryDto)
+        public async Task<Response<LibraryDto>> CreateAsync(LibraryCreationDto libraryCreationDto)
         {
-            var response = new Response<object>();
+            var response = new Response<LibraryDto>();
             try
             {
-                var library = _mapper.Map<Library>(libraryDto);
-                _unitOfWork.Libraries.Add(library);
-                _unitOfWork.Save();
-                response.IsSuccess = true;
-                response.Message = "Successful";
-                _sharedData.HubConnection.InvokeAsync("UpdateLibrariesByMediaServer", _sharedData.MediaServerData.Guid);
-            }
-            catch (Exception ex)
-            {
-                response.Message = ex.Message;
-                _logger.LogError(ex.StackTrace);
+               var library = _mapper.Map<Library>(libraryCreationDto);
+               library.MediaTypeCatalogId = (int)Catalog.MediaType;
+               await _unitOfWork.Libraries.AddAsync(library);
+               await _unitOfWork.SaveAsync();
+               response.IsSuccess = true;
+               response.Message = "Successful";
+               await _sharedData.HubConnection.InvokeAsync("UpdateLibrariesByMediaServer", _sharedData.MediaServerData.Guid);
+            }catch (Exception ex){
+               response.Message = ex.Message;
+               _logger.LogError(ex.StackTrace);
             }
             return response;
         }
 
-        public Response<object> CreateList(List<LibraryDto> list)
+        public async Task<Response<object>> UpdateAsync(int id,LibraryCreationDto libraryCreationDto)
         {
             var response = new Response<object>();
             try
             {
-                var mediaServers = _mapper.Map<List<Library>>(list);
-                _unitOfWork.Libraries.AddList(mediaServers);
-                _unitOfWork.Save();
-                response.IsSuccess = true;
-                response.Message = "Successful";
-                _sharedData.HubConnection.InvokeAsync("UpdateLibrariesByMediaServer", _sharedData.MediaServerData.Guid);
-            }
-            catch (Exception ex)
-            {
-                response.Message = ex.Message;
-                _logger.LogError(ex.StackTrace);
-            }
-            return response;
-        }
-
-        public Response<object> Update(LibraryDto libraryDto)
-        {
-            var response = new Response<object>();
-            try
-            {
-                var library = _mapper.Map<Library>(libraryDto);
-                _unitOfWork.Libraries.Update(library);
-                _unitOfWork.Save();
-                response.IsSuccess = true;
-                response.Message = "Successful";
-                _sharedData.HubConnection.InvokeAsync("UpdateLibrariesByMediaServer", _sharedData.MediaServerData.Guid);
-            }
-            catch (Exception ex)
-            {
-                response.Message = ex.Message;
-                _logger.LogError(ex.StackTrace);
+               var library=await _unitOfWork.Libraries.GetAsync(id);
+               library = _mapper.Map(libraryCreationDto, library);
+               _unitOfWork.Libraries.Update(library);
+               await _unitOfWork.SaveAsync();
+               response.IsSuccess = true;
+               response.Message = "Successful";
+               await _sharedData.HubConnection.InvokeAsync("UpdateLibrariesByMediaServer", _sharedData.MediaServerData.Guid);
+            }catch (Exception ex){
+               response.Message = ex.Message;
+               _logger.LogError(ex.StackTrace);
             }
             return response;
         }
 
-        public Response<object> Delete(int id)
+        public async Task<Response<object>> DeleteAsync(int id)
         {
             var response = new Response<object>();
             try
@@ -161,40 +138,11 @@ namespace SinovadMediaServer.Application.UseCases.Libraries
                 _sharedData.ListMediaFiles.RemoveAll(x => x.LibraryId == id);
                 DeleteMediaFilesByExpresion(expresionMediaFilesToDelete);
                 _unitOfWork.Libraries.Delete(id);
-                _unitOfWork.Save();
+                await _unitOfWork.SaveAsync();
                 response.IsSuccess = true;
                 response.Message = "Successful";
-                _sharedData.HubConnection.InvokeAsync("UpdateLibrariesByMediaServer", _sharedData.MediaServerData.Guid);
-            }
-            catch (Exception ex)
-            {
-                response.Message = ex.Message;
-                _logger.LogError(ex.StackTrace);
-            }
-            return response;
-        }
-
-        public Response<object> DeleteList(string ids)
-        {
-            var response = new Response<object>();
-            try
-            {
-                List<int> listIds = new List<int>();
-                if (!string.IsNullOrEmpty(ids))
-                {
-                    listIds = ids.Split(",").Select(x => Convert.ToInt32(x)).ToList();
-                }
-                Expression<Func<MediaFile, bool>> expresionMediaFilesToDelete = x => listIds.Contains((int)x.LibraryId);
-                _sharedData.ListMediaFiles.RemoveAll(x => listIds.Contains(x.Id));
-                DeleteMediaFilesByExpresion(expresionMediaFilesToDelete);
-                _unitOfWork.Libraries.DeleteByExpression(x=> listIds.Contains(x.Id));
-                _unitOfWork.Save();
-                response.IsSuccess = true;
-                response.Message = "Successful";
-                _sharedData.HubConnection.InvokeAsync("UpdateLibrariesByMediaServer", _sharedData.MediaServerData.Guid);
-            }
-            catch (Exception ex)
-            {
+                await _sharedData.HubConnection.InvokeAsync("UpdateLibrariesByMediaServer", _sharedData.MediaServerData.Guid);
+            }catch (Exception ex){
                 response.Message = ex.Message;
                 _logger.LogError(ex.StackTrace);
             }
