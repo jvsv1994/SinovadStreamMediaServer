@@ -6,7 +6,6 @@ using SinovadMediaServer.Application.Shared;
 using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Interface;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using Timer = System.Threading.Timer;
 
 namespace SinovadMediaServer.HostedService
