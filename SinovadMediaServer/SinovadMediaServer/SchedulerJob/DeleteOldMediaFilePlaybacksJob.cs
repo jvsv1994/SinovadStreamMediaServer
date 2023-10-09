@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using Quartz;
 using SinovadMediaServer.Application.DTOs;
+using SinovadMediaServer.Application.Interface.UseCases;
 using SinovadMediaServer.Application.Shared;
+using SinovadMediaServer.Domain.Enums;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Transversal.Interface;
 
@@ -16,10 +18,14 @@ namespace SinovadMediaServer.SchedulerJob
 
         private readonly IAppLogger<DeleteOldMediaFilePlaybacksJob> _logger;
 
-        public DeleteOldMediaFilePlaybacksJob(SharedData sharedData, IAppLogger<DeleteOldMediaFilePlaybacksJob> logger)
+        private readonly IAlertService _alertService;
+
+        public DeleteOldMediaFilePlaybacksJob(SharedData sharedData, SharedService sharedService, IAppLogger<DeleteOldMediaFilePlaybacksJob> logger, IAlertService alertService)
         {
             _sharedData = sharedData;
+            _sharedService = sharedService;
             _logger = logger;
+            _alertService = alertService;
         }
 
         public async Task Execute(IJobExecutionContext context)
@@ -37,13 +43,14 @@ namespace SinovadMediaServer.SchedulerJob
                     bool forceDelete = CheckIfDeleteTranscodedFile(mediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);
                     if (forceDelete)
                     {
+                        var itemTitle = mediaFilePlayback.ItemData.Subtitle != null ? mediaFilePlayback.ItemData.Title + " " + mediaFilePlayback.ItemData.Subtitle : mediaFilePlayback.ItemData.Title;
+                        _alertService.Create("Forzando eliminacion de playback antiguo de " + itemTitle + " reproducido por el cliente " + mediaFilePlayback.ClientData.LocalIpAddress, AlertType.Bullhorn);
                         _sharedService.KillProcessAndRemoveDirectory(mediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess);
                         _sharedData.ListMediaFilePlayback.Remove(mediaFilePlayback);
                         _sharedData.HubConnection.SendAsync("RemovedMediaFilePlayback", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, mediaFilePlayback.Guid);
                     }
                 }
-            }
-            catch (Exception ex)
+            }catch (Exception ex)
             {
                 _logger.LogError(ex.StackTrace);
             }

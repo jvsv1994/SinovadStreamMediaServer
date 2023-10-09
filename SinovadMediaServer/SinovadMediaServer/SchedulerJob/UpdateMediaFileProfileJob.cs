@@ -1,6 +1,5 @@
 ﻿using Quartz;
 using SinovadMediaServer.Application.Interface.UseCases;
-using System.Net.NetworkInformation;
 
 namespace SinovadMediaServer.SchedulerJob
 {
