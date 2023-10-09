@@ -84,7 +84,7 @@ namespace SinovadMediaServer.Infrastructure.SinovadApi
             var response = new Response<SinovadDbTvSerie>();
             try
             {
-                var result = await _sinovadApiService.ExecuteHttpMethodAsync<SinovadDbTvSerie>(HttpMethodType.GET, "/mediadb/SearchTvSerieAsync/" + query);
+                var result = await _sinovadApiService.ExecuteHttpMethodAsync<SinovadDbTvSerie>(HttpMethodType.GET, "/mediadb/SearchTvSerieAsync?query=" + query);
                 response.Data = result.Data;
                 response.IsSuccess = true;
                 response.Message = "Successful";
