@@ -8,6 +8,7 @@ namespace SinovadMediaServer.Application.DTOs
         public MediaFilePlaybackItemDto ItemData { get; set; }
         public MediaFilePlaybackCurrentStreamsDto StreamsData { get; set; }
         public MediaFilePlaybackProfileDto ProfileData { get; set; }
+        public DateTime Created { get; set; } 
 
     }
 }

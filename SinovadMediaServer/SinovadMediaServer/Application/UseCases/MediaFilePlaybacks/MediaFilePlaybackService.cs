@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR.Client;
 using SinovadMediaServer.Application.DTOs;
 using SinovadMediaServer.Application.Interface.Persistence;
 using SinovadMediaServer.Application.Interface.UseCases;
+using SinovadMediaServer.Application.Shared;
 using SinovadMediaServer.Domain.Entities;
 using SinovadMediaServer.Shared;
 using SinovadMediaServer.Strategies;
@@ -13,18 +14,21 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
 {
     public class MediaFilePlaybackService : IMediaFilePlaybackService
     {
-        private IUnitOfWork _unitOfWork;
+        private readonly IUnitOfWork _unitOfWork;
 
         private readonly SharedData _sharedData;
+
+        private readonly SharedService _sharedService;
 
         private readonly IAppLogger<MediaFilePlaybackService> _logger;
 
         private readonly FfmpegStrategy _ffmpegStrategy;
 
-        public MediaFilePlaybackService(IUnitOfWork unitOfWork, SharedData sharedData, IMapper mapper, IAppLogger<MediaFilePlaybackService> logger, FfmpegStrategy ffmpegStrategy)
+        public MediaFilePlaybackService(IUnitOfWork unitOfWork, SharedData sharedData, SharedService sharedService, IAppLogger<MediaFilePlaybackService> logger, FfmpegStrategy ffmpegStrategy)
         {
             _unitOfWork = unitOfWork;
             _sharedData = sharedData;
+            _sharedService= sharedService;
             _logger = logger;
             _ffmpegStrategy = ffmpegStrategy;
         }
@@ -46,37 +50,48 @@ namespace SinovadMediaServer.Application.UseCases.MediaFilePlaybacks
             return response;
         }
 
-        public Response<TranscodedMediaFileResponseDto> CreateTranscodedMediaFile(MediaFilePlaybackDto MediaFilePlayback, string clientIpAddress)
+        public async Task<Response<TranscodedMediaFileResponseDto>> CreateTranscodedMediaFile(MediaFilePlaybackDto mediaFilePlayback, string clientIpAddress)
         {
             var response = new Response<TranscodedMediaFileResponseDto>();
             try
             {
-                if (MediaFilePlayback.ClientData != null)
+                if (mediaFilePlayback.ClientData != null)
                 {
-                    MediaFilePlayback.ClientData.LocalIpAddress = clientIpAddress;
+                    mediaFilePlayback.ClientData.LocalIpAddress = clientIpAddress;
                 }
-                var physicalPath = MediaFilePlayback.ItemData.PhysicalPath;
-                var timeSpan = MediaFilePlayback.ClientData.CurrentTime.ToString();
-                MediaFilePlayback.StreamsData = _ffmpegStrategy.GenerateMediaFilePlaybackStreamsData(physicalPath);
-                var mediaFilePlaybackTranscodingProcess = _ffmpegStrategy.ExecuteTranscodeAudioVideoAndSubtitleProcess(MediaFilePlayback.StreamsData, timeSpan);
-                MediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess = mediaFilePlaybackTranscodingProcess;
-                _sharedData.ListMediaFilePlayback.Add(MediaFilePlayback);
-                _sharedData.HubConnection.InvokeAsync("AddedMediaFilePlayback", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, MediaFilePlayback.Guid);
-                MediaFilePlayback.ItemData.Duration = MediaFilePlayback.StreamsData.Duration;
-                MediaFilePlayback.ClientData.Duration = MediaFilePlayback.StreamsData.Duration;
-                var videoUrl = _sharedData.WebUrl + "/transcoded/" + mediaFilePlaybackTranscodingProcess.TranscodeFolderName + "/" + MediaFilePlayback.StreamsData.OutputTranscodedFileName;
+                var listMediaFilePlayback=_sharedData.ListMediaFilePlayback.Where(mfp => mfp.ClientData.LocalIpAddress == clientIpAddress).ToList();
+                if(listMediaFilePlayback!=null && listMediaFilePlayback.Count>0)
+                {
+                    foreach (var mfpb in listMediaFilePlayback)
+                    {
+                        _sharedService.KillProcessAndRemoveDirectory(mfpb.StreamsData.MediaFilePlaybackTranscodingProcess);
+                        _sharedData.ListMediaFilePlayback.RemoveAll(x => x.Guid == mfpb.Guid);
+                        await _sharedData.HubConnection.SendAsync("RemovedMediaFilePlayBack", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, mfpb.Guid);
+                    }
+                }          
+                var physicalPath = mediaFilePlayback.ItemData.PhysicalPath;
+                var timeSpan = mediaFilePlayback.ClientData.CurrentTime.ToString();
+                mediaFilePlayback.StreamsData = _ffmpegStrategy.GenerateMediaFilePlaybackStreamsData(physicalPath);
+                var mediaFilePlaybackTranscodingProcess = _ffmpegStrategy.ExecuteTranscodeAudioVideoAndSubtitleProcess(mediaFilePlayback.StreamsData, timeSpan);
+                mediaFilePlayback.StreamsData.MediaFilePlaybackTranscodingProcess = mediaFilePlaybackTranscodingProcess;
+                _sharedData.ListMediaFilePlayback.Add(mediaFilePlayback);
+                await _sharedData.HubConnection.InvokeAsync("AddedMediaFilePlayback", _sharedData.UserData.Guid, _sharedData.MediaServerData.Guid, mediaFilePlayback.Guid);
+                mediaFilePlayback.ItemData.Duration = mediaFilePlayback.StreamsData.Duration;
+                mediaFilePlayback.ClientData.Duration = mediaFilePlayback.StreamsData.Duration;
+                mediaFilePlayback.Created=DateTime.Now;
+                var videoUrl = _sharedData.WebUrl + "/transcoded/" + mediaFilePlaybackTranscodingProcess.TranscodeFolderName + "/" + mediaFilePlayback.StreamsData.OutputTranscodedFileName;
                 var transcodedFile = new TranscodedMediaFileResponseDto();
-                transcodedFile.Guid = MediaFilePlayback.Guid;
+                transcodedFile.Guid = mediaFilePlayback.Guid;
                 transcodedFile.Url = videoUrl;
-                transcodedFile.InitialTime = MediaFilePlayback.ClientData.CurrentTime;
-                transcodedFile.Duration = MediaFilePlayback.StreamsData.Duration;
-                transcodedFile.ListAudioStreams = MediaFilePlayback.StreamsData.ListAudioStreams;
-                transcodedFile.ListSubtitleStreams = MediaFilePlayback.StreamsData.ListSubtitleStreams;
-                transcodedFile.VideoTransmissionTypeId = MediaFilePlayback.StreamsData.VideoTransmissionTypeId;
+                transcodedFile.InitialTime = mediaFilePlayback.ClientData.CurrentTime;
+                transcodedFile.Duration = mediaFilePlayback.StreamsData.Duration;
+                transcodedFile.ListAudioStreams = mediaFilePlayback.StreamsData.ListAudioStreams;
+                transcodedFile.ListSubtitleStreams = mediaFilePlayback.StreamsData.ListSubtitleStreams;
+                transcodedFile.VideoTransmissionTypeId = mediaFilePlayback.StreamsData.VideoTransmissionTypeId;
                 response.Data = transcodedFile;
                 response.IsSuccess = true;
                 response.Message = "Successful";
-            } catch (Exception ex) {
+            }catch (Exception ex) {
                 response.Message = ex.Message;
                 _logger.LogError(ex.StackTrace);
             }

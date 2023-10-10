@@ -39,7 +39,7 @@ namespace SinovadMediaServer.Controllers
             try
             {
                 var clientIpAddress = HttpContext.Connection.RemoteIpAddress?.ToString();
-                var response = _mediaFilePlaybackService.CreateTranscodedMediaFile(MediaFilePlayback, clientIpAddress);
+                var response = await _mediaFilePlaybackService.CreateTranscodedMediaFile(MediaFilePlayback, clientIpAddress);
                 if (response.IsSuccess)
                 {
                     return Ok(response);
