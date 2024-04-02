@@ -53,17 +53,35 @@ namespace SinovadMediaServer.Application.Shared
                 {
                     KillProcess((int)mediaFilePlaybackTranscodingProcess.TranscodeSubtitlesProcessId);
                 }
-                if (System.IO.Directory.Exists(mediaFilePlaybackTranscodingProcess.TranscodeFolderPath))
-                {
-                    System.IO.Directory.Delete(mediaFilePlaybackTranscodingProcess.TranscodeFolderPath, true);
-                }
+                Thread.Sleep(100);
+                TryToDeleteFolder(mediaFilePlaybackTranscodingProcess);
                 killAndRemoveCompleted = true;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex.StackTrace);
+                TryToDeleteFolder(mediaFilePlaybackTranscodingProcess);
+                killAndRemoveCompleted = true;
             }
             return killAndRemoveCompleted;
+        }
+
+        private void TryToDeleteFolder(MediaFilePlaybackTranscodingProcess mediaFilePlaybackTranscodingProcess)
+        {
+            if (System.IO.Directory.Exists(mediaFilePlaybackTranscodingProcess.TranscodeFolderPath))
+            {
+                try
+                {
+                    System.IO.Directory.Delete(mediaFilePlaybackTranscodingProcess.TranscodeFolderPath, true);
+                    Thread.Sleep(100);
+                    TryToDeleteFolder(mediaFilePlaybackTranscodingProcess);
+                }catch (Exception ex)
+                {
+                    _logger.LogError(ex.StackTrace);
+                    Thread.Sleep(100);
+                    TryToDeleteFolder(mediaFilePlaybackTranscodingProcess);
+                }
+            }
         }
 
 
