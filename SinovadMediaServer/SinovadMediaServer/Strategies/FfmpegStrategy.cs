@@ -71,13 +71,15 @@ namespace SinovadMediaServer.Strategies
             if (mediaAnalysis != null)
             {
                 var copyVideoAndAudio = false;
+                var isVp9Video = false;
+
                 var argumentsFormatVideo = "-muxpreload 0 -muxdelay 0 -c:v copy";
                 if (mediaAnalysis.VideoStreams != null && mediaAnalysis.VideoStreams.Count > 0)
                 {
                     var videoStream = mediaAnalysis.VideoStreams[0];
                     if (videoStream.CodecName == "vp9")
                     {
-                        copyVideoAndAudio = true;
+                        isVp9Video = true;
                     }
                     if (videoStream.CodecName == "mpeg4" || (videoStream.CodecName == "hevc" && videoStream.CodecLongName.IndexOf("H.265") != -1))
                     {
@@ -167,10 +169,19 @@ namespace SinovadMediaServer.Strategies
 
 
                     var argumentsFormatAudio = "-c:a aac";
+                    if(isVp9Video)
+                    {
+                        argumentsFormatAudio = "-c:a copy";
+                    }
 
                     var panSection = "stereo|c0=0.5*c2+0.707*c0+0.707*c4+0.5*c3|c1=0.5*c2+0.707*c1+0.707*c5+0.5*c3";
                     var panSectionInQuates = "\"" + panSection + "\"";
                     var argumentsStereoAudio = "-af pan=" + panSectionInQuates;
+                    if(isVp9Video)
+                    {
+                        argumentsStereoAudio = "";
+                    }
+
                     var presetObject = _sharedData.ListPresets.Find(x => x.Id == transcoderSettings.PresetCatalogDetailId);
                     var argumentsPreset = "-preset " + presetObject.TextValue;
 
@@ -180,6 +191,16 @@ namespace SinovadMediaServer.Strategies
                     var varInputPhysicalPathInQuotes = "\"" + physicalPath + "\"";
 
                     var mediaStreamsArguments = " -itsoffset 10 -i " + varInputPhysicalPathInQuotes + " " + argumentsFormatVideo + " " + argumentsFormatAudio + " " + argumentsFinalStreams + " " + argumentsStereoAudio + " " + argumentsPreset + " -f hls " + argumentsFinalVarStreamMap + " -master_pl_name " + videoOutputName + " -start_number 0 -hls_time 1 -hls_list_size 0 " + formatOutputName;
+                    if(isVp9Video)
+                    {
+                        //mediaStreamsArguments = " -itsoffset 10 -i " + varInputPhysicalPathInQuotes + " " + argumentsFormatVideo + " " + argumentsFormatAudio + " " + argumentsFinalStreams +
+                        //     " " + argumentsPreset + " -f hls " + argumentsFinalVarStreamMap
+                        //     + " -master_pl_name " + videoOutputName + " -hls_segment_type fmp4 -start_number 0 -hls_time 1 -hls_list_size 0 -hls_fmp4_init_filename init.mp4 " + formatOutputName;
+
+                        mediaStreamsArguments = " -itsoffset 10 -i " + varInputPhysicalPathInQuotes + " " + argumentsFormatVideo + " " + argumentsFormatAudio + " " + argumentsFinalStreams +
+                           " " + argumentsPreset + " -hls_segment_type fmp4 -start_number 0 -hls_time 1 -hls_list_size 0 -hls_fmp4_init_filename init.mp4 " + videoOutputName;
+                    }
+
 
                     var finalCommandGenerateStreams = mediaStreamsArguments;
 
